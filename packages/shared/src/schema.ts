@@ -136,3 +136,25 @@ export const tasks = mysqlTable('tasks', {
 
 export type TaskRow = typeof tasks.$inferSelect;
 export type NewTaskRow = typeof tasks.$inferInsert;
+
+// ──────────────────────────────────────────────
+// 附件
+// ──────────────────────────────────────────────
+
+/**
+ * 任务附件：指向 R2 中的实际对象。
+ * `key` 是完整 R2 object key，已包含 `muimemo/` 前缀。
+ */
+export const attachments = mysqlTable('attachments', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  taskId: varchar('task_id', { length: 36 }).notNull(),
+  userId: varchar('user_id', { length: 36 }).notNull(),
+  key: varchar('r2_key', { length: 512 }).notNull(),
+  mime: varchar('mime', { length: 128 }).notNull(),
+  size: int('size').notNull(),
+  originalName: varchar('original_name', { length: 255 }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type AttachmentRow = typeof attachments.$inferSelect;
+export type NewAttachmentRow = typeof attachments.$inferInsert;

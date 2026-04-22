@@ -12,6 +12,7 @@ import { createEmbedder } from "@/lib/embedding";
 import { resolveTargetTask } from "@/lib/search";
 import { applyIntent, rerank } from "@mui-memo/shared/logic";
 import { taskPlaceEnum } from "@mui-memo/shared/validators";
+import { R2_PREFIX } from "@/lib/config";
 
 const INTENTS_NEEDING_RESOLVE = new Set(["STATUS", "DONE", "MODIFY", "LINK"]);
 
@@ -91,7 +92,7 @@ export async function POST(req: Request) {
   // 归档原始音频到 R2（如果启用了 binding）
   const bucket = env.AUDIO_BUCKET;
   if (bucket && ctx) {
-    const key = `u/${session.user.id}/${Date.now()}.${mimeType.includes("webm") ? "webm" : "bin"}`;
+    const key = `${R2_PREFIX}/audio/${session.user.id}/${Date.now()}.${mimeType.includes("webm") ? "webm" : "bin"}`;
     ctx.waitUntil(
       bucket
         .put(key, audioBuffer, { httpMetadata: { contentType: mimeType } })

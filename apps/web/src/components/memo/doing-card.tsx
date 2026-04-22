@@ -1,8 +1,9 @@
 "use client";
 
 import { CheckIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import Link from "next/link";
 import { PLACE_LABEL, type TaskView } from "@mui-memo/shared/logic";
+import { cn } from "@/lib/utils";
 
 interface Props {
   task: TaskView;
@@ -16,9 +17,13 @@ export function DoingCard({ task, onDone }: Props) {
         <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent-warm" />
         正在做
       </div>
-      <p className="mt-1 font-serif text-xl leading-snug text-ink">
+      <Link
+        href={`/tasks/${task.id}`}
+        prefetch={false}
+        className="mt-1 block font-serif text-xl leading-snug text-ink hover:underline"
+      >
         {task.text}
-      </p>
+      </Link>
       <div className="mt-1 flex flex-wrap gap-x-2 text-[11px] font-mono text-ink-mute">
         <span>
           {PLACE_LABEL[task.place].icon} {PLACE_LABEL[task.place].label}

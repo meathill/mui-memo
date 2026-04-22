@@ -19,6 +19,7 @@ interface R2Bucket {
       | null,
     options?: { httpMetadata?: { contentType?: string } },
   ): Promise<unknown>;
+  delete(key: string | string[]): Promise<void>;
 }
 
 interface CloudflareEnv {

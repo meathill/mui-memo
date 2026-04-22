@@ -74,7 +74,11 @@ export function OnboardingView() {
       <div className="mx-auto flex w-full max-w-sm flex-1 flex-col">
         <div className="flex justify-between font-mono text-[11px] text-ink-mute">
           <span>{slide.tag}</span>
-          <button type="button" onClick={finish} className="hover:text-ink-soft">
+          <button
+            type="button"
+            onClick={finish}
+            className="hover:text-ink-soft"
+          >
             跳过
           </button>
         </div>
@@ -188,7 +192,11 @@ function DemoMic() {
 
 function DemoScene() {
   const [active, setActive] = useState<"home" | "work" | "out">("home");
-  const options: Array<{ v: "home" | "work" | "out"; icon: string; label: string }> = [
+  const options: Array<{
+    v: "home" | "work" | "out";
+    icon: string;
+    label: string;
+  }> = [
     { v: "home", icon: "🏠", label: "在家" },
     { v: "work", icon: "💼", label: "在公司" },
     { v: "out", icon: "🚶", label: "在外" },
@@ -202,7 +210,9 @@ function DemoScene() {
           onClick={() => setActive(o.v)}
           className={cn(
             "rounded-full px-3 py-1.5 transition-colors",
-            active === o.v ? "bg-ink text-paper" : "text-ink-soft hover:text-ink",
+            active === o.v
+              ? "bg-ink text-paper"
+              : "text-ink-soft hover:text-ink",
           )}
         >
           {o.icon} {o.label}

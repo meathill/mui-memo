@@ -4,12 +4,16 @@
   "main": ".open-next/worker.js",
   "account_id": "fdc63eeea83ae8f5234357308b9a638b",
   "compatibility_date": "2026-04-01",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "placement": {
+    "mode": "smart"
   },
   "r2_buckets": [
     {
