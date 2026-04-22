@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "pnpm -F @mui-memo/shared build && opennextjs-cloudflare build",
-    "build:next": "pnpm -F @mui-memo/shared build && next build",
+    "build": "pnpm -F @mui-memo/shared build && next build",
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
