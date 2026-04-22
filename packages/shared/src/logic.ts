@@ -14,6 +14,7 @@ export interface TaskView {
   priority: number;
   tag?: string | null;
   deadline?: string | null;
+  dueAt?: string | null;
   aiReason?: string | null;
   status: TaskStatus;
   linkedTo?: string | null;
@@ -135,6 +136,7 @@ export function applyIntent(tasks: TaskView[], u: Utterance, now: Date = new Dat
       priority: core.priority ?? 2,
       tag: core.tag,
       deadline: core.deadline,
+      dueAt: core.dueAt,
       aiReason: u.aiReason,
       status: 'pending',
       done: false,
@@ -194,6 +196,7 @@ export function applyIntent(tasks: TaskView[], u: Utterance, now: Date = new Dat
         priority: core.priority ?? 2,
         tag: core.tag,
         deadline: core.deadline,
+        dueAt: core.dueAt,
         aiReason: u.aiReason,
         status: 'done',
         done: true,

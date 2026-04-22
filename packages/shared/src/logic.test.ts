@@ -102,6 +102,48 @@ describe('rerank', () => {
 // applyIntent - ADD
 // ──────────────────────────────────────────────
 
+describe('applyIntent · dueAt', () => {
+  it('ADD 时保留 AI 解析出的 dueAt', () => {
+    const due = '2026-04-23T23:59:00+08:00';
+    const u = utter({
+      intent: 'ADD',
+      raw: '明天给老妈打电话',
+      aiVerb: '新增',
+      task: { text: '给老妈打电话', deadline: '明天', dueAt: due },
+    });
+    const { tasks } = applyIntent([], u);
+    expect(tasks[0].deadline).toBe('明天');
+    expect(tasks[0].dueAt).toBe(due);
+  });
+
+  it('MODIFY 时 patch 里的 dueAt 写到目标任务', () => {
+    const before: TaskView[] = [
+      task({ id: 'a', text: '付物业费', deadline: '本月', dueAt: null }),
+    ];
+    const due = '2026-04-27T23:59:00+08:00';
+    const u = utter({
+      intent: 'MODIFY',
+      matchId: 'a',
+      aiVerb: '改时间',
+      patch: { deadline: '下周一', dueAt: due },
+    });
+    const { tasks } = applyIntent(before, u);
+    expect(tasks[0].deadline).toBe('下周一');
+    expect(tasks[0].dueAt).toBe(due);
+  });
+
+  it('DONE + createIfMissing 时 dueAt 透传', () => {
+    const due = '2026-04-24T15:00:00+08:00';
+    const u = utter({
+      intent: 'DONE',
+      aiVerb: '已完成',
+      createIfMissing: { text: '发货', dueAt: due },
+    });
+    const { tasks } = applyIntent([], u);
+    expect(tasks[0].dueAt).toBe(due);
+  });
+});
+
 describe('applyIntent · ADD', () => {
   it('新建任务放在列表头部，effect.kind=add', () => {
     const before: TaskView[] = [task({ id: 'old', text: '旧任务' })];

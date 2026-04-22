@@ -142,6 +142,50 @@ test.describe("任务详情 · 附件", () => {
   });
 });
 
+test.describe("任务详情 · dueAt", () => {
+  test.beforeEach(async ({ resetTasks }) => {
+    await resetTasks();
+  });
+
+  test("ADD 时带 dueAt → 详情页展示 + /api/tasks/[id] 返回 ISO", async ({
+    inject,
+    page,
+  }) => {
+    const due = "2026-04-23T15:00:00+08:00";
+    const res = await inject(
+      buildUtterance({
+        raw: "明天下午三点给老妈打电话",
+        intent: "ADD",
+        aiVerb: "新增",
+        task: {
+          text: "给老妈打电话",
+          place: "any",
+          window: "today",
+          deadline: "明天 15:00",
+          dueAt: due,
+        },
+      }),
+    );
+    const id = (res.effect as { id?: string }).id as string;
+
+    // 接口往返
+    const apiRes = await page.request.get(`/api/tasks/${id}`);
+    const data = (await apiRes.json()) as {
+      task: { deadline: string; dueAt: string };
+    };
+    expect(data.task.deadline).toBe("明天 15:00");
+    expect(new Date(data.task.dueAt).toISOString()).toBe(
+      new Date(due).toISOString(),
+    );
+
+    // 详情页渲染出 → 2026-4-23... 的展示文本（具体格式随 Intl 而定，
+    // 只断言包含「4月」和「15:00」这两个关键 token）
+    await page.goto(`/tasks/${id}`);
+    const hint = page.locator("text=/→.*4月23日.*15:00/");
+    await expect(hint).toBeVisible();
+  });
+});
+
 test.describe("任务详情 · 导航", () => {
   test.beforeEach(async ({ resetTasks }) => {
     await resetTasks();

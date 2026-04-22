@@ -55,6 +55,21 @@ describe('utteranceSchema', () => {
     expect(res.success).toBe(false);
   });
 
+  it('dueAt 接受合法 ISO，拒绝非法字符串', () => {
+    const ok = utteranceSchema.safeParse({
+      raw: 'x',
+      intent: 'ADD',
+      task: { text: '打电话', dueAt: '2026-04-23T15:00:00+08:00' },
+    });
+    expect(ok.success).toBe(true);
+    const bad = utteranceSchema.safeParse({
+      raw: 'x',
+      intent: 'ADD',
+      task: { text: '打电话', dueAt: 'not-a-date' },
+    });
+    expect(bad.success).toBe(false);
+  });
+
   it('patch 可以单独带 status', () => {
     const parsed = utteranceSchema.parse({
       raw: 'x',

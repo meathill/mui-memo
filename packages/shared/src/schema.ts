@@ -123,6 +123,8 @@ export const tasks = mysqlTable('tasks', {
   priority: int('priority').notNull().default(2),
   tag: varchar('tag', { length: 32 }),
   deadline: varchar('deadline', { length: 64 }),
+  /** AI 解析出的绝对截止时间（ISO 带时区），`deadline` 是自然语言 label。 */
+  dueAt: timestamp('due_at'),
   aiReason: text('ai_reason'),
   actionType: varchar('action_type', { length: 50 }),
   entities: json('entities'),

@@ -29,6 +29,7 @@ function rowToView(
     priority: row.priority,
     tag: row.tag,
     deadline: row.deadline,
+    dueAt: row.dueAt ? row.dueAt.toISOString() : null,
     aiReason: row.aiReason,
     status: row.status as TaskStatus,
     linkedTo: row.linkedTo,
@@ -70,6 +71,7 @@ interface ViewPatch {
   priority?: NullableField<number>;
   tag?: NullableField<string>;
   deadline?: NullableField<string>;
+  dueAt?: NullableField<Date>;
   aiReason?: NullableField<string>;
   status?: NullableField<TaskStatus>;
   linkedTo?: NullableField<string>;
@@ -90,6 +92,7 @@ function viewPatchToRow(patch: ViewPatch): Partial<NewTaskRow> {
     out.priority = patch.priority;
   if (patch.tag !== undefined) out.tag = patch.tag ?? null;
   if (patch.deadline !== undefined) out.deadline = patch.deadline ?? null;
+  if (patch.dueAt !== undefined) out.dueAt = patch.dueAt ?? null;
   if (patch.aiReason !== undefined) out.aiReason = patch.aiReason ?? null;
   if (patch.status !== undefined && patch.status !== null)
     out.status = patch.status;
@@ -139,6 +142,7 @@ export async function persistIntentResult(
         priority: a.priority,
         tag: a.tag ?? null,
         deadline: a.deadline ?? null,
+        dueAt: a.dueAt ? new Date(a.dueAt) : null,
         aiReason: a.aiReason ?? null,
         status: a.status,
         linkedTo: a.linkedTo ?? null,
@@ -156,6 +160,9 @@ export async function persistIntentResult(
     if ((b.tag ?? null) !== (a.tag ?? null)) diff.tag = a.tag ?? null;
     if ((b.deadline ?? null) !== (a.deadline ?? null))
       diff.deadline = a.deadline ?? null;
+    if ((b.dueAt ?? null) !== (a.dueAt ?? null)) {
+      diff.dueAt = a.dueAt ? new Date(a.dueAt) : null;
+    }
     if ((b.aiReason ?? null) !== (a.aiReason ?? null))
       diff.aiReason = a.aiReason ?? null;
     if (b.status !== a.status) diff.status = a.status;

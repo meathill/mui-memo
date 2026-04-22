@@ -45,6 +45,17 @@ export const taskCoreSchema = z.object({
   priority: z.number().int().min(1).max(3).default(2),
   tag: z.string().max(32).optional(),
   deadline: z.string().max(64).optional(),
+  /**
+   * 绝对截止时间，ISO 8601（含时区偏移）。AI 在解析 utterance 时根据
+   * 客户端上报的 tz + 当前时刻推算；自由文本 deadline 是对应的展示 label。
+   * 接受任何 `new Date()` 可解析的字符串。
+   */
+  dueAt: z
+    .string()
+    .refine((s) => !Number.isNaN(new Date(s).getTime()), {
+      message: "invalid ISO datetime",
+    })
+    .optional(),
 });
 export type TaskCore = z.infer<typeof taskCoreSchema>;
 

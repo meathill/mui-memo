@@ -13,6 +13,7 @@ import { resolveTargetTask } from "@/lib/search";
 import { applyIntent, rerank } from "@mui-memo/shared/logic";
 import { taskPlaceEnum } from "@mui-memo/shared/validators";
 import { R2_PREFIX } from "@/lib/config";
+import { describeNow, normalizeTz } from "@/lib/time";
 
 const INTENTS_NEEDING_RESOLVE = new Set(["STATUS", "DONE", "MODIFY", "LINK"]);
 
@@ -24,6 +25,9 @@ export async function POST(req: Request) {
   const form = await req.formData();
   const audio = form.get("audio");
   const placeStr = String(form.get("place") ?? "any");
+  const tz = normalizeTz(
+    typeof form.get("tz") === "string" ? (form.get("tz") as string) : undefined,
+  );
   if (!(audio instanceof Blob)) {
     return NextResponse.json({ error: "missing audio" }, { status: 400 });
   }
@@ -47,11 +51,13 @@ export async function POST(req: Request) {
 
   let utterance;
   try {
+    const anchor = describeNow(tz);
     utterance = await parseVoiceIntent({
       genai,
       audio: audioBuffer,
       audioMimeType: mimeType,
       currentTasks: tasksBefore,
+      now: { iso: anchor.iso, tz, weekday: anchor.weekday },
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "unknown";

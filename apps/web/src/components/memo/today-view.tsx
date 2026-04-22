@@ -82,6 +82,9 @@ export function TodayView({ userName }: Props) {
         const fd = new FormData();
         fd.append("audio", blob, "utterance.webm");
         fd.append("place", place);
+        try {
+          fd.append("tz", Intl.DateTimeFormat().resolvedOptions().timeZone);
+        } catch {}
         const res = await fetch("/api/intent", { method: "POST", body: fd });
         if (!res.ok) {
           const err = (await res.json().catch(() => ({}))) as {

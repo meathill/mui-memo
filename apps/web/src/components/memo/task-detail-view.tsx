@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ASSETS_URL, MAX_ATTACHMENT_SIZE } from "@/lib/config";
+import { formatDueAt } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { PLACE_LABEL } from "@mui-memo/shared/logic";
 import type {
@@ -24,6 +25,7 @@ interface Task {
   priority: number;
   tag: string | null;
   deadline: string | null;
+  dueAt: string | null;
   aiReason: string | null;
   status: TaskStatus;
   linkedTo: string | null;
@@ -273,6 +275,11 @@ export function TaskDetailView({ id }: { id: string }) {
               placeholder="下周一 / 17:00"
               size="default"
             />
+            {task.dueAt ? (
+              <p className="mt-1 font-mono text-[10px] text-ink-mute">
+                → {formatDueAt(task.dueAt)}
+              </p>
+            ) : null}
           </Field>
         </div>
 
