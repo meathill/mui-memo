@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   const db = createDb(env.TIDB_DATABASE_URL);
   const genai = createGenAI({
     apiKey: env.GEMINI_API_KEY,
-    gatewayAccountId: env.CF_AI_GATEWAY_ACCOUNT_ID,
+    gatewayAccountId: env.CF_ACCOUNT_ID,
     gatewayId: env.CF_AI_GATEWAY_ID,
   });
   const embedder = createEmbedder(genai);
