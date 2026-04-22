@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "pnpm -F @mui-memo/shared build && opennextjs-cloudflare build",
+    "build:next": "pnpm -F @mui-memo/shared build && next build",
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
@@ -13,7 +14,10 @@
     "db:studio": "drizzle-kit studio",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "e2e": "playwright test",
-    "e2e:ui": "playwright test --ui"
+    "e2e:ui": "playwright test --ui",
+    "cf-build": "opennextjs-cloudflare build",
+    "cf-preview": "opennextjs-cloudflare build && wrangler dev",
+    "deploy": "opennextjs-cloudflare build && wrangler deploy"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
