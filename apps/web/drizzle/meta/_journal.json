@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1776840630299,
+      "tag": "0000_free_franklin_storm",
+      "breakpoints": true
+    }
+  ]
+}
