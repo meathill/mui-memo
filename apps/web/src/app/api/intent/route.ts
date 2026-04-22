@@ -4,6 +4,7 @@ import { createDb } from "@/lib/db";
 import { getServerSession } from "@/lib/auth";
 import {
   backfillEmbeddings,
+  linkAudioKey,
   listTasksForUser,
   persistIntentResult,
 } from "@/lib/tasks";
@@ -95,15 +96,25 @@ export async function POST(req: Request) {
     embedder,
   );
 
-  // 归档原始音频到 R2（如果启用了 binding）
+  // 归档原始音频到 R2，并把 key 挂到新建的任务行上，方便详情页回放
   const bucket = env.AUDIO_BUCKET;
+  const shouldLinkAudio =
+    (effect.kind === "add" || effect.kind === "done-backfill") && effect.id;
   if (bucket && ctx) {
-    const key = `${R2_PREFIX}/audio/${session.user.id}/${Date.now()}.${mimeType.includes("webm") ? "webm" : "bin"}`;
+    const ext = mimeType.includes("webm") ? "webm" : "bin";
+    const audioKey = `${R2_PREFIX}/audio/${session.user.id}/${Date.now()}.${ext}`;
     ctx.waitUntil(
       bucket
-        .put(key, audioBuffer, { httpMetadata: { contentType: mimeType } })
+        .put(audioKey, audioBuffer, { httpMetadata: { contentType: mimeType } })
         .catch(() => undefined),
     );
+    if (shouldLinkAudio) {
+      ctx.waitUntil(
+        linkAudioKey(db, session.user.id, effect.id, audioKey).catch(
+          () => undefined,
+        ),
+      );
+    }
   }
 
   // 机会性回填历史任务的 embedding

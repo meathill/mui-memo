@@ -7,6 +7,12 @@
  */
 // 轻量 R2Bucket 最小接口声明，避免引入 @cloudflare/workers-types 的大型依赖
 // 仅描述本项目实际使用的方法；完整类型可在需要时通过 `pnpm cf-typegen` 生成
+interface R2ObjectBody {
+  body: ReadableStream;
+  httpMetadata?: { contentType?: string };
+  size: number;
+}
+
 interface R2Bucket {
   put(
     key: string,
@@ -19,6 +25,7 @@ interface R2Bucket {
       | null,
     options?: { httpMetadata?: { contentType?: string } },
   ): Promise<unknown>;
+  get(key: string): Promise<R2ObjectBody | null>;
   delete(key: string | string[]): Promise<void>;
 }
 

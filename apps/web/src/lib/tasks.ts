@@ -36,7 +36,23 @@ function rowToView(
     linked: linkedChildren,
     done: row.status === "done",
     completedAt: row.completedAt ? row.completedAt.toISOString() : undefined,
+    audioKey: row.audioKey,
   };
+}
+
+/**
+ * 把一个已经写入 R2 的音频 key 关联到任务行（ADD / DONE-backfill 路径用）。
+ */
+export async function linkAudioKey(
+  db: Database,
+  userId: string,
+  taskId: string,
+  audioKey: string,
+): Promise<void> {
+  await db
+    .update(tasksTable)
+    .set({ audioKey, updatedAt: new Date() })
+    .where(and(eq(tasksTable.id, taskId), eq(tasksTable.userId, userId)));
 }
 
 export async function listTasksForUser(

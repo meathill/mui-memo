@@ -69,6 +69,7 @@ export async function GET(
       linkedTo: row.linkedTo,
       createdAt: row.createdAt.toISOString(),
       completedAt: row.completedAt?.toISOString() ?? null,
+      audioKey: row.audioKey ?? null,
     },
     attachments: atts.map((a) => ({
       ...a,

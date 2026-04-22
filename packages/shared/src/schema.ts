@@ -134,6 +134,8 @@ export const tasks = mysqlTable('tasks', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   completedAt: timestamp('completed_at'),
   embedding: vector('embedding'),
+  /** 创建这条任务的原始语音 R2 key（仅 ADD / DONE-backfill 会填）。 */
+  audioKey: varchar('audio_key', { length: 512 }),
 });
 
 export type TaskRow = typeof tasks.$inferSelect;

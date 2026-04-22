@@ -26,6 +26,7 @@ interface Task {
   tag: string | null;
   deadline: string | null;
   dueAt: string | null;
+  audioKey: string | null;
   aiReason: string | null;
   status: TaskStatus;
   linkedTo: string | null;
@@ -313,6 +314,22 @@ export function TaskDetailView({ id }: { id: string }) {
             </summary>
             <p className="mt-1 text-sm text-ink-soft">{task.rawText}</p>
           </details>
+        ) : null}
+
+        {task.audioKey ? (
+          <div className="space-y-1.5">
+            <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">
+              原始语音
+            </p>
+            {/* biome-ignore lint/a11y/useMediaCaption: 用户录的语音备忘，没有字幕源 */}
+            <audio
+              controls
+              preload="none"
+              src={`/api/audio/${task.audioKey}`}
+              className="w-full"
+              data-testid="task-audio"
+            />
+          </div>
         ) : null}
       </section>
 

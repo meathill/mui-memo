@@ -22,6 +22,8 @@ export interface TaskView {
   done: boolean;
   addedAt?: string;
   completedAt?: string | null;
+  /** 产出该任务的原始语音 R2 key，空表示没有归档。 */
+  audioKey?: string | null;
 }
 
 export type Bucket = 'doing' | 'now' | 'today_here' | 'today_else' | 'blocked' | 'later';
