@@ -103,6 +103,12 @@ export function ProfileView() {
       {loading ? (
         <p className="mt-4 text-center text-xs text-ink-mute">加载中…</p>
       ) : null}
+
+      <footer className="mt-8 text-center">
+        <p className="font-mono text-[10px] tracking-[0.15em] text-ink-mute">
+          v{process.env.NEXT_PUBLIC_APP_VERSION}
+        </p>
+      </footer>
     </main>
   );
 }
