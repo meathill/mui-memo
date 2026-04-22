@@ -21,13 +21,13 @@
 - [x] 3.3 建立 Cloudflare 配置文件体系
   - [x] `wrangler.jsonc` (开发/生产多环境隔离，R2 binding 已预留)
   - [x] `.dev.vars` (存放本地测试 Secrets 模板)
-  - [ ] 自动生成 `cloudflare-env.d.ts` 类型声明 (待 R2 bucket 实际创建后执行)
-- [ ] 3.4 基础集成 (UI & State)
-  - [ ] 集成 Coss UI
-  - [ ] 引入 Zustand 并建立简单的录音/全局状态 Store
+  - [x] 自动生成 `cloudflare-env.d.ts` 类型声明 (手动维护了初始版)
+- [x] 3.4 基础集成 (UI & State)
+  - [x] 集成 Coss UI
+  - [x] 引入 Zustand 并建立简单的录音/全局状态 Store
 
 ## 4. 数据库与鉴权联动测试
 - [x] 4.1 在 `apps/web` 中配置 `drizzle-kit` (`drizzle.config.ts`)
-- [ ] 4.2 配置 TiDB Serverless 连通性测试 (需要填入真实 `.dev.vars` URL)
-- [ ] 4.3 生成并执行第一次 Migration (需要 TiDB 连接)
-- [ ] 4.4 初始化 Better-Auth 实例配置，连接 Drizzle Adapter
+- [x] 4.2 配置 TiDB Serverless 连通性测试 (需要填入真实 `.dev.vars` URL)
+- [x] 4.3 生成并执行第一次 Migration (需要 TiDB 连接)
+- [x] 4.4 初始化 Better-Auth 实例配置，连接 Drizzle Adapter
