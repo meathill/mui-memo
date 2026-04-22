@@ -1,10 +1,8 @@
 import type { NextConfig } from "next";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
-// Initialize OpenNext for local dev with Cloudflare bindings
-// This makes wrangler.jsonc vars and .dev.vars available in dev mode
+// 让 `next dev` 能读到 wrangler.jsonc 顶层绑定 + `.dev.vars` 里的 secrets
 initOpenNextCloudflareForDev({
-  environment: "dev",
   configPath: "./wrangler.jsonc",
 });
 

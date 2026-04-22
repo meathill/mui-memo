@@ -2,7 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "mui-memo-web",
   "main": ".open-next/worker.js",
-  "compatibility_date": "2025-04-01",
+  "compatibility_date": "2026-04-01",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": ".open-next/assets",
@@ -13,19 +13,8 @@
       "binding": "AUDIO_BUCKET",
       "bucket_name": "roudan-io"
     }
-  ],
-  "env": {
-    "dev": {
-      "vars": {
-        "NODE_ENV": "development",
-        // 打开 /api/_e2e/* 测试端点；只在本地 dev 环境注入，production env 下不设。
-        "E2E_ENABLED": "1"
-      }
-    },
-    "production": {
-      "vars": {
-        "NODE_ENV": "production"
-      }
-    }
-  }
+  ]
+  // 本地开发的 secrets / vars（TIDB_DATABASE_URL、BETTER_AUTH_SECRET、
+  // GEMINI_API_KEY、E2E_ENABLED 等）放 `.dev.vars`。
+  // 生产 secrets 用 Cloudflare Dashboard 或 `wrangler secret put` 注入。
 }
