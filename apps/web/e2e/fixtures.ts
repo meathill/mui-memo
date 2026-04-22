@@ -1,5 +1,10 @@
 import { test as base, expect, type APIRequestContext } from "@playwright/test";
+import type { IntentEffect } from "@mui-memo/shared/logic";
 import type { Utterance } from "@mui-memo/shared/validators";
+
+export interface InjectResult {
+  effect: IntentEffect;
+}
 
 /**
  * 共享的 e2e 用户 —— 由 auth.setup.ts 注册，所有后续 spec 都复用。
@@ -11,8 +16,8 @@ export const E2E_NAME = "e2e 测试";
 export const E2E_EMAIL_PATTERN = "e2e+%@muimemo.test";
 
 interface Fixtures {
-  /** 把 utterance 直接喂进 /api/test-e2e/intent，绕过 Gemini。 */
-  inject: (utterance: Utterance, place?: string) => Promise<void>;
+  /** 把 utterance 直接喂进 /api/test-e2e/intent，绕过 Gemini；返回 effect 便于拿到新任务 id。 */
+  inject: (utterance: Utterance, place?: string) => Promise<InjectResult>;
   /** 清空当前 e2e 用户的所有任务，保留账号。 */
   resetTasks: () => Promise<void>;
 }
@@ -26,6 +31,7 @@ export const test = base.extend<Fixtures>({
         data: { utterance, place, skipEmbedding: true },
       });
       expect(res.status(), await res.text().catch(() => "")).toBe(200);
+      return (await res.json()) as InjectResult;
     });
   },
   resetTasks: async ({ page }, use) => {

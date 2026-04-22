@@ -3,6 +3,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { eq, inArray, like, or } from "drizzle-orm";
 import {
   accounts,
+  attachments as attachmentsTable,
   sessions,
   tasks as tasksTable,
   users,
@@ -44,6 +45,19 @@ export async function POST(req: Request) {
     );
   const userIds = matchedUsers.map((u) => u.id);
   if (!userIds.length) return NextResponse.json({ ok: true, cleared: 0 });
+
+  // 先把附件的 R2 对象删掉（best effort），再清 DB 里的 attachments 行
+  const attRows = await db
+    .select({ key: attachmentsTable.key })
+    .from(attachmentsTable)
+    .where(inArray(attachmentsTable.userId, userIds));
+  const bucket = env.AUDIO_BUCKET;
+  if (bucket && attRows.length) {
+    await bucket.delete(attRows.map((r) => r.key)).catch(() => undefined);
+  }
+  await db
+    .delete(attachmentsTable)
+    .where(inArray(attachmentsTable.userId, userIds));
 
   await db.delete(tasksTable).where(inArray(tasksTable.userId, userIds));
 
