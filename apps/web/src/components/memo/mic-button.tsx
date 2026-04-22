@@ -126,16 +126,10 @@ export function MicButton({ disabled, onAudio }: Props) {
         onMouseDown={startRecording}
         onMouseUp={stopRecording}
         onMouseLeave={stopRecording}
-        onTouchStart={(e) => {
-          e.preventDefault();
-          startRecording();
-        }}
-        onTouchEnd={(e) => {
-          e.preventDefault();
-          stopRecording();
-        }}
+        onTouchStart={startRecording}
+        onTouchEnd={stopRecording}
         className={cn(
-          "relative flex h-20 w-20 items-center justify-center rounded-full transition-all",
+          "relative flex h-20 w-20 items-center justify-center rounded-full transition-all touch-manipulation select-none",
           "bg-ink text-paper shadow-lg shadow-ink/25 active:scale-95",
           phase === "recording" &&
             "bg-accent-warm shadow-accent-warm/30 scale-105",

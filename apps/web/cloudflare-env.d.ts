@@ -28,8 +28,12 @@ interface CloudflareEnv {
   // Better-Auth 密钥
   BETTER_AUTH_SECRET: string;
 
-  // Gemini API Key
+  // Gemini API Key（AI Studio key，不是 Vertex）
   GEMINI_API_KEY: string;
+
+  // Cloudflare AI Gateway 路由（可选：两个都设才启用 Gateway）
+  CF_AI_GATEWAY_ACCOUNT_ID?: string;
+  CF_AI_GATEWAY_ID?: string;
 
   // 仅 dev 环境：打开 /api/_e2e/* 测试端点（"1" = 启用）
   E2E_ENABLED?: string;

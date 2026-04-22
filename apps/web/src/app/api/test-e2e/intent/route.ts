@@ -8,6 +8,7 @@ import { ensureE2EEnabled } from "@/lib/e2e-guard";
 import { listTasksForUser, persistIntentResult } from "@/lib/tasks";
 import { resolveTargetTask } from "@/lib/search";
 import { createEmbedder } from "@/lib/embedding";
+import { createGenAI } from "@/lib/gemini";
 
 const INTENTS_NEEDING_RESOLVE = new Set(["STATUS", "DONE", "MODIFY", "LINK"]);
 
@@ -47,7 +48,13 @@ export async function POST(req: Request) {
   const db = createDb(env.TIDB_DATABASE_URL);
   const embedder = body.skipEmbedding
     ? undefined
-    : createEmbedder(env.GEMINI_API_KEY);
+    : createEmbedder(
+        createGenAI({
+          apiKey: env.GEMINI_API_KEY,
+          gatewayAccountId: env.CF_AI_GATEWAY_ACCOUNT_ID,
+          gatewayId: env.CF_AI_GATEWAY_ID,
+        }),
+      );
 
   const tasksBefore = await listTasksForUser(db, session.user.id);
 

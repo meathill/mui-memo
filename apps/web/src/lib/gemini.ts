@@ -1,8 +1,8 @@
-import { type Utterance, utteranceSchema } from "@mui-memo/shared/validators";
+import { GoogleGenAI } from "@google/genai";
 import type { TaskView } from "@mui-memo/shared/logic";
+import { type Utterance, utteranceSchema } from "@mui-memo/shared/validators";
 
-const GEMINI_ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+const CHAT_MODEL = "gemini-3-flash-preview";
 
 const SYSTEM_PROMPT = `你是 MuiMemo 的语音意图解析器。用户会说一句中文大白话，你需要把它转成一条结构化的 JSON 操作，用来更新用户的任务清单。
 
@@ -58,6 +58,31 @@ const SYSTEM_PROMPT = `你是 MuiMemo 的语音意图解析器。用户会说一
 - 其它一般 → priority:2
 `;
 
+export interface GenAIConfig {
+  apiKey: string;
+  /** Cloudflare AI Gateway account id；设了就走 Gateway，未设直连 Google */
+  gatewayAccountId?: string;
+  /** Cloudflare AI Gateway id */
+  gatewayId?: string;
+}
+
+/**
+ * 创建一个共用的 Google GenAI 客户端。
+ * 带 AI Gateway 时走：
+ *   https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/google-ai-studio
+ * SDK 会自动补 `/v1beta/models/...`。
+ */
+export function createGenAI(cfg: GenAIConfig): GoogleGenAI {
+  const baseUrl =
+    cfg.gatewayAccountId && cfg.gatewayId
+      ? `https://gateway.ai.cloudflare.com/v1/${cfg.gatewayAccountId}/${cfg.gatewayId}/google-ai-studio`
+      : undefined;
+  return new GoogleGenAI({
+    apiKey: cfg.apiKey,
+    httpOptions: baseUrl ? { baseUrl } : undefined,
+  });
+}
+
 function buildUserPrompt(tasks: TaskView[]): string {
   if (!tasks.length) return "当前清单：空。";
   const lines = tasks
@@ -92,7 +117,7 @@ function extractJson(text: string): string {
 }
 
 interface ParseOptions {
-  apiKey: string;
+  genai: GoogleGenAI;
   audio: ArrayBuffer;
   audioMimeType: string;
   currentTasks: TaskView[];
@@ -105,50 +130,25 @@ export async function parseVoiceIntent(opts: ParseOptions): Promise<Utterance> {
   const base64 = await audioToBase64(opts.audio);
   const userText = buildUserPrompt(opts.currentTasks);
 
-  const body = {
-    system_instruction: {
-      parts: [{ text: SYSTEM_PROMPT }],
-    },
+  const response = await opts.genai.models.generateContent({
+    model: CHAT_MODEL,
     contents: [
       {
         role: "user",
         parts: [
           { text: userText },
-          {
-            inline_data: {
-              mime_type: opts.audioMimeType,
-              data: base64,
-            },
-          },
+          { inlineData: { mimeType: opts.audioMimeType, data: base64 } },
         ],
       },
     ],
-    generationConfig: {
+    config: {
+      systemInstruction: SYSTEM_PROMPT,
       responseMimeType: "application/json",
       temperature: 0.2,
     },
-  };
+  });
 
-  const res = await fetch(
-    `${GEMINI_ENDPOINT}?key=${encodeURIComponent(opts.apiKey)}`,
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
-    },
-  );
-
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Gemini API ${res.status}: ${errText.slice(0, 200)}`);
-  }
-
-  const data = (await res.json()) as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-  };
-  const raw =
-    data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ??
-    "";
+  const raw = response.text ?? "";
   if (!raw) throw new Error("Gemini returned empty content");
 
   const json = JSON.parse(extractJson(raw));

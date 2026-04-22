@@ -7,7 +7,7 @@ import {
   listTasksForUser,
   persistIntentResult,
 } from "@/lib/tasks";
-import { parseVoiceIntent } from "@/lib/gemini";
+import { createGenAI, parseVoiceIntent } from "@/lib/gemini";
 import { createEmbedder } from "@/lib/embedding";
 import { resolveTargetTask } from "@/lib/search";
 import { applyIntent, rerank } from "@mui-memo/shared/logic";
@@ -32,7 +32,12 @@ export async function POST(req: Request) {
 
   const { env, ctx } = await getCloudflareContext({ async: true });
   const db = createDb(env.TIDB_DATABASE_URL);
-  const embedder = createEmbedder(env.GEMINI_API_KEY);
+  const genai = createGenAI({
+    apiKey: env.GEMINI_API_KEY,
+    gatewayAccountId: env.CF_AI_GATEWAY_ACCOUNT_ID,
+    gatewayId: env.CF_AI_GATEWAY_ID,
+  });
+  const embedder = createEmbedder(genai);
 
   const tasksBefore = await listTasksForUser(db, session.user.id);
 
@@ -42,7 +47,7 @@ export async function POST(req: Request) {
   let utterance;
   try {
     utterance = await parseVoiceIntent({
-      apiKey: env.GEMINI_API_KEY,
+      genai,
       audio: audioBuffer,
       audioMimeType: mimeType,
       currentTasks: tasksBefore,

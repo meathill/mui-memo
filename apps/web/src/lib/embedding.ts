@@ -1,37 +1,21 @@
+import type { GoogleGenAI } from "@google/genai";
 import { EMBEDDING_DIM } from "@mui-memo/shared/schema";
 
-const EMBED_ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent";
-
-interface EmbedResponse {
-  embedding?: { values?: number[] };
-}
+const EMBED_MODEL = "text-embedding-004";
 
 /**
- * 调用 Gemini text-embedding-004 生成 768 维向量。
- * 失败时抛错，由调用方决定是否降级。
+ * 用 @google/genai 生成 768 维向量。`genai` 由 gemini.ts 的 `createGenAI`
+ * 统一构造，自带 AI Gateway 路由。
  */
 export async function embedText(
-  apiKey: string,
+  genai: GoogleGenAI,
   text: string,
 ): Promise<number[]> {
-  const res = await fetch(
-    `${EMBED_ENDPOINT}?key=${encodeURIComponent(apiKey)}`,
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        model: "models/text-embedding-004",
-        content: { parts: [{ text }] },
-      }),
-    },
-  );
-  if (!res.ok) {
-    const msg = await res.text();
-    throw new Error(`Embedding ${res.status}: ${msg.slice(0, 200)}`);
-  }
-  const data = (await res.json()) as EmbedResponse;
-  const values = data.embedding?.values;
+  const res = await genai.models.embedContent({
+    model: EMBED_MODEL,
+    contents: text,
+  });
+  const values = res.embeddings?.[0]?.values;
   if (!Array.isArray(values) || values.length !== EMBEDDING_DIM) {
     throw new Error(
       `Unexpected embedding shape: got ${values?.length ?? 0}, want ${EMBEDDING_DIM}`,
@@ -42,6 +26,6 @@ export async function embedText(
 
 export type Embedder = (text: string) => Promise<number[]>;
 
-export function createEmbedder(apiKey: string): Embedder {
-  return (text: string) => embedText(apiKey, text);
+export function createEmbedder(genai: GoogleGenAI): Embedder {
+  return (text: string) => embedText(genai, text);
 }

@@ -156,12 +156,10 @@ function DemoMic() {
       <button
         type="button"
         onMouseDown={() => setActive(true)}
-        onTouchStart={(e) => {
-          e.preventDefault();
-          setActive(true);
-        }}
+        onTouchStart={() => setActive(true)}
+        onTouchEnd={() => setActive(false)}
         className={cn(
-          "relative flex h-20 w-20 items-center justify-center rounded-full transition-all select-none",
+          "relative flex h-20 w-20 items-center justify-center rounded-full transition-all touch-manipulation select-none",
           "bg-ink text-paper shadow-lg shadow-ink/25 active:scale-95",
           active && "bg-accent-warm shadow-accent-warm/30 scale-105",
         )}
