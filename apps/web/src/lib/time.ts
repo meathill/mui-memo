@@ -101,3 +101,24 @@ export function formatDueAt(iso: string, tz: string = DEFAULT_TZ): string {
 }
 
 export const TZ_DEFAULT = DEFAULT_TZ;
+
+/**
+ * `<input type="datetime-local">` 的值格式是 "YYYY-MM-DDTHH:mm"，无时区；
+ * 这里把 ISO 转成本地（浏览器时区）下的那种格式给 input 默认值。
+ */
+export function isoToLocalInput(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/**
+ * 反向：`<input type="datetime-local">` 的值（被浏览器当本地时间解读）→ ISO。
+ * 空字符串返回 null。
+ */
+export function localInputToISO(val: string): string | null {
+  if (!val) return null;
+  const d = new Date(val);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}

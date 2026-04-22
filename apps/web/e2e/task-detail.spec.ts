@@ -186,6 +186,95 @@ test.describe("任务详情 · dueAt", () => {
   });
 });
 
+test.describe("任务详情 · 手动编辑 dueAt", () => {
+  test.beforeEach(async ({ resetTasks }) => {
+    await resetTasks();
+  });
+
+  test("点「→ 点击设置具体时间」→ 输入本地时间 → PATCH ISO", async ({
+    inject,
+    page,
+  }) => {
+    const addRes = await inject(
+      buildUtterance({
+        raw: "ADD 无时间任务",
+        intent: "ADD",
+        aiVerb: "新增",
+        task: { text: "等有空再看", place: "any", window: "later" },
+      }),
+    );
+    const id = (addRes.effect as { id?: string }).id as string;
+
+    await page.goto(`/tasks/${id}`);
+    await page.getByRole("button", { name: "编辑截止时间" }).click();
+
+    // datetime-local 输入：本机时间 2027-01-02 09:30
+    const input = page.locator('input[type="datetime-local"]');
+    await input.fill("2027-01-02T09:30");
+    await input.blur();
+
+    // 等 PATCH 写入
+    await expect
+      .poll(async () => {
+        const res = await page.request.get(`/api/tasks/${id}`);
+        const data = (await res.json()) as { task: { dueAt: string | null } };
+        return data.task.dueAt;
+      })
+      .not.toBeNull();
+
+    const res = await page.request.get(`/api/tasks/${id}`);
+    const data = (await res.json()) as { task: { dueAt: string | null } };
+    const parsed = new Date(data.task.dueAt as string);
+    // 以本机 tz 解析应当对上
+    expect(parsed.getFullYear()).toBe(2027);
+    expect(parsed.getMonth() + 1).toBe(1);
+    expect(parsed.getDate()).toBe(2);
+  });
+});
+
+test.describe("任务详情 · 拖拽上传", () => {
+  test.beforeEach(async ({ resetTasks }) => {
+    await resetTasks();
+  });
+
+  test("往附件区域 drop 一个文件 → 上传成功", async ({ inject, page }) => {
+    const addRes = await inject(
+      buildUtterance({
+        raw: "ADD 拖拽测试",
+        intent: "ADD",
+        aiVerb: "新增",
+        task: { text: "拖拽测试", place: "any", window: "today" },
+      }),
+    );
+    const id = (addRes.effect as { id?: string }).id as string;
+
+    await page.goto(`/tasks/${id}`);
+    await expect(page.getByText("附件 · 0")).toBeVisible();
+
+    // 合成一个带文件的 DataTransfer + drop 事件，丢到 attachments 区域
+    const zone = page.getByTestId("attachments");
+    await zone.evaluate((el) => {
+      const file = new File(["hello drag"], "drop.txt", {
+        type: "text/plain",
+      });
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      const mk = (type: string) =>
+        new DragEvent(type, {
+          bubbles: true,
+          cancelable: true,
+          dataTransfer: dt,
+        });
+      el.dispatchEvent(mk("dragenter"));
+      el.dispatchEvent(mk("dragover"));
+      el.dispatchEvent(mk("drop"));
+    });
+
+    await expect(page.getByText("附件 · 1")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("drop.txt")).toBeVisible();
+  });
+});
+
 test.describe("任务详情 · 导航", () => {
   test.beforeEach(async ({ resetTasks }) => {
     await resetTasks();

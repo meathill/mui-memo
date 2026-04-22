@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ASSETS_URL, MAX_ATTACHMENT_SIZE } from "@/lib/config";
-import { formatDueAt } from "@/lib/time";
+import { formatDueAt, isoToLocalInput, localInputToISO } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { PLACE_LABEL } from "@mui-memo/shared/logic";
 import type {
@@ -118,6 +118,7 @@ export function TaskDetailView({ id }: { id: string }) {
       if (fields.tag !== undefined) body.tag = fields.tag || undefined;
       if (fields.deadline !== undefined)
         body.deadline = fields.deadline || undefined;
+      if (fields.dueAt !== undefined) body.dueAt = fields.dueAt ?? null;
       if (fields.status !== undefined) body.status = fields.status;
       try {
         const res = await fetch(`/api/tasks/${id}`, {
@@ -133,19 +134,14 @@ export function TaskDetailView({ id }: { id: string }) {
     [id, task],
   );
 
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    if (file.size > MAX_ATTACHMENT_SIZE) {
-      setError(`文件过大，≤ ${MAX_ATTACHMENT_SIZE / 1024 / 1024} MB`);
-      return;
-    }
-    setUploading(true);
-    setError(null);
-    const fd = new FormData();
-    fd.append("file", file);
-    try {
+  const uploadOne = useCallback(
+    async (file: File) => {
+      if (file.size > MAX_ATTACHMENT_SIZE) {
+        setError(`文件过大，≤ ${MAX_ATTACHMENT_SIZE / 1024 / 1024} MB`);
+        return;
+      }
+      const fd = new FormData();
+      fd.append("file", file);
       const res = await fetch(`/api/tasks/${id}/attachments`, {
         method: "POST",
         body: fd,
@@ -156,9 +152,31 @@ export function TaskDetailView({ id }: { id: string }) {
       }
       const data = (await res.json()) as { attachment: Attachment };
       setAttachments((prev) => [...prev, data.attachment]);
-    } finally {
-      setUploading(false);
-    }
+    },
+    [id],
+  );
+
+  const uploadMany = useCallback(
+    async (files: File[]) => {
+      if (!files.length) return;
+      setUploading(true);
+      setError(null);
+      try {
+        for (const f of files) {
+          // 串行上传：Worker 请求并发 + 小用户体感，不值得并行
+          await uploadOne(f);
+        }
+      } finally {
+        setUploading(false);
+      }
+    },
+    [uploadOne],
+  );
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    await uploadMany(files);
   }
 
   async function handleDeleteAttachment(attId: string) {
@@ -275,11 +293,10 @@ export function TaskDetailView({ id }: { id: string }) {
               placeholder="下周一 / 17:00"
               size="default"
             />
-            {task.dueAt ? (
-              <p className="mt-1 font-mono text-[10px] text-ink-mute">
-                → {formatDueAt(task.dueAt)}
-              </p>
-            ) : null}
+            <DueAtRow
+              dueAt={task.dueAt}
+              onChange={(iso) => patch({ dueAt: iso ?? undefined })}
+            />
           </Field>
         </div>
 
@@ -299,46 +316,16 @@ export function TaskDetailView({ id }: { id: string }) {
         ) : null}
       </section>
 
-      <section className="mt-8 space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink-mute">
-            附件 · {attachments.length}
-          </h2>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => fileRef.current?.click()}
-            loading={uploading}
-          >
-            <PaperclipIcon />
-            上传
-          </Button>
-          <input
-            ref={fileRef}
-            type="file"
-            className="hidden"
-            onChange={handleUpload}
-          />
-        </div>
-
-        {error ? <p className="text-xs text-red-600">{error}</p> : null}
-
-        {attachments.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-rule/60 px-4 py-6 text-center text-sm text-ink-mute">
-            还没有附件，上传截图、PDF、语音都可以。
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {attachments.map((a) => (
-              <AttachmentItem
-                key={a.id}
-                att={a}
-                onDelete={() => handleDeleteAttachment(a.id)}
-              />
-            ))}
-          </ul>
-        )}
-      </section>
+      <AttachmentsSection
+        attachments={attachments}
+        uploading={uploading}
+        error={error}
+        fileRef={fileRef}
+        onPickFile={() => fileRef.current?.click()}
+        onUploadChange={handleUpload}
+        onDrop={uploadMany}
+        onDelete={handleDeleteAttachment}
+      />
     </main>
   );
 }
@@ -443,5 +430,156 @@ function AttachmentItem({
         <TrashIcon />
       </Button>
     </li>
+  );
+}
+
+/**
+ * 一行灰色辅助文案：默认展示 AI 解析出的 dueAt；点一下变成
+ * datetime-local 输入框，blur 或按 Enter 保存。
+ */
+function DueAtRow({
+  dueAt,
+  onChange,
+}: {
+  dueAt: string | null;
+  onChange: (iso: string | null) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+
+  if (editing) {
+    return (
+      <input
+        type="datetime-local"
+        defaultValue={isoToLocalInput(dueAt)}
+        autoFocus
+        className="mt-1 w-full rounded-lg border border-rule/60 bg-paper-2/50 px-2 py-1 font-mono text-xs text-ink outline-none focus:border-ink/60"
+        onBlur={(e) => {
+          const iso = localInputToISO(e.target.value);
+          setEditing(false);
+          if (iso !== dueAt) onChange(iso);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+          if (e.key === "Escape") setEditing(false);
+        }}
+      />
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setEditing(true)}
+      className="mt-1 block w-full text-left font-mono text-[10px] text-ink-mute hover:text-ink-soft"
+      aria-label="编辑截止时间"
+    >
+      {dueAt ? `→ ${formatDueAt(dueAt)}` : "→ 点击设置具体时间"}
+    </button>
+  );
+}
+
+/**
+ * 附件区：点上传 + 拖拽上传。
+ * 整块区域都是 drop zone，拖拽时高亮边框。
+ */
+function AttachmentsSection({
+  attachments,
+  uploading,
+  error,
+  fileRef,
+  onPickFile,
+  onUploadChange,
+  onDrop,
+  onDelete,
+}: {
+  attachments: Attachment[];
+  uploading: boolean;
+  error: string | null;
+  fileRef: React.RefObject<HTMLInputElement | null>;
+  onPickFile: () => void;
+  onUploadChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onDrop: (files: File[]) => void | Promise<void>;
+  onDelete: (id: string) => void;
+}) {
+  const [dragOver, setDragOver] = useState(false);
+
+  return (
+    <section
+      data-testid="attachments"
+      className={cn(
+        "mt-8 space-y-3 rounded-2xl p-2 transition-colors",
+        dragOver && "bg-accent-warm/10 ring-2 ring-accent-warm/60",
+      )}
+      onDragEnter={(e) => {
+        // 只有真的拖了文件才响应
+        if (e.dataTransfer.types?.includes("Files")) {
+          e.preventDefault();
+          setDragOver(true);
+        }
+      }}
+      onDragOver={(e) => {
+        if (e.dataTransfer.types?.includes("Files")) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "copy";
+        }
+      }}
+      onDragLeave={(e) => {
+        // 离开到子元素不算
+        if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+        setDragOver(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+        const files = Array.from(e.dataTransfer.files ?? []);
+        if (files.length) onDrop(files);
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <h2 className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink-mute">
+          附件 · {attachments.length}
+        </h2>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onPickFile}
+          loading={uploading}
+        >
+          <PaperclipIcon />
+          上传
+        </Button>
+        <input
+          ref={fileRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={onUploadChange}
+        />
+      </div>
+
+      {error ? <p className="text-xs text-red-600">{error}</p> : null}
+
+      {attachments.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-rule/60 px-4 py-6 text-center text-sm text-ink-mute">
+          还没有附件。点击上方按钮，或直接把文件拖到这里。
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {attachments.map((a) => (
+            <AttachmentItem
+              key={a.id}
+              att={a}
+              onDelete={() => onDelete(a.id)}
+            />
+          ))}
+        </ul>
+      )}
+
+      {dragOver ? (
+        <p className="font-mono text-[11px] text-accent-warm text-center">
+          松开上传到此任务
+        </p>
+      ) : null}
+    </section>
   );
 }
