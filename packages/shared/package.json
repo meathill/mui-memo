@@ -11,19 +11,28 @@
     "./validators": {
       "types": "./dist/validators.d.ts",
       "import": "./dist/validators.js"
+    },
+    "./logic": {
+      "types": "./dist/logic.d.ts",
+      "import": "./dist/logic.js"
     }
   },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
-  "dependencies": {
+  "peerDependencies": {
     "drizzle-orm": "^0.45.2",
     "zod": "^3.24.4"
   },
   "devDependencies": {
+    "drizzle-orm": "^0.45.2",
     "tsup": "^8.5.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.5",
+    "zod": "^3.24.4"
   }
 }

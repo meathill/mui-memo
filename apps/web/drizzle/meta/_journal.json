@@ -8,6 +8,20 @@
       "when": 1776840630299,
       "tag": "0000_free_franklin_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1776843029592,
+      "tag": "0001_unique_pyro",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1776844210370,
+      "tag": "0002_sour_kang",
+      "breakpoints": true
     }
   ]
 }

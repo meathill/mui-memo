@@ -1,0 +1,13 @@
+{
+  "name": "MuiMemo · 口述备忘",
+  "short_name": "MuiMemo",
+  "description": "意图驱动的 AI 语音轻量任务调度",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4ede0",
+  "theme_color": "#f4ede0",
+  "lang": "zh-CN",
+  "icons": []
+}

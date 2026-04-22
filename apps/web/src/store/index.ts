@@ -1,58 +1,42 @@
-import { create } from 'zustand';
+import { create } from "zustand";
+import type { TaskView, Bucket, IntentEffect } from "@mui-memo/shared/logic";
+import type { TaskPlace, Utterance } from "@mui-memo/shared/validators";
 
-/**
- * 录音状态
- */
-interface RecordingState {
+type RankedTask = TaskView & { bucket: Bucket };
+
+interface AppState {
+  place: TaskPlace;
+  tasks: TaskView[];
+  ranked: RankedTask[];
+  lastEffect: IntentEffect | null;
+  lastUtterance: Utterance | null;
+  isProcessing: boolean;
   isRecording: boolean;
-  audioBlob: Blob | null;
-  startRecording: () => void;
-  stopRecording: (blob: Blob) => void;
-  clearRecording: () => void;
+
+  setPlace: (p: TaskPlace) => void;
+  hydrate: (payload: {
+    tasks: TaskView[];
+    ranked: RankedTask[];
+    place?: TaskPlace;
+  }) => void;
+  setRecording: (v: boolean) => void;
+  setProcessing: (v: boolean) => void;
+  setLastEffect: (e: IntentEffect | null, u?: Utterance | null) => void;
 }
 
-export const useRecordingStore = create<RecordingState>((set) => ({
-  isRecording: false,
-  audioBlob: null,
-  startRecording: () => set({ isRecording: true, audioBlob: null }),
-  stopRecording: (blob: Blob) => set({ isRecording: false, audioBlob: blob }),
-  clearRecording: () => set({ isRecording: false, audioBlob: null }),
-}));
-
-/**
- * 任务列表状态
- */
-interface Task {
-  id: string;
-  rawText: string;
-  actionType?: string;
-  status: 'frozen' | 'active' | 'completed';
-}
-
-interface TaskState {
-  tasks: Task[];
-  activeTasks: Task[];
-  setTasks: (tasks: Task[]) => void;
-  setActiveTasks: (tasks: Task[]) => void;
-  completeTask: (id: string) => void;
-  completeBatch: (ids: string[]) => void;
-}
-
-export const useTaskStore = create<TaskState>((set) => ({
+export const useAppStore = create<AppState>((set) => ({
+  place: "home",
   tasks: [],
-  activeTasks: [],
-  setTasks: (tasks) => set({ tasks }),
-  setActiveTasks: (activeTasks) => set({ activeTasks }),
-  completeTask: (id) =>
-    set((state) => ({
-      tasks: state.tasks.map((t) => (t.id === id ? { ...t, status: 'completed' as const } : t)),
-      activeTasks: state.activeTasks.filter((t) => t.id !== id),
-    })),
-  completeBatch: (ids) =>
-    set((state) => ({
-      tasks: state.tasks.map((t) =>
-        ids.includes(t.id) ? { ...t, status: 'completed' as const } : t,
-      ),
-      activeTasks: state.activeTasks.filter((t) => !ids.includes(t.id)),
-    })),
+  ranked: [],
+  lastEffect: null,
+  lastUtterance: null,
+  isProcessing: false,
+  isRecording: false,
+
+  setPlace: (p) => set({ place: p }),
+  hydrate: ({ tasks, ranked, place }) =>
+    set((s) => ({ tasks, ranked, place: place ?? s.place })),
+  setRecording: (v) => set({ isRecording: v }),
+  setProcessing: (v) => set({ isProcessing: v }),
+  setLastEffect: (e, u) => set({ lastEffect: e, lastUtterance: u ?? null }),
 }));

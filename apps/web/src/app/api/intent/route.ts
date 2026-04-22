@@ -1,0 +1,106 @@
+import { NextResponse } from "next/server";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { createDb } from "@/lib/db";
+import { getServerSession } from "@/lib/auth";
+import {
+  backfillEmbeddings,
+  listTasksForUser,
+  persistIntentResult,
+} from "@/lib/tasks";
+import { parseVoiceIntent } from "@/lib/gemini";
+import { createEmbedder } from "@/lib/embedding";
+import { resolveTargetTask } from "@/lib/search";
+import { applyIntent, rerank } from "@mui-memo/shared/logic";
+import { taskPlaceEnum } from "@mui-memo/shared/validators";
+
+const INTENTS_NEEDING_RESOLVE = new Set(["STATUS", "DONE", "MODIFY", "LINK"]);
+
+export async function POST(req: Request) {
+  const session = await getServerSession();
+  if (!session)
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  const form = await req.formData();
+  const audio = form.get("audio");
+  const placeStr = String(form.get("place") ?? "any");
+  if (!(audio instanceof Blob)) {
+    return NextResponse.json({ error: "missing audio" }, { status: 400 });
+  }
+
+  const placeParsed = taskPlaceEnum.safeParse(placeStr);
+  const ctxPlace = placeParsed.success ? placeParsed.data : "any";
+
+  const { env, ctx } = await getCloudflareContext({ async: true });
+  const db = createDb(env.TIDB_DATABASE_URL);
+  const embedder = createEmbedder(env.GEMINI_API_KEY);
+
+  const tasksBefore = await listTasksForUser(db, session.user.id);
+
+  const audioBuffer = await audio.arrayBuffer();
+  const mimeType = audio.type || "audio/webm";
+
+  let utterance;
+  try {
+    utterance = await parseVoiceIntent({
+      apiKey: env.GEMINI_API_KEY,
+      audio: audioBuffer,
+      audioMimeType: mimeType,
+      currentTasks: tasksBefore,
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "unknown";
+    return NextResponse.json(
+      { error: "gemini_failed", detail: msg },
+      { status: 502 },
+    );
+  }
+
+  // 混合搜索：为需要匹配的意图补一个 matchId
+  if (INTENTS_NEEDING_RESOLVE.has(utterance.intent)) {
+    try {
+      const query = utterance.match?.trim() || utterance.raw;
+      const resolved = await resolveTargetTask(
+        db,
+        session.user.id,
+        query,
+        utterance.match,
+        embedder,
+      );
+      if (resolved) {
+        utterance.matchId = resolved.id;
+      }
+    } catch {
+      // 解析失败就退回给 applyIntent 用正则兜底
+    }
+  }
+
+  const { tasks: tasksAfter, effect } = applyIntent(tasksBefore, utterance);
+  await persistIntentResult(
+    db,
+    session.user.id,
+    tasksBefore,
+    tasksAfter,
+    embedder,
+  );
+
+  // 归档原始音频到 R2（如果启用了 binding）
+  const bucket = env.AUDIO_BUCKET;
+  if (bucket && ctx) {
+    const key = `u/${session.user.id}/${Date.now()}.${mimeType.includes("webm") ? "webm" : "bin"}`;
+    ctx.waitUntil(
+      bucket
+        .put(key, audioBuffer, { httpMetadata: { contentType: mimeType } })
+        .catch(() => undefined),
+    );
+  }
+
+  // 机会性回填历史任务的 embedding
+  if (ctx) {
+    ctx.waitUntil(
+      backfillEmbeddings(db, session.user.id, embedder).catch(() => undefined),
+    );
+  }
+
+  const ranked = rerank(tasksAfter, ctxPlace);
+  return NextResponse.json({ utterance, effect, tasks: tasksAfter, ranked });
+}

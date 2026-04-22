@@ -106,9 +106,7 @@
       "compositePrimaryKeys": {
         "accounts_id": {
           "name": "accounts_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -181,17 +179,13 @@
       "compositePrimaryKeys": {
         "sessions_id": {
           "name": "sessions_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "sessions_token_unique": {
           "name": "sessions_token_unique",
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "checkConstraint": {}
@@ -271,9 +265,7 @@
       "compositePrimaryKeys": {
         "tasks_id": {
           "name": "tasks_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -340,17 +332,13 @@
       "compositePrimaryKeys": {
         "users_id": {
           "name": "users_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "checkConstraint": {}
@@ -408,9 +396,7 @@
       "compositePrimaryKeys": {
         "verifications_id": {
           "name": "verifications_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},

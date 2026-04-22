@@ -1,4 +1,8 @@
-# MuiMemo 任务清单 (Phase 0: 筹备与搭建)
+# MuiMemo 任务清单
+
+> Phase 0 已完成。Phase 1 (Web App MVP v1) 已经跑通端到端闭环，详见 `WIP.md`。
+
+## Phase 0: 筹备与搭建
 
 ## 1. 基础架构 (Workspace & Monorepo)
 - [x] 1.1 初始化根目录 `package.json` 并启用 pnpm workspaces
@@ -31,3 +35,41 @@
 - [x] 4.2 配置 TiDB Serverless 连通性测试 (需要填入真实 `.dev.vars` URL)
 - [x] 4.3 生成并执行第一次 Migration (需要 TiDB 连接)
 - [x] 4.4 初始化 Better-Auth 实例配置，连接 Drizzle Adapter
+
+## Phase 1: Web App MVP v1（当前进度）
+
+### v1 已完成（端到端闭环）
+- [x] tasks schema 扩展 + migration
+- [x] 前后端共享 rerank / applyIntent 逻辑
+- [x] Better-Auth 登录/注册 UI + 服务端 session gate
+- [x] Gemini 2.0 Flash 语音意图解析
+- [x] `POST /api/intent`、`GET /api/tasks`、`/api/tasks/[id]/done`、`/api/tasks/batch-done`
+- [x] paper 主题 Today 单页（ContextStrip / DoingCard / TaskRow / SectionHeader / MicButton / EffectToast）
+- [x] 浏览器 MediaRecorder 录音（长按 Space / 触摸 / 鼠标）
+- [x] PWA manifest
+- [x] typecheck + biome format + next build 三连过
+
+### v1.1 已完成
+- [x] TiDB Vector Embedding 混合搜索（Gemini text-embedding-004 + VEC_COSINE_DISTANCE + 关键词 LIKE 加权）
+- [x] All / Completed / Profile / Onboarding 四个页面
+- [x] 底部导航 BottomNav
+- [x] Onboarding 首登引导 + 可重置
+
+### v1.2 待办
+- [ ] night / mono 主题 + Tweaks 面板
+- [ ] check 动画 fade / fly 变体
+- [ ] XP / 等级 / 连击游戏化
+- [ ] `@cloudflare/workers-types` 接入 + `pnpm cf-typegen`
+- [x] `logic.ts` rerank/applyIntent vitest 单测（26/26 通过，含 utteranceSchema）
+- [x] Playwright e2e 套件（10 测试：auth.setup + today×4 + navigation + completion + all + onboarding×2），走真实 TiDB，绕过 Gemini
+- [ ] 音频归档 R2：完整测试 binding + 回放机制
+- [ ] 任务手动编辑（TaskSheet 底部抽屉）
+
+## Phase 2: iOS App
+（战略预留）
+
+## Phase 3: Native Features
+（战略预留）
+
+## Phase 4: Desktop Worker
+（战略预留）

@@ -1,0 +1,1 @@
+ALTER TABLE `tasks` MODIFY COLUMN `embedding` VECTOR(768);

@@ -8,17 +8,18 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
-  // R2 bucket for audio debug storage
-  // "r2_buckets": [
-  //   {
-  //     "binding": "AUDIO_BUCKET",
-  //     "bucket_name": "mui-memo-audio-dev"
-  //   }
-  // ],
+  "r2_buckets": [
+    {
+      "binding": "AUDIO_BUCKET",
+      "bucket_name": "roudan-io"
+    }
+  ],
   "env": {
     "dev": {
       "vars": {
-        "NODE_ENV": "development"
+        "NODE_ENV": "development",
+        // 打开 /api/_e2e/* 测试端点；只在本地 dev 环境注入，production env 下不设。
+        "E2E_ENABLED": "1"
       }
     },
     "production": {
