@@ -37,7 +37,7 @@ test.describe("任务详情 · 字段编辑", () => {
   }) => {
     const id = await addTaskAndGetId(inject, "付物业费", { tag: "财务" });
 
-    await page.goto(`/tasks/${id}`);
+    await page.goto(`/app/tasks/${id}`);
     await expect(page.getByText("任务详情")).toBeVisible();
     await expect(page.getByLabel("内容")).toHaveValue("付物业费");
 
@@ -73,7 +73,7 @@ test.describe("任务详情 · 字段编辑", () => {
   }) => {
     const id = await addTaskAndGetId(inject, "寄快递");
 
-    await page.goto(`/tasks/${id}`);
+    await page.goto(`/app/tasks/${id}`);
     await page.getByRole("button", { name: "已完成", exact: true }).click();
 
     // API 端 completedAt 非空
@@ -87,7 +87,7 @@ test.describe("任务详情 · 字段编辑", () => {
       })
       .not.toBeNull();
 
-    await page.goto("/completed");
+    await page.goto("/app/completed");
     await expect(page.getByText("寄快递")).toBeVisible();
   });
 });
@@ -108,7 +108,7 @@ test.describe("任务详情 · 附件", () => {
   test("上传图片 → 列表出现 → 删除 → 消失", async ({ inject, page }) => {
     const id = await addTaskAndGetId(inject, "装修参考");
 
-    await page.goto(`/tasks/${id}`);
+    await page.goto(`/app/tasks/${id}`);
     await expect(page.getByText("附件 · 0")).toBeVisible();
 
     // 直接喂 input[type=file]，触发 onChange → POST 上传
@@ -179,7 +179,7 @@ test.describe("任务详情 · dueAt", () => {
     );
 
     // 详情页 Deadline 行渲染出 4月23日... 15:00（格式随 Intl）
-    await page.goto(`/tasks/${id}`);
+    await page.goto(`/app/tasks/${id}`);
     const hint = page.locator("text=/4月23日.*15:00/");
     await expect(hint.first()).toBeVisible();
   });
@@ -207,7 +207,7 @@ test.describe("任务详情 · 过期 expectAt", () => {
       }),
     );
     const id = (res.effect as { id?: string }).id as string;
-    await page.goto(`/tasks/${id}`);
+    await page.goto(`/app/tasks/${id}`);
 
     const row = page
       .getByRole("button", { name: "编辑 预期" })
@@ -237,7 +237,7 @@ test.describe("任务详情 · 手动编辑 dueAt", () => {
     );
     const id = (addRes.effect as { id?: string }).id as string;
 
-    await page.goto(`/tasks/${id}`);
+    await page.goto(`/app/tasks/${id}`);
     await page.getByRole("button", { name: "编辑 Deadline" }).click();
 
     // datetime-local 输入：本机时间 2027-01-02 09:30
@@ -280,7 +280,7 @@ test.describe("任务详情 · 拖拽上传", () => {
     );
     const id = (addRes.effect as { id?: string }).id as string;
 
-    await page.goto(`/tasks/${id}`);
+    await page.goto(`/app/tasks/${id}`);
     await expect(page.getByText("附件 · 0")).toBeVisible();
 
     // 合成一个带文件的 DataTransfer + drop 事件，丢到 attachments 区域
@@ -318,7 +318,7 @@ test.describe("任务详情 · 删除", () => {
   }) => {
     const id = await addTaskAndGetId(inject, "要删掉的任务");
 
-    await page.goto(`/tasks/${id}`);
+    await page.goto(`/app/tasks/${id}`);
     await page.getByTestId("task-delete-btn").click();
 
     // Dialog 出现，确认删除
@@ -331,7 +331,7 @@ test.describe("任务详情 · 删除", () => {
     await page.getByRole("button", { name: "删除", exact: true }).click();
     await deletePromise;
 
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/app$/);
 
     // DB 端 404
     const res = await page.request.get(`/api/tasks/${id}`);
@@ -343,7 +343,7 @@ test.describe("任务详情 · 删除", () => {
     // 标记完成
     await page.request.post(`/api/tasks/${id}/done`);
 
-    await page.goto("/completed");
+    await page.goto("/app/completed");
     await expect(page.getByText("完成后要删除")).toBeVisible();
 
     await page.getByTestId("completed-delete-btn").first().click();
@@ -371,9 +371,9 @@ test.describe("任务详情 · 导航", () => {
       place: "any",
     });
 
-    await page.goto("/");
+    await page.goto("/app");
     await page.getByText("点进去试试").first().click();
-    await expect(page).toHaveURL(new RegExp(`/tasks/${id}$`));
+    await expect(page).toHaveURL(new RegExp(`/app/tasks/${id}$`));
     await expect(page.getByText("任务详情")).toBeVisible();
   });
 });

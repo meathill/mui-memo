@@ -3,7 +3,7 @@ import { buildUtterance, expect, test } from "./fixtures";
 test.describe("Today 页", () => {
   test.beforeEach(async ({ resetTasks, page }) => {
     await resetTasks();
-    await page.goto("/");
+    await page.goto("/app");
   });
 
   test("ADD 意图注入后任务出现在「此刻可做」桶", async ({ inject, page }) => {

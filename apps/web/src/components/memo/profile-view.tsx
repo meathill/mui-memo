@@ -83,7 +83,7 @@ export function ProfileView() {
 
       <section className="mt-6 space-y-2">
         <Link
-          href="/profile/log"
+          href="/app/profile/log"
           className="flex w-full items-center justify-between rounded-xl border border-rule/60 bg-paper-2/60 px-4 py-3 text-left hover:bg-paper-2"
         >
           <span className="font-serif text-sm text-ink">输入记录</span>

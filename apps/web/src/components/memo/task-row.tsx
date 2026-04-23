@@ -76,7 +76,7 @@ export function TaskRow({ task, onDone }: Props) {
   return (
     <li className={exitClass}>
       <Link
-        href={`/tasks/${task.id}`}
+        href={`/app/tasks/${task.id}`}
         prefetch={false}
         className="flex gap-3 border-b border-rule/50 px-1 py-3 last:border-b-0 active:bg-paper/40"
       >

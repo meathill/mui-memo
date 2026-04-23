@@ -27,7 +27,7 @@ export function DoingCard({ task, onDone }: Props) {
         正在做
       </div>
       <Link
-        href={`/tasks/${task.id}`}
+        href={`/app/tasks/${task.id}`}
         prefetch={false}
         className="mt-1 block font-serif text-xl leading-snug text-ink hover:underline"
       >

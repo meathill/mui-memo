@@ -61,7 +61,7 @@ export function OnboardingView() {
     try {
       window.localStorage.setItem("muimemo:onboarded", "1");
     } catch {}
-    router.replace("/");
+    router.replace("/app");
   }
 
   function next() {

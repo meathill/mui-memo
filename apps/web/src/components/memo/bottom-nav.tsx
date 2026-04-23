@@ -7,10 +7,10 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ITEMS: Array<{ href: string; label: string; icon: LucideIcon }> = [
-  { href: "/", label: "今天", icon: HomeIcon },
-  { href: "/all", label: "全部", icon: ListIcon },
-  { href: "/completed", label: "已完成", icon: CheckCircle2Icon },
-  { href: "/profile", label: "我的", icon: UserIcon },
+  { href: "/app", label: "今天", icon: HomeIcon },
+  { href: "/app/all", label: "全部", icon: ListIcon },
+  { href: "/app/completed", label: "已完成", icon: CheckCircle2Icon },
+  { href: "/app/profile", label: "我的", icon: UserIcon },
 ];
 
 export function BottomNav() {
@@ -23,7 +23,9 @@ export function BottomNav() {
       <ul className="mx-auto grid max-w-xl grid-cols-4">
         {ITEMS.map((it) => {
           const active =
-            it.href === "/" ? pathname === "/" : pathname.startsWith(it.href);
+            it.href === "/app"
+              ? pathname === "/app"
+              : pathname.startsWith(it.href);
           const Icon = it.icon;
           return (
             <li key={it.href}>

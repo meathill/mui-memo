@@ -66,14 +66,14 @@ export function TaskDetailView({ id }: { id: string }) {
       return;
     }
     track({ name: "task_delete", source: "detail" });
-    router.push("/");
+    router.push("/app");
   }
 
   const load = useCallback(async () => {
     setLoading(true);
     const res = await fetch(`/api/tasks/${id}`, { cache: "no-store" });
     if (!res.ok) {
-      if (res.status === 404) router.replace("/");
+      if (res.status === 404) router.replace("/app");
       setLoading(false);
       return;
     }

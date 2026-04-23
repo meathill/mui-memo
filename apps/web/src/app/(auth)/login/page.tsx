@@ -22,14 +22,14 @@ export default function LoginPage() {
     const { error } = await signIn.email({
       email,
       password,
-      callbackURL: "/",
+      callbackURL: "/app",
     });
     setLoading(false);
     if (error) {
       setError(error.message ?? "登录失败，请检查邮箱与密码");
       return;
     }
-    router.push("/");
+    router.push("/app");
     router.refresh();
   }
 

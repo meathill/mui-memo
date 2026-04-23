@@ -24,14 +24,14 @@ export default function RegisterPage() {
       email,
       password,
       name,
-      callbackURL: "/",
+      callbackURL: "/app",
     });
     setLoading(false);
     if (error) {
       setError(error.message ?? "注册失败，请稍后重试");
       return;
     }
-    router.push("/");
+    router.push("/app");
     router.refresh();
   }
 

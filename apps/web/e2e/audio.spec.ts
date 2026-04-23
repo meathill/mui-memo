@@ -45,7 +45,7 @@ test.describe("音频归档回放", () => {
     expect(key).toMatch(/^muimemo\/audio\//);
 
     // 3) 详情页应出现 audio 控件，且 src 指向 /api/audio/...
-    await page.goto(`/tasks/${id}`);
+    await page.goto(`/app/tasks/${id}`);
     const audio = page.getByTestId("task-audio");
     await expect(audio).toHaveAttribute("src", `/api/audio/${key}`);
 

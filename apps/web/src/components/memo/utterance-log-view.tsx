@@ -159,7 +159,7 @@ export function UtteranceLogView() {
               <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] font-mono text-ink-mute">
                 {u.taskId ? (
                   <Link
-                    href={`/tasks/${u.taskId}`}
+                    href={`/app/tasks/${u.taskId}`}
                     className="text-accent-warm hover:underline"
                   >
                     → 查看任务

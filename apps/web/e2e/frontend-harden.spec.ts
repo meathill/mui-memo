@@ -28,7 +28,7 @@ test.describe("Today · 内存筛选", () => {
       }
     });
 
-    await page.goto("/");
+    await page.goto("/app");
     await expect(page.getByText("给花浇水")).toBeVisible();
 
     // 记录当前计数作为基线
@@ -45,7 +45,7 @@ test.describe("Today · 内存筛选", () => {
   });
 
   test("手动刷新按钮重新拉 /api/tasks", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app");
     await page.waitForLoadState("networkidle");
     let tasksCalls = 0;
     page.on("request", (req) => {

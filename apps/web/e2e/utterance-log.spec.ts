@@ -40,7 +40,7 @@ test.describe("输入记录", () => {
       }),
     );
 
-    await page.goto("/profile/log");
+    await page.goto("/app/profile/log");
 
     // 限定在 main 里的 li，避免 BottomNav 的 li 干扰
     const items = page.locator("main ul > li");
@@ -54,13 +54,15 @@ test.describe("输入记录", () => {
 
     // ADD 记录可点击 → 跳任务详情
     await addItem.getByRole("link", { name: /查看任务/ }).click();
-    await expect(page).toHaveURL(new RegExp(`/tasks/${addedId}$`));
+    await expect(page).toHaveURL(new RegExp(`/app/tasks/${addedId}$`));
   });
 
-  test("Profile 页的「输入记录」链接会跳到 /profile/log", async ({ page }) => {
-    await page.goto("/profile");
+  test("Profile 页的「输入记录」链接会跳到 /app/profile/log", async ({
+    page,
+  }) => {
+    await page.goto("/app/profile");
     await page.getByRole("link", { name: "输入记录" }).click();
-    await expect(page).toHaveURL(/\/profile\/log$/);
+    await expect(page).toHaveURL(/\/app\/profile\/log$/);
     await expect(page.getByText("MuiMemo · 输入记录")).toBeVisible();
   });
 });

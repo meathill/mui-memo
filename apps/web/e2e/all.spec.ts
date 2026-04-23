@@ -31,7 +31,7 @@ test.describe("全部 (按 tag 分组)", () => {
       }),
     );
 
-    await page.goto("/all");
+    await page.goto("/app/all");
     await expect(page.getByText("共 3 件待办，按标签分组")).toBeVisible();
     // tag 分组标题是 h2
     await expect(page.getByRole("heading", { name: "工作" })).toBeVisible();

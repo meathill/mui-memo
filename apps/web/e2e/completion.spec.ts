@@ -23,7 +23,7 @@ test.describe("任务完成链路", () => {
       }),
     );
 
-    await page.goto("/");
+    await page.goto("/app");
     const row = page.getByText("寄快递给妈妈").first();
     await expect(row).toBeVisible();
 
@@ -41,13 +41,13 @@ test.describe("任务完成链路", () => {
       timeout: 10_000,
     });
 
-    await page.goto("/completed");
+    await page.goto("/app/completed");
     await expect(page.getByText(/已加载 1 件/)).toBeVisible();
     await expect(page.getByText("寄快递给妈妈")).toBeVisible();
     // "今天" 分组头：限定在 h2（避免与 BottomNav 的 Today 标签冲突）
     await expect(page.locator("h2", { hasText: "今天" })).toBeVisible();
 
-    await page.goto("/profile");
+    await page.goto("/app/profile");
     // StatCard 的「累计完成」至少显示 1
     const done = page.getByText("累计完成").locator("..");
     await expect(done).toContainText(/[1-9]/);
