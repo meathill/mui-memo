@@ -222,14 +222,15 @@ export async function persistIntentResult(
 }
 
 /**
- * 机会性补齐：取最多 8 条 embedding 为 NULL 的任务，生成并写入。
- * 不影响主流程（失败/超时都忽略），由调用方通过 ctx.waitUntil 包起来。
+ * 机会性补齐：取最多 N 条 embedding 为 NULL 的任务，并行生成并写入。
+ * 调用方会把它挂在 ctx.waitUntil 里；Worker 对 waitUntil 时间有上限，
+ * 串行跑 8 次 Gemini 容易被砍，所以限制到 4 条 + Promise.allSettled。
  */
 export async function backfillEmbeddings(
   db: Database,
   userId: string,
   embedder: Embedder,
-  limit = 8,
+  limit = 4,
 ): Promise<void> {
   const rows = await db
     .select({ id: tasksTable.id, text: tasksTable.text })
@@ -237,17 +238,19 @@ export async function backfillEmbeddings(
     .where(and(eq(tasksTable.userId, userId), isNull(tasksTable.embedding)))
     .limit(limit);
 
-  for (const r of rows) {
-    try {
-      const emb = await embedder(r.text);
-      await db
-        .update(tasksTable)
-        .set({ embedding: emb, updatedAt: new Date() })
-        .where(and(eq(tasksTable.id, r.id), eq(tasksTable.userId, userId)));
-    } catch {
-      // swallow
-    }
-  }
+  await Promise.allSettled(
+    rows.map(async (r) => {
+      try {
+        const emb = await embedder(r.text);
+        await db
+          .update(tasksTable)
+          .set({ embedding: emb, updatedAt: new Date() })
+          .where(and(eq(tasksTable.id, r.id), eq(tasksTable.userId, userId)));
+      } catch {
+        // swallow
+      }
+    }),
+  );
 }
 
 /**

@@ -5,11 +5,19 @@ import { headers } from "next/headers";
 import * as schema from "@mui-memo/shared/schema";
 import { createDb } from "./db";
 
+export interface CreateAuthOptions {
+  databaseUrl: string;
+  secret: string;
+  /** 部署域名（含 https://）。没设 Better-Auth 会走 host header 猜，cookie 可能种错。 */
+  baseURL?: string;
+}
+
 /**
- * 创建 Better-Auth 实例
+ * 创建 Better-Auth 实例。CF Workers 的 vars 只能通过 getCloudflareContext 拿，
+ * 所以 baseURL 要从外面显式传进来，不能走 process.env。
  */
-export function createAuth(databaseUrl: string, secret: string) {
-  const db = createDb(databaseUrl);
+export function createAuth(opts: CreateAuthOptions) {
+  const db = createDb(opts.databaseUrl);
   return betterAuth({
     database: drizzleAdapter(db, {
       provider: "mysql",
@@ -20,11 +28,9 @@ export function createAuth(databaseUrl: string, secret: string) {
         verification: schema.verifications,
       },
     }),
-    secret,
-    baseURL: process.env.BETTER_AUTH_URL,
-    trustedOrigins: process.env.BETTER_AUTH_URL
-      ? [process.env.BETTER_AUTH_URL]
-      : undefined,
+    secret: opts.secret,
+    baseURL: opts.baseURL,
+    trustedOrigins: opts.baseURL ? [opts.baseURL] : undefined,
     emailAndPassword: {
       enabled: true,
     },
@@ -34,11 +40,20 @@ export function createAuth(databaseUrl: string, secret: string) {
 export type Auth = ReturnType<typeof createAuth>;
 
 /**
- * 服务端获取 auth 实例
+ * 服务端获取 auth 实例。
+ * baseURL 取 env.BETTER_AUTH_URL（wrangler var），回退到 process.env（本地
+ * .dev.vars 会把两处都写上）。
  */
 export async function getServerAuth() {
   const { env } = await getCloudflareContext({ async: true });
-  return createAuth(env.TIDB_DATABASE_URL, env.BETTER_AUTH_SECRET);
+  const baseURL =
+    (env as unknown as { BETTER_AUTH_URL?: string }).BETTER_AUTH_URL ??
+    process.env.BETTER_AUTH_URL;
+  return createAuth({
+    databaseUrl: env.TIDB_DATABASE_URL,
+    secret: env.BETTER_AUTH_SECRET,
+    baseURL,
+  });
 }
 
 /**

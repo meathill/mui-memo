@@ -33,6 +33,8 @@ interface R2Bucket {
 interface CloudflareEnv {
   TIDB_DATABASE_URL: string;
   BETTER_AUTH_SECRET: string;
+  /** 部署域名（含 scheme），例：https://muimemo.roudan.io。不设会导致 Better-Auth 推断不出 base URL，cookie 种错。 */
+  BETTER_AUTH_URL?: string;
   GEMINI_API_KEY: string;
   CF_ACCOUNT_ID?: string;
   CF_AI_GATEWAY_ID?: string;
