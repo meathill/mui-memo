@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { and, desc, eq, lt } from "drizzle-orm";
 import { tasks as tasksTable } from "@mui-memo/shared/schema";
-import { createDb } from "@/lib/db";
-import { getServerSession } from "@/lib/auth";
+import { requireAuthDb } from "@/lib/route";
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 200;
@@ -13,9 +11,8 @@ const MAX_LIMIT = 200;
  * 首屏不传 `before`，拿最新 N 条；滚到底部再传最后一条的 completedAt 拉下一页。
  */
 export async function GET(req: Request) {
-  const session = await getServerSession();
-  if (!session)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const [resp, ctx] = await requireAuthDb();
+  if (resp) return resp;
 
   const url = new URL(req.url);
   const before = url.searchParams.get("before");
@@ -24,11 +21,8 @@ export async function GET(req: Request) {
     MAX_LIMIT,
   );
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = createDb(env.TIDB_DATABASE_URL);
-
   const conds = [
-    eq(tasksTable.userId, session.user.id),
+    eq(tasksTable.userId, ctx.session.user.id),
     eq(tasksTable.status, "done"),
   ];
   if (before) {
@@ -36,7 +30,7 @@ export async function GET(req: Request) {
     if (!Number.isNaN(d.getTime())) conds.push(lt(tasksTable.completedAt, d));
   }
 
-  const rows = await db
+  const rows = await ctx.db
     .select({
       id: tasksTable.id,
       text: tasksTable.text,

@@ -1,21 +1,25 @@
 "use client";
 
-import { ArrowLeftIcon, PaperclipIcon, TrashIcon } from "lucide-react";
+import { ArrowLeftIcon, TrashIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useNowTick } from "@/hooks/use-now-tick";
-import { ASSETS_URL, MAX_ATTACHMENT_SIZE } from "@/lib/config";
-import {
-  formatDueAt,
-  isOverdue,
-  isoToLocalInput,
-  localInputToISO,
-  relativeTimeLabel,
-} from "@/lib/time";
-import { cn } from "@/lib/utils";
+import { MAX_ATTACHMENT_SIZE } from "@/lib/config";
 import { ConfirmDialog } from "./confirm-dialog";
+import { type Attachment, AttachmentsSection } from "./task-detail-attachments";
+import {
+  Field,
+  PLACES,
+  PRIORITIES,
+  PRIORITY_LABEL,
+  STATUS_LABEL,
+  STATUSES,
+  Segmented,
+  TimeRow,
+  WINDOW_LABEL,
+  WINDOWS,
+} from "./task-detail-fields";
 import { PLACE_LABEL } from "@mui-memo/shared/logic";
 import type {
   TaskPlace,
@@ -41,47 +45,6 @@ interface Task {
   linkedTo: string | null;
   createdAt: string;
   completedAt: string | null;
-}
-
-interface Attachment {
-  id: string;
-  key: string;
-  mime: string;
-  size: number;
-  originalName: string | null;
-  createdAt: string;
-}
-
-const PLACES: TaskPlace[] = ["home", "work", "out", "any"];
-const WINDOWS: TaskWindow[] = ["now", "today", "later"];
-const PRIORITIES = [1, 2, 3] as const;
-const STATUSES: TaskStatus[] = ["pending", "doing", "done"];
-
-const STATUS_LABEL: Record<TaskStatus, string> = {
-  pending: "待做",
-  doing: "正在做",
-  done: "已完成",
-  linked: "顺手做",
-};
-const WINDOW_LABEL: Record<TaskWindow, string> = {
-  now: "此刻",
-  today: "今天",
-  later: "不急",
-};
-const PRIORITY_LABEL: Record<number, string> = {
-  1: "低",
-  2: "中",
-  3: "高",
-};
-
-function isImage(mime: string) {
-  return mime.startsWith("image/");
-}
-
-function formatSize(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export function TaskDetailView({ id }: { id: string }) {
@@ -392,281 +355,5 @@ export function TaskDetailView({ id }: { id: string }) {
         onDelete={handleDeleteAttachment}
       />
     </main>
-  );
-}
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block space-y-1.5">
-      <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">
-        {label}
-      </span>
-      {children}
-    </label>
-  );
-}
-
-function Segmented({
-  value,
-  options,
-  onChange,
-}: {
-  value: string;
-  options: Array<{ value: string; label: string }>;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-1 rounded-xl bg-paper-2/50 p-1 ring-1 ring-rule/50">
-      {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          onClick={() => onChange(o.value)}
-          className={cn(
-            "flex-1 rounded-lg px-2 py-1.5 text-center text-xs transition-colors whitespace-nowrap",
-            value === o.value
-              ? "bg-ink text-paper"
-              : "text-ink-soft hover:text-ink",
-          )}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function AttachmentItem({
-  att,
-  onDelete,
-}: {
-  att: Attachment;
-  onDelete: () => void;
-}) {
-  const url = `${ASSETS_URL}/${att.key}`;
-  const name = att.originalName ?? "附件";
-  return (
-    <li className="flex items-center gap-3 rounded-xl border border-rule/60 bg-paper-2/40 p-2">
-      {isImage(att.mime) ? (
-        <a
-          href={url}
-          target="_blank"
-          rel="noreferrer"
-          className="block h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-paper ring-1 ring-rule/50"
-        >
-          {/* biome-ignore lint/performance/noImgElement: 外链 R2 资源，不走 next/image */}
-          <img
-            src={url}
-            alt={name}
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
-        </a>
-      ) : (
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-paper ring-1 ring-rule/50">
-          <PaperclipIcon className="h-5 w-5 text-ink-mute" />
-        </div>
-      )}
-      <div className="min-w-0 flex-1">
-        <a
-          href={url}
-          target="_blank"
-          rel="noreferrer"
-          className="block truncate font-serif text-sm text-ink hover:underline"
-        >
-          {name}
-        </a>
-        <p className="text-[11px] font-mono text-ink-mute">
-          {att.mime} · {formatSize(att.size)}
-        </p>
-      </div>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={onDelete}
-        aria-label="删除附件"
-      >
-        <TrashIcon />
-      </Button>
-    </li>
-  );
-}
-
-/**
- * 一行灰色辅助文案：展示 expectAt / dueAt 等时间字段的解析结果。
- * 点一下变成 datetime-local 输入框，blur 或按 Enter 保存；过期会标红。
- * label 用来区分是「预期」还是「Deadline」。
- */
-function TimeRow({
-  label,
-  value,
-  overdueHint,
-  onChange,
-}: {
-  label: string;
-  value: string | null;
-  overdueHint: boolean;
-  onChange: (iso: string | null) => void;
-}) {
-  const [editing, setEditing] = useState(false);
-  const nowMs = useNowTick();
-  const now = new Date(nowMs);
-
-  if (editing) {
-    return (
-      <input
-        type="datetime-local"
-        defaultValue={isoToLocalInput(value)}
-        autoFocus
-        className="mt-1 w-full rounded-lg border border-rule/60 bg-paper-2/50 px-2 py-1 font-mono text-xs text-ink outline-none focus:border-ink/60"
-        aria-label={`编辑 ${label}`}
-        onBlur={(e) => {
-          const iso = localInputToISO(e.target.value);
-          setEditing(false);
-          if (iso !== value) onChange(iso);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-          if (e.key === "Escape") setEditing(false);
-        }}
-      />
-    );
-  }
-
-  const rel = value ? relativeTimeLabel(value, now) : "";
-  const abs = value ? formatDueAt(value) : "";
-  const overdue = overdueHint && isOverdue(value, now);
-
-  return (
-    <button
-      type="button"
-      onClick={() => setEditing(true)}
-      className={cn(
-        "mt-1 flex w-full items-baseline gap-2 text-left font-mono text-[10px] hover:text-ink-soft",
-        overdue ? "text-red-600 font-semibold" : "text-ink-mute",
-      )}
-      aria-label={`编辑 ${label}`}
-    >
-      <span className="shrink-0 text-ink-mute">{label}</span>
-      {value ? (
-        <span>
-          {abs} · {rel}
-        </span>
-      ) : (
-        <span>→ 点击设置</span>
-      )}
-    </button>
-  );
-}
-
-/**
- * 附件区：点上传 + 拖拽上传。
- * 整块区域都是 drop zone，拖拽时高亮边框。
- */
-function AttachmentsSection({
-  attachments,
-  uploading,
-  error,
-  fileRef,
-  onPickFile,
-  onUploadChange,
-  onDrop,
-  onDelete,
-}: {
-  attachments: Attachment[];
-  uploading: boolean;
-  error: string | null;
-  fileRef: React.RefObject<HTMLInputElement | null>;
-  onPickFile: () => void;
-  onUploadChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onDrop: (files: File[]) => void | Promise<void>;
-  onDelete: (id: string) => void;
-}) {
-  const [dragOver, setDragOver] = useState(false);
-
-  return (
-    <section
-      data-testid="attachments"
-      className={cn(
-        "mt-8 space-y-3 rounded-2xl p-2 transition-colors",
-        dragOver && "bg-accent-warm/10 ring-2 ring-accent-warm/60",
-      )}
-      onDragEnter={(e) => {
-        // 只有真的拖了文件才响应
-        if (e.dataTransfer.types?.includes("Files")) {
-          e.preventDefault();
-          setDragOver(true);
-        }
-      }}
-      onDragOver={(e) => {
-        if (e.dataTransfer.types?.includes("Files")) {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = "copy";
-        }
-      }}
-      onDragLeave={(e) => {
-        // 离开到子元素不算
-        if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
-        setDragOver(false);
-      }}
-      onDrop={(e) => {
-        e.preventDefault();
-        setDragOver(false);
-        const files = Array.from(e.dataTransfer.files ?? []);
-        if (files.length) onDrop(files);
-      }}
-    >
-      <div className="flex items-center justify-between">
-        <h2 className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink-mute">
-          附件 · {attachments.length}
-        </h2>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onPickFile}
-          loading={uploading}
-        >
-          <PaperclipIcon />
-          上传
-        </Button>
-        <input
-          ref={fileRef}
-          type="file"
-          multiple
-          className="hidden"
-          onChange={onUploadChange}
-        />
-      </div>
-
-      {error ? <p className="text-xs text-red-600">{error}</p> : null}
-
-      {attachments.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-rule/60 px-4 py-6 text-center text-sm text-ink-mute">
-          还没有附件。点击上方按钮，或直接把文件拖到这里。
-        </p>
-      ) : (
-        <ul className="space-y-2">
-          {attachments.map((a) => (
-            <AttachmentItem
-              key={a.id}
-              att={a}
-              onDelete={() => onDelete(a.id)}
-            />
-          ))}
-        </ul>
-      )}
-
-      {dragOver ? (
-        <p className="font-mono text-[11px] text-accent-warm text-center">
-          松开上传到此任务
-        </p>
-      ) : null}
-    </section>
   );
 }

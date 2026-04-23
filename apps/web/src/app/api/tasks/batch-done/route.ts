@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { createDb } from "@/lib/db";
-import { getServerSession } from "@/lib/auth";
+import { requireAuthDb } from "@/lib/route";
 import { markBatchDone } from "@/lib/tasks";
 import { batchCompleteSchema } from "@mui-memo/shared/validators";
 
 export async function POST(req: Request) {
-  const session = await getServerSession();
-  if (!session)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const [resp, ctx] = await requireAuthDb();
+  if (resp) return resp;
   const body = await req.json().catch(() => null);
   const parsed = batchCompleteSchema.safeParse(body);
   if (!parsed.success) {
@@ -17,8 +14,6 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  const { env } = await getCloudflareContext({ async: true });
-  const db = createDb(env.TIDB_DATABASE_URL);
-  await markBatchDone(db, session.user.id, parsed.data.taskIds);
+  await markBatchDone(ctx.db, ctx.session.user.id, parsed.data.taskIds);
   return NextResponse.json({ ok: true });
 }

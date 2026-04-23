@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { getServerSession } from "@/lib/auth";
-import { createDb } from "@/lib/db";
 import { ensureE2EEnabled } from "@/lib/e2e-guard";
+import { requireAuthDb } from "@/lib/route";
 import { resolveTargetTask } from "@/lib/search";
 
 /**
@@ -14,9 +12,8 @@ export async function POST(req: Request) {
   if (!(await ensureE2EEnabled())) {
     return NextResponse.json({ error: "disabled" }, { status: 404 });
   }
-  const session = await getServerSession();
-  if (!session)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const [resp, ctx] = await requireAuthDb();
+  if (resp) return resp;
 
   const body = (await req.json().catch(() => null)) as {
     query?: string;
@@ -26,12 +23,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = createDb(env.TIDB_DATABASE_URL);
-
   const resolved = await resolveTargetTask(
-    db,
-    session.user.id,
+    ctx.db,
+    ctx.session.user.id,
     body.query,
     body.keyword,
   );

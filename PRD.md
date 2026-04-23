@@ -45,27 +45,12 @@
 * **数据库管理 (Database & ORM)**：**TiDB Serverless + Drizzle ORM**
     * *理由*：TiDB 提供了一体化 SQL 接口，一条语句即可同时完成 Full-text 和 Vector 检索。搭配 **Drizzle ORM** 与其 Migration 机制，不仅提供端到端的 TypeScript 类型安全，完全掌控表结构演进，而且在 Cloudflare 边缘节点上运行极其高效。
 
-## 5. 核心数据模型 (Schema 示意)
+## 5. 核心数据模型
 
-```typescript
-// Drizzle Schema 示意 (TiDB/MySQL)
-import { mysqlTable, varchar, text, json, timestamp, customType } from "drizzle-orm/mysql-core";
+实际 schema 见 [packages/shared/src/schema.ts](./packages/shared/src/schema.ts)。要点：
 
-// 自定义 Vector 类型以支持 TiDB Vector
-const vector = customType<{ data: number[] }>({
-  dataType() { return 'VECTOR(1536)'; },
-});
-
-export const tasks = mysqlTable("tasks", {
-  id: varchar("id", { length: 36 }).primaryKey(),
-  rawText: text("raw_text").notNull(),
-  actionType: varchar("action_type", { length: 50 }),
-  entities: json("entities"),
-  status: varchar("status", { length: 20 }).default('frozen'),
-  createdAt: timestamp("created_at").defaultNow(),
-  embedding: vector("embedding") // 存储意图向量
-});
-```
+* `tasks.embedding` 是 **TiDB 生成列**（`VECTOR(1024)`），由 `EMBED_TEXT('tidbcloud_free/amazon/titan-embed-text-v2', text)` 自动维护，应用层只写 `text`。
+* 语义检索由 `VEC_EMBED_COSINE_DISTANCE` + 关键词 `fts_match_word` 的 RRF 融合完成，见 [apps/web/src/lib/search.ts](./apps/web/src/lib/search.ts)。
 
 ## 6. 用户交互流 (User Flow - Web MVP版)
 

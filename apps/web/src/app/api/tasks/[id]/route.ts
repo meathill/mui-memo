@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { and, asc, eq } from "drizzle-orm";
 import {
   attachments as attachmentsTable,
@@ -12,30 +11,26 @@ import type {
   TaskWindow,
 } from "@mui-memo/shared/validators";
 import { taskCoreSchema, taskStatusEnum } from "@mui-memo/shared/validators";
-import { createDb } from "@/lib/db";
-import { getServerSession } from "@/lib/auth";
+import { requireAuthDb } from "@/lib/route";
 
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await getServerSession();
-  if (!session)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-
+  const [resp, ctx] = await requireAuthDb();
+  if (resp) return resp;
   const { id } = await params;
-  const { env } = await getCloudflareContext({ async: true });
-  const db = createDb(env.TIDB_DATABASE_URL);
+  const userId = ctx.session.user.id;
 
-  const [row] = await db
+  const [row] = await ctx.db
     .select()
     .from(tasksTable)
-    .where(and(eq(tasksTable.id, id), eq(tasksTable.userId, session.user.id)))
+    .where(and(eq(tasksTable.id, id), eq(tasksTable.userId, userId)))
     .limit(1);
 
   if (!row) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
-  const atts = await db
+  const atts = await ctx.db
     .select({
       id: attachmentsTable.id,
       key: attachmentsTable.key,
@@ -46,10 +41,7 @@ export async function GET(
     })
     .from(attachmentsTable)
     .where(
-      and(
-        eq(attachmentsTable.taskId, id),
-        eq(attachmentsTable.userId, session.user.id),
-      ),
+      and(eq(attachmentsTable.taskId, id), eq(attachmentsTable.userId, userId)),
     )
     .orderBy(asc(attachmentsTable.createdAt));
 
@@ -88,10 +80,8 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await getServerSession();
-  if (!session)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-
+  const [resp, ctx] = await requireAuthDb();
+  if (resp) return resp;
   const { id } = await params;
   const body = await req.json().catch(() => null);
   const parsed = patchSchema.safeParse(body);
@@ -122,12 +112,12 @@ export async function PATCH(
       update.completedAt = null;
   }
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = createDb(env.TIDB_DATABASE_URL);
-  await db
+  await ctx.db
     .update(tasksTable)
     .set(update)
-    .where(and(eq(tasksTable.id, id), eq(tasksTable.userId, session.user.id)));
+    .where(
+      and(eq(tasksTable.id, id), eq(tasksTable.userId, ctx.session.user.id)),
+    );
 
   return NextResponse.json({ ok: true });
 }
@@ -140,57 +130,45 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await getServerSession();
-  if (!session)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-
+  const [resp, ctx] = await requireAuthDb();
+  if (resp) return resp;
   const { id } = await params;
-  const { env } = await getCloudflareContext({ async: true });
-  const db = createDb(env.TIDB_DATABASE_URL);
+  const userId = ctx.session.user.id;
 
-  const [task] = await db
+  const [task] = await ctx.db
     .select({ id: tasksTable.id, audioKey: tasksTable.audioKey })
     .from(tasksTable)
-    .where(and(eq(tasksTable.id, id), eq(tasksTable.userId, session.user.id)))
+    .where(and(eq(tasksTable.id, id), eq(tasksTable.userId, userId)))
     .limit(1);
 
   if (!task) return NextResponse.json({ ok: true });
 
-  const atts = await db
+  const atts = await ctx.db
     .select({ id: attachmentsTable.id, key: attachmentsTable.key })
     .from(attachmentsTable)
     .where(
-      and(
-        eq(attachmentsTable.taskId, id),
-        eq(attachmentsTable.userId, session.user.id),
-      ),
+      and(eq(attachmentsTable.taskId, id), eq(attachmentsTable.userId, userId)),
     );
 
-  await db
+  await ctx.db
     .delete(attachmentsTable)
     .where(
-      and(
-        eq(attachmentsTable.taskId, id),
-        eq(attachmentsTable.userId, session.user.id),
-      ),
+      and(eq(attachmentsTable.taskId, id), eq(attachmentsTable.userId, userId)),
     );
 
   // utterance 记录保留（用户的语音历史），只把 task_id 置空避免悬挂指针
-  await db
+  await ctx.db
     .update(utterancesTable)
     .set({ taskId: null })
     .where(
-      and(
-        eq(utterancesTable.taskId, id),
-        eq(utterancesTable.userId, session.user.id),
-      ),
+      and(eq(utterancesTable.taskId, id), eq(utterancesTable.userId, userId)),
     );
 
-  await db
+  await ctx.db
     .delete(tasksTable)
-    .where(and(eq(tasksTable.id, id), eq(tasksTable.userId, session.user.id)));
+    .where(and(eq(tasksTable.id, id), eq(tasksTable.userId, userId)));
 
-  const bucket = env.AUDIO_BUCKET;
+  const bucket = ctx.env.AUDIO_BUCKET;
   if (bucket) {
     const keys = atts.map((a) => a.key);
     if (task.audioKey) keys.push(task.audioKey);

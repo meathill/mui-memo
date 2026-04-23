@@ -1,45 +1,34 @@
 import { NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { and, eq } from "drizzle-orm";
 import { attachments as attachmentsTable } from "@mui-memo/shared/schema";
-import { createDb } from "@/lib/db";
-import { getServerSession } from "@/lib/auth";
+import { requireAuthDb } from "@/lib/route";
 
 export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await getServerSession();
-  if (!session)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const [resp, ctx] = await requireAuthDb();
+  if (resp) return resp;
   const { id } = await params;
+  const userId = ctx.session.user.id;
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = createDb(env.TIDB_DATABASE_URL);
-
-  const [row] = await db
+  const [row] = await ctx.db
     .select({ key: attachmentsTable.key })
     .from(attachmentsTable)
     .where(
-      and(
-        eq(attachmentsTable.id, id),
-        eq(attachmentsTable.userId, session.user.id),
-      ),
+      and(eq(attachmentsTable.id, id), eq(attachmentsTable.userId, userId)),
     )
     .limit(1);
 
   if (!row) return NextResponse.json({ ok: true }); // 幂等
 
-  await db
+  await ctx.db
     .delete(attachmentsTable)
     .where(
-      and(
-        eq(attachmentsTable.id, id),
-        eq(attachmentsTable.userId, session.user.id),
-      ),
+      and(eq(attachmentsTable.id, id), eq(attachmentsTable.userId, userId)),
     );
 
-  const bucket = env.AUDIO_BUCKET;
+  const bucket = ctx.env.AUDIO_BUCKET;
   if (bucket) {
     // 失败不阻塞，DB 已清
     await bucket.delete(row.key).catch(() => undefined);

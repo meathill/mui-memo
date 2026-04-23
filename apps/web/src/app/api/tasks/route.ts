@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { createDb } from "@/lib/db";
-import { getServerSession } from "@/lib/auth";
+import { requireAuthDb } from "@/lib/route";
 import { listTasksForUser } from "@/lib/tasks";
 
 /**
@@ -10,13 +8,9 @@ import { listTasksForUser } from "@/lib/tasks";
  * 切换场景不再发新请求。
  */
 export async function GET() {
-  const session = await getServerSession();
-  if (!session)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-
-  const { env } = await getCloudflareContext({ async: true });
-  const db = createDb(env.TIDB_DATABASE_URL);
-  const all = await listTasksForUser(db, session.user.id);
+  const [resp, ctx] = await requireAuthDb();
+  if (resp) return resp;
+  const all = await listTasksForUser(ctx.db, ctx.session.user.id);
   // 只返回未完成的：done 的去 /completed 页看。linked 作为子任务保留，
   // applyIntent 期待 rerank 上下文里有 doing 父任务的 linked[]。
   const tasks = all.filter((t) => t.status !== "done");

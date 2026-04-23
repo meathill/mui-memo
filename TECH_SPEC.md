@@ -11,15 +11,14 @@
 ```text
 /
 ├── apps/
-│   ├── web/        # 全栈 Web 端 (MVP 主力形态: Next.js + OpenNext 部署至 Cloudflare Workers)
-│   └── app/        # 移动端 Native App (React Native + Expo - Phase 2 预留)
+│   └── web/        # 全栈 Web 端 (Next.js 16 + OpenNext 部署至 Cloudflare Workers)
 ├── packages/
-│   ├── shared/     # 核心共享库 (Zod Schemas, Types, 纯函数)
-│   ├── ui/         # 预留：跨平台通用 UI 组件库
-│   └── config/     # 共享配置文件 (常量库，TSConfig)
-├── package.json    # Monorepo 根配置
+│   └── shared/     # 核心共享库 (Zod Schemas / Drizzle Schema / 纯函数)
+├── package.json
 └── pnpm-workspace.yaml
 ```
+
+> 未来扩展时会回填 `apps/app`（React Native + Expo，Phase 2）。目前只有 Web 一个 app；shared 之外的公共包（`packages/ui`、`packages/config`）按需再建。
 
 ## 3. 核心模块说明 (Core Modules)
 
@@ -51,12 +50,11 @@
   * **数据模型 (Types/Interfaces)**：如 `Task`, `UserIntent` 等类型定义。
   * **校验规则 (Zod Schemas)**：前后端共用的输入校验规则。
   * **常量 (Constants)**：如系统支持的枚举标签、错误码等。
-* **构建工具**：使用 `tsdown` 或 `tsup` 进行极简打包，确保在 Node, Cloudflare, Web 环境下的完美兼容。
+* **构建工具**：`tsup`，输出 ESM，Cloudflare Workers / Node / Web 均可直接消费。
 
-### 3.4 移动端 (`apps/app` - 战略预留)
-* **技术栈**：React Native + Expo。
-* **状态**：MVP 阶段暂不重点开发，待 Web 端核心逻辑验证闭环后，再复用 `packages/shared` 与 `apps/api` 快速构建。
-* **长期价值**：未来接入 iOS Share Sheet 拦截、Siri Shortcuts 和桌面 Widget。
+### 3.4 移动端（战略预留）
+* **技术栈**：React Native + Expo。MVP 阶段未启动，待 Web 端核心逻辑稳定后复用 `packages/shared` 快速构建。
+* **长期价值**：iOS Share Sheet 拦截、Siri Shortcuts、桌面 Widget。
 
 ## 4. 演进路线 (Roadmap)
 

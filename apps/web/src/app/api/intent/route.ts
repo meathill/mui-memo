@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { applyIntent, rerank } from "@mui-memo/shared/logic";
 import { taskPlaceEnum } from "@mui-memo/shared/validators";
-import { getServerSession } from "@/lib/auth";
 import { R2_PREFIX } from "@/lib/config";
-import { createDb } from "@/lib/db";
 import { createGenAI, parseVoiceIntent } from "@/lib/gemini";
+import { requireAuthDb } from "@/lib/route";
 import { resolveTargetTask } from "@/lib/search";
 import {
   linkAudioKey,
@@ -18,9 +16,10 @@ import { describeNow, normalizeTz } from "@/lib/time";
 const INTENTS_NEEDING_RESOLVE = new Set(["STATUS", "DONE", "MODIFY", "LINK"]);
 
 export async function POST(req: Request) {
-  const session = await getServerSession();
-  if (!session)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const [resp, rc] = await requireAuthDb();
+  if (resp) return resp;
+  const { db, env, execCtx, session } = rc;
+  const userId = session.user.id;
 
   const form = await req.formData();
   const audio = form.get("audio");
@@ -35,15 +34,13 @@ export async function POST(req: Request) {
   const placeParsed = taskPlaceEnum.safeParse(placeStr);
   const ctxPlace = placeParsed.success ? placeParsed.data : "any";
 
-  const { env, ctx } = await getCloudflareContext({ async: true });
-  const db = createDb(env.TIDB_DATABASE_URL);
   const genai = createGenAI({
     apiKey: env.GEMINI_API_KEY,
     gatewayAccountId: env.CF_ACCOUNT_ID,
     gatewayId: env.CF_AI_GATEWAY_ID,
   });
 
-  const tasksBefore = await listTasksForUser(db, session.user.id);
+  const tasksBefore = await listTasksForUser(db, userId);
 
   const audioBuffer = await audio.arrayBuffer();
   const mimeType = audio.type || "audio/webm";
@@ -73,7 +70,7 @@ export async function POST(req: Request) {
       const query = utterance.match?.trim() || utterance.raw;
       const resolved = await resolveTargetTask(
         db,
-        session.user.id,
+        userId,
         query,
         utterance.match,
       );
@@ -84,41 +81,35 @@ export async function POST(req: Request) {
   }
 
   const { tasks: tasksAfter, effect } = applyIntent(tasksBefore, utterance);
-  await persistIntentResult(db, session.user.id, tasksBefore, tasksAfter);
+  await persistIntentResult(db, userId, tasksBefore, tasksAfter);
 
   // 归档原始音频到 R2，并把 key 挂到新建的任务行上
   const bucket = env.AUDIO_BUCKET;
   const shouldLinkAudio =
     (effect.kind === "add" || effect.kind === "done-backfill") && effect.id;
   let audioKeyForLog: string | null = null;
-  if (bucket && ctx) {
+  if (bucket && execCtx) {
     const ext = mimeType.includes("webm") ? "webm" : "bin";
-    const audioKey = `${R2_PREFIX}/audio/${session.user.id}/${Date.now()}.${ext}`;
+    const audioKey = `${R2_PREFIX}/audio/${userId}/${Date.now()}.${ext}`;
     audioKeyForLog = audioKey;
-    ctx.waitUntil(
+    execCtx.waitUntil(
       bucket
         .put(audioKey, audioBuffer, { httpMetadata: { contentType: mimeType } })
         .catch(() => undefined),
     );
     if (shouldLinkAudio) {
-      ctx.waitUntil(
-        linkAudioKey(db, session.user.id, effect.id, audioKey).catch(
-          () => undefined,
-        ),
+      execCtx.waitUntil(
+        linkAudioKey(db, userId, effect.id, audioKey).catch(() => undefined),
       );
     }
   }
 
   // 写输入记录（所有意图都记，包括 miss）
-  if (ctx) {
-    ctx.waitUntil(
-      logUtterance(
-        db,
-        session.user.id,
-        utterance,
-        effect,
-        audioKeyForLog,
-      ).catch(() => undefined),
+  if (execCtx) {
+    execCtx.waitUntil(
+      logUtterance(db, userId, utterance, effect, audioKeyForLog).catch(
+        () => undefined,
+      ),
     );
   }
 

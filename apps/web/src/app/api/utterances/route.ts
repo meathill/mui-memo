@@ -1,17 +1,14 @@
 import { NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { and, desc, eq, lt } from "drizzle-orm";
 import { utterances as utterancesTable } from "@mui-memo/shared/schema";
-import { createDb } from "@/lib/db";
-import { getServerSession } from "@/lib/auth";
+import { requireAuthDb } from "@/lib/route";
 
 const DEFAULT_LIMIT = 30;
 const MAX_LIMIT = 100;
 
 export async function GET(req: Request) {
-  const session = await getServerSession();
-  if (!session)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const [resp, ctx] = await requireAuthDb();
+  if (resp) return resp;
 
   const url = new URL(req.url);
   const before = url.searchParams.get("before");
@@ -20,17 +17,14 @@ export async function GET(req: Request) {
     MAX_LIMIT,
   );
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = createDb(env.TIDB_DATABASE_URL);
-
-  const conds = [eq(utterancesTable.userId, session.user.id)];
+  const conds = [eq(utterancesTable.userId, ctx.session.user.id)];
   if (before) {
     const d = new Date(before);
     if (!Number.isNaN(d.getTime()))
       conds.push(lt(utterancesTable.createdAt, d));
   }
 
-  const rows = await db
+  const rows = await ctx.db
     .select({
       id: utterancesTable.id,
       rawText: utterancesTable.rawText,

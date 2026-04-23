@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { applyIntent, rerank } from "@mui-memo/shared/logic";
 import { taskPlaceEnum, utteranceSchema } from "@mui-memo/shared/validators";
-import { getServerSession } from "@/lib/auth";
-import { createDb } from "@/lib/db";
 import { ensureE2EEnabled } from "@/lib/e2e-guard";
+import { requireAuthDb } from "@/lib/route";
 import { resolveTargetTask } from "@/lib/search";
 import {
   listTasksForUser,
@@ -23,9 +21,9 @@ export async function POST(req: Request) {
   if (!(await ensureE2EEnabled())) {
     return NextResponse.json({ error: "disabled" }, { status: 404 });
   }
-  const session = await getServerSession();
-  if (!session)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const [resp, ctx] = await requireAuthDb();
+  if (resp) return resp;
+  const userId = ctx.session.user.id;
 
   const body = (await req.json().catch(() => null)) as {
     utterance?: unknown;
@@ -46,16 +44,13 @@ export async function POST(req: Request) {
   const ctxPlace = placeParsed.success ? placeParsed.data : "any";
   const utterance = utteranceParsed.data;
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = createDb(env.TIDB_DATABASE_URL);
-
-  const tasksBefore = await listTasksForUser(db, session.user.id);
+  const tasksBefore = await listTasksForUser(ctx.db, userId);
 
   if (INTENTS_NEEDING_RESOLVE.has(utterance.intent) && !body.skipResolve) {
     try {
       const resolved = await resolveTargetTask(
-        db,
-        session.user.id,
+        ctx.db,
+        userId,
         utterance.match?.trim() || utterance.raw,
         utterance.match,
       );
@@ -65,7 +60,7 @@ export async function POST(req: Request) {
 
   const { tasks: tasksAfter, effect } = applyIntent(tasksBefore, utterance);
   try {
-    await persistIntentResult(db, session.user.id, tasksBefore, tasksAfter);
+    await persistIntentResult(ctx.db, userId, tasksBefore, tasksAfter);
   } catch (err) {
     const msg =
       err instanceof Error ? `${err.message}\n${err.stack}` : String(err);
@@ -76,7 +71,7 @@ export async function POST(req: Request) {
     );
   }
 
-  await logUtterance(db, session.user.id, utterance, effect, null).catch(
+  await logUtterance(ctx.db, userId, utterance, effect, null).catch(
     () => undefined,
   );
 
