@@ -4,6 +4,7 @@ import { CheckIcon, TrashIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
+import { track } from "@/lib/analytics";
 import { ConfirmDialog } from "./confirm-dialog";
 import { PullIndicator } from "./pull-indicator";
 import { SectionHeader } from "./section-header";
@@ -57,6 +58,7 @@ export function CompletedView() {
     const res = await fetch(`/api/tasks/${taskId}`, { method: "DELETE" });
     if (!res.ok) return;
     setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    track({ name: "task_delete", source: "completed" });
   }, []);
 
   const fetchPage = useCallback(async (before?: string | null) => {

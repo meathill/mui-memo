@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { track } from "@/lib/analytics";
 import { readTheme, type Theme, THEMES, writeTheme } from "@/lib/theme";
 
 export function TweaksPanel() {
@@ -13,6 +14,7 @@ export function TweaksPanel() {
   function handlePick(next: Theme) {
     setTheme(next);
     writeTheme(next);
+    track({ name: "theme_change", theme: next });
   }
 
   return (

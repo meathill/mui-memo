@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { track } from "@/lib/analytics";
 import { MAX_ATTACHMENT_SIZE } from "@/lib/config";
 import { ConfirmDialog } from "./confirm-dialog";
 import { type Attachment, AttachmentsSection } from "./task-detail-attachments";
@@ -64,6 +65,7 @@ export function TaskDetailView({ id }: { id: string }) {
       setError("删除失败");
       return;
     }
+    track({ name: "task_delete", source: "detail" });
     router.push("/");
   }
 

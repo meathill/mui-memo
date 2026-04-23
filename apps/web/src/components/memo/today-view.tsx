@@ -10,6 +10,7 @@ import {
 } from "@mui-memo/shared/logic";
 import type { TaskPlace } from "@mui-memo/shared/validators";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
+import { track } from "@/lib/analytics";
 import { useAppStore } from "@/store";
 import { ContextStrip } from "./context-strip";
 import { DoingCard } from "./doing-card";
@@ -113,6 +114,7 @@ export function TodayView({ userName }: Props) {
         };
         hydrate({ tasks: data.tasks, ranked: [] });
         setLastEffect(data.effect, data.utterance);
+        track({ name: "voice_intent", intent: data.effect?.kind });
       } finally {
         setProcessing(false);
       }
@@ -138,6 +140,7 @@ export function TodayView({ userName }: Props) {
         ranked: [],
       });
       await fetch(`/api/tasks/${id}/done`, { method: "POST" });
+      track({ name: "task_complete", source: "today" });
     },
     [hydrate],
   );

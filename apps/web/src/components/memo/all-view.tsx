@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { TaskView } from "@mui-memo/shared/logic";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
+import { track } from "@/lib/analytics";
 import { useAppStore } from "@/store";
 import { PullIndicator } from "./pull-indicator";
 import { SectionHeader } from "./section-header";
@@ -47,6 +48,7 @@ export function AllView() {
         ranked: [],
       });
       await fetch(`/api/tasks/${id}/done`, { method: "POST" });
+      track({ name: "task_complete", source: "all" });
     },
     [hydrate],
   );
