@@ -108,6 +108,10 @@ embedding VECTOR(1024)
 
 **脚手架**：Expo SDK 55 + expo-router + TypeScript。手工搭，没跑 `create-expo-app`，所以装完依赖后第一次要 `cd apps/app && npx expo install --fix` 校准版本。
 
+**API base 默认远端**：[apps/app/app.config.ts](apps/app/app.config.ts) 把 `extra.apiBase` 默认指到生产部署 `https://muimemo.roudan.io`。朋友拿到模拟器 / 真机点开就能用，不依赖开发机。**本地开发**想指到自己 web 的话，在 `apps/app/.env.local` 里写 `EXPO_PUBLIC_API_BASE=http://<LAN-IP>:3200`（别用 localhost——真机 / 模拟器走不到宿主 loopback）。改完要重启 `expo start`，extra 是启动时注入不热更。
+
+**Web dev 端口约定 3200**：`apps/web/package.json` 的 dev 脚本是 `next dev --port ${PORT:-3200}`。改这个是因为 3000 经常被 react-email / 其他项目占。Playwright webServer 走 `PORT=3100` 不受影响。`.dev.vars` 里的 `BETTER_AUTH_URL` 也要对齐到 `http://localhost:3200`，否则登录 cookie 种错。
+
 **鉴权 · Bearer**：Better-Auth 在 [apps/web/src/lib/auth.ts](apps/web/src/lib/auth.ts) 开了 `bearer()` plugin。RN 端登录后拿到 `Authorization: Bearer <token>` 存进 `expo-secure-store`，之后所有请求带这个 header。Web 仍走 cookie，两条路并存。
 
 **Metro + pnpm monorepo**：[apps/app/metro.config.js](apps/app/metro.config.js) 里 `watchFolders` 指向 repo 根，`nodeModulesPaths` 同时加 `apps/app/node_modules` 和根 `node_modules`，`disableHierarchicalLookup: true`。少一项都会 bundle 挂。

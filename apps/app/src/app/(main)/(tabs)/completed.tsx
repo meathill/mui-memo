@@ -1,3 +1,4 @@
+import { ErrorBanner } from '@/components/error-banner';
 import { type CompletedTask, api } from '@/lib/api';
 import { CheckIcon, Trash2Icon } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -46,6 +47,7 @@ export default function CompletedScreen() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -53,6 +55,9 @@ export default function CompletedScreen() {
       setTasks(data.tasks);
       setNextCursor(data.nextCursor);
       setHasMore(data.hasMore);
+      setLoadError(null);
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : '请求失败');
     } finally {
       setLoading(false);
     }
@@ -128,6 +133,12 @@ export default function CompletedScreen() {
         <Text className="mt-1 text-ink-soft text-sm">
           已加载 {tasks.length} 件{hasMore ? '（还可加载更多）' : ''}
         </Text>
+
+        {loadError ? (
+          <View className="mt-4">
+            <ErrorBanner message={loadError} onRetry={refresh} />
+          </View>
+        ) : null}
 
         {loading ? (
           <View className="mt-12 items-center">

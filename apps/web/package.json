@@ -3,7 +3,7 @@
   "version": "0.8.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port ${PORT:-3200}",
     "build": "pnpm -F @mui-memo/shared build && next build",
     "start": "next start",
     "lint": "biome check",

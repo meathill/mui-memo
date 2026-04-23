@@ -1,3 +1,4 @@
+import { ErrorBanner } from '@/components/error-banner';
 import { type ProfileStats, api } from '@/lib/api';
 import { router } from 'expo-router';
 import { LogOutIcon } from 'lucide-react-native';
@@ -17,14 +18,16 @@ export default function ProfileScreen() {
   const [data, setData] = useState<ProfileStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const d = await api.profile.stats();
       setData(d);
+      setLoadError(null);
     } catch (err) {
-      if (err instanceof Error) Alert.alert('加载失败', err.message);
+      setLoadError(err instanceof Error ? err.message : '请求失败');
     } finally {
       setLoading(false);
     }
@@ -74,6 +77,12 @@ export default function ProfileScreen() {
           MuiMemo · 我的
         </Text>
         <Text className="mt-1 font-serif text-2xl text-ink">账号与数据</Text>
+
+        {loadError ? (
+          <View className="mt-4">
+            <ErrorBanner message={loadError} onRetry={load} />
+          </View>
+        ) : null}
 
         <View className="mt-6 flex-row items-center gap-4 rounded-2xl border border-rule/60 bg-paper-2/50 p-5">
           <View className="h-14 w-14 items-center justify-center rounded-full bg-ink">

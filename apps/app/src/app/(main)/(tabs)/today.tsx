@@ -1,3 +1,4 @@
+import { ErrorBanner } from '@/components/error-banner';
 import { ContextStrip } from '@/components/memo/context-strip';
 import { DoingCard } from '@/components/memo/doing-card';
 import { EffectToast } from '@/components/memo/effect-toast';
@@ -10,7 +11,7 @@ import { BUCKET_LABEL, rerank } from '@mui-memo/shared/logic';
 import type { Bucket, TaskView } from '@mui-memo/shared/logic';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Alert, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // 非 doing 的分桶顺序（doing 单独走 DoingCard 在顶部）
@@ -150,20 +151,8 @@ export default function TodayScreen() {
         </View>
 
         {loadError ? (
-          <View className="mt-4 rounded-lg border border-accent-warn/40 bg-accent-warn/10 p-3">
-            <Text className="font-medium text-accent-warn text-sm">
-              连不上服务器
-            </Text>
-            <Text className="mt-0.5 text-ink-soft text-xs" numberOfLines={1}>
-              {loadError}
-            </Text>
-            <Pressable
-              onPress={loadTasks}
-              hitSlop={6}
-              className="mt-2 self-start rounded-full bg-ink px-3 py-1.5 active:opacity-80"
-            >
-              <Text className="text-paper text-xs">重试</Text>
-            </Pressable>
+          <View className="mt-4">
+            <ErrorBanner message={loadError} onRetry={loadTasks} />
           </View>
         ) : null}
 

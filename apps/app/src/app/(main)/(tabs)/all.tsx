@@ -1,3 +1,4 @@
+import { ErrorBanner } from '@/components/error-banner';
 import { TaskRow } from '@/components/memo/task-row';
 import { api } from '@/lib/api';
 import { useAppStore } from '@/store';
@@ -13,11 +14,15 @@ export default function AllScreen() {
   const { tasks, hydrate } = useAppStore();
   const [loading, setLoading] = useState(tasks.length === 0);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
       const { tasks } = await api.tasks.list();
       hydrate({ tasks, ranked: [] });
+      setLoadError(null);
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : '请求失败');
     } finally {
       setLoading(false);
     }
@@ -88,6 +93,12 @@ export default function AllScreen() {
         </Text>
         <Text className="mt-1 font-serif text-2xl text-ink">清单全景</Text>
         <Text className="mt-1 text-ink-soft text-sm">共 {pending.length} 件待办，按标签分组</Text>
+
+        {loadError ? (
+          <View className="mt-4">
+            <ErrorBanner message={loadError} onRetry={load} />
+          </View>
+        ) : null}
 
         {loading ? (
           <View className="mt-12 items-center">

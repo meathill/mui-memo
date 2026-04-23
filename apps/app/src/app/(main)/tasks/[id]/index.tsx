@@ -1,3 +1,4 @@
+import { ErrorBanner } from '@/components/error-banner';
 import { type Attachment, api } from '@/lib/api';
 import type { TaskView } from '@mui-memo/shared/logic';
 import { Stack, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
@@ -18,6 +19,7 @@ export default function TaskDetailScreen() {
   const [task, setTask] = useState<TaskView | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -26,8 +28,9 @@ export default function TaskDetailScreen() {
       const { task, attachments } = await api.tasks.detail(id);
       setTask(task);
       setAttachments(attachments);
+      setLoadError(null);
     } catch (err) {
-      if (err instanceof Error) Alert.alert('加载失败', err.message);
+      setLoadError(err instanceof Error ? err.message : '请求失败');
     } finally {
       setLoading(false);
     }
@@ -92,7 +95,13 @@ export default function TaskDetailScreen() {
         </View>
       </View>
 
-      {loading || !task ? (
+      {loadError && !task ? (
+        <View className="flex-1 items-center justify-center px-5">
+          <View className="w-full">
+            <ErrorBanner message={loadError} onRetry={load} />
+          </View>
+        </View>
+      ) : loading || !task ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color="#1d1a12" />
         </View>
