@@ -22,6 +22,9 @@ cp .env.example .env.local
 
 ## 打包与分发（EAS Build）
 
+> 首次发 TestFlight 跟 [TESTFLIGHT.md](./TESTFLIGHT.md) 走，里面一步一步截图可跟。
+> 下面只放日常速查。
+
 配置文件：[eas.json](./eas.json)。三个 profile：
 
 | profile | 用途 | 分发方式 |
