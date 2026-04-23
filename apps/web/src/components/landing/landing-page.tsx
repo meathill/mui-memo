@@ -8,6 +8,7 @@ import {
   SCENES,
   type Scene,
 } from '@/components/landing/landing-content';
+import { CenteredSectionHead, SectionHead } from '@/components/landing/landing-section-head';
 import { buttonVariants } from '@/components/ui/button-variants';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -44,21 +45,12 @@ function TopBar({ authed }: { authed: boolean }) {
         aria-label="MuiMemo 首页"
         className="inline-flex items-center gap-3 text-ink transition-opacity hover:opacity-80"
       >
-        <Image
-          src="/brand/logo-mark.svg"
-          alt=""
-          width={32}
-          height={32}
-          className="h-8 w-8 shrink-0"
-          priority
-        />
+        <Image src="/brand/logo-mark.svg" alt="" width={32} height={32} className="h-8 w-8 shrink-0" priority />
         <span className="min-w-0">
           <span className="block font-mono text-[0.72rem] tracking-[0.2em] text-ink uppercase sm:text-[0.8rem]">
             MuiMemo
           </span>
-          <span className="font-serif mt-1 hidden text-[0.95rem] leading-none text-ink-soft sm:block">
-            口述备忘
-          </span>
+          <span className="font-serif mt-1 hidden text-[0.95rem] leading-none text-ink-soft sm:block">口述备忘</span>
         </span>
       </Link>
       <nav className="flex items-center gap-4 font-mono text-[0.68rem] tracking-[0.16em] text-ink-mute uppercase sm:gap-6 sm:text-[0.76rem]">
@@ -97,8 +89,7 @@ function Hero({ authed }: { authed: boolean }) {
           <span className="text-accent-warm">待办</span>。
         </h1>
         <p className="font-serif mt-6 max-w-[36ch] text-[1.15rem] leading-[1.72] text-ink-soft sm:text-[1.38rem] sm:leading-[1.68]">
-          不是先记一段语音，再回头整理。 你一开口，MuiMemo
-          就开始判断你要做什么，并顺手补上时间、优先级和该归的场景。
+          不是先记一段语音，再回头整理。 你一开口，MuiMemo 就开始判断你要做什么，并顺手补上时间、优先级和该归的场景。
         </p>
         <p className="mt-5 max-w-[42rem] font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.82rem]">
           记下 → 理解 → 归堆 → 到该做的时候浮出来
@@ -146,9 +137,7 @@ function ExplainSection() {
               {item.n}
             </p>
             <div>
-              <h3 className="font-serif max-w-[26ch] text-balance text-[1.88rem] leading-tight text-ink sm:text-[2.2rem]">
-                {item.title}
-              </h3>
+              <h3 className="font-serif text-[1.88rem] leading-tight text-ink sm:text-[2.2rem]">{item.title}</h3>
               <p className="mt-3 max-w-[60ch] text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">
                 {item.body}
               </p>
@@ -173,17 +162,11 @@ function ScenesSection() {
   );
 }
 
-function SceneArticle({
-  scene,
-  index,
-}: {
-  scene: Scene;
-  index: number;
-}) {
+function SceneArticle({ scene, index }: { scene: Scene; index: number }) {
   const imageFirst = scene.imageSide === 'left';
 
   return (
-    <article className="grid gap-8 sm:grid-cols-[minmax(0,0.94fr)_minmax(0,1.06fr)] sm:items-center sm:gap-10 lg:gap-14">
+    <article className="grid gap-8 sm:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] sm:items-center sm:gap-10 lg:gap-14">
       <div className={imageFirst ? 'sm:order-1' : 'sm:order-2'}>
         <figure className="landing-sketch-frame overflow-hidden">
           <Image
@@ -203,17 +186,13 @@ function SceneArticle({
         <p className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.82rem]">
           {String(index + 1).padStart(2, '0')} · {scene.tag}
         </p>
-        <h3 className="font-serif mt-3 text-balance text-[clamp(2.1rem,3.7vw,3.3rem)] leading-tight text-ink">
-          {scene.who}
-        </h3>
-        <p className="mt-3 max-w-[44ch] text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">
-          {scene.context}
-        </p>
+        <h3 className="font-serif mt-3 text-[clamp(2.1rem,3.7vw,3.3rem)] leading-tight text-ink">{scene.who}</h3>
+        <p className="mt-3 max-w-[44ch] text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">{scene.context}</p>
         <div className="mt-6 border-t border-rule/60 pt-4">
           <p className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.8rem]">
             她 / 他说
           </p>
-          <p className="font-serif mt-3 max-w-[20ch] text-balance text-[2rem] leading-[1.3] text-ink sm:text-[2.35rem]">
+          <p className="font-serif mt-3 text-[2rem] leading-[1.3] text-ink sm:text-[2.08rem] lg:whitespace-nowrap xl:text-[2.3rem]">
             <span className="select-none text-accent-warm/70">「</span>
             {scene.line}
             <span className="select-none text-accent-warm/70">」</span>
@@ -223,9 +202,7 @@ function SceneArticle({
           <p className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.8rem]">
             MuiMemo 接住
           </p>
-          <p className="mt-3 max-w-[50ch] text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">
-            {scene.effect}
-          </p>
+          <p className="mt-3 max-w-[50ch] text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">{scene.effect}</p>
         </div>
       </div>
     </article>
@@ -246,12 +223,8 @@ function BenefitsSection() {
               {item.n}
             </p>
             <div className="max-w-[60ch]">
-              <h3 className="font-serif text-[1.95rem] leading-tight text-ink sm:text-[2.15rem]">
-                {item.title}
-              </h3>
-              <p className="mt-3 text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">
-                {item.body}
-              </p>
+              <h3 className="font-serif text-[1.95rem] leading-tight text-ink sm:text-[2.15rem]">{item.title}</h3>
+              <p className="mt-3 text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">{item.body}</p>
             </div>
           </article>
         ))}
@@ -263,23 +236,19 @@ function BenefitsSection() {
 function RoadmapSection() {
   return (
     <section id="roadmap" className="py-18 sm:py-22">
-      <SectionHead number="04" label="Roadmap" title="一步一步来。" />
-      <ol className="mt-12 space-y-10 sm:mt-14 sm:space-y-12">
+      <CenteredSectionHead number="04" label="Roadmap" title="一步一步来。" />
+      <ol className="mx-auto mt-12 max-w-[72rem] space-y-10 sm:mt-14 sm:space-y-12">
         {ROADMAP.map((item, index) => (
-          <li key={item.n} className="grid gap-3 sm:grid-cols-[8rem_minmax(0,1fr)] sm:gap-8">
+          <li key={item.n} className="grid gap-3 sm:grid-cols-[8rem_minmax(0,50rem)] sm:justify-center sm:gap-8">
             <p className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:pt-2 sm:text-[0.82rem]">
               {String(index + 1).padStart(2, '0')} · {item.n}
             </p>
-            <div className="max-w-[60ch]">
+            <div>
               <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-                <h3 className="font-serif text-[2rem] leading-tight text-ink sm:text-[2.15rem]">
-                  {item.title}
-                </h3>
+                <h3 className="font-serif text-[2rem] leading-tight text-ink sm:text-[2.15rem]">{item.title}</h3>
                 <PhaseTag phase={item.phase} />
               </div>
-              <p className="mt-3 text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">
-                {item.body}
-              </p>
+              <p className="mt-3 text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">{item.body}</p>
             </div>
           </li>
         ))}
@@ -291,20 +260,16 @@ function RoadmapSection() {
 function FaqSection() {
   return (
     <section id="faq" className="py-18 sm:py-22">
-      <SectionHead number="05" label="FAQ" title="你可能想问。" />
-      <dl className="mt-12 space-y-8 sm:mt-14 sm:space-y-10">
+      <CenteredSectionHead number="05" label="FAQ" title="你可能想问。" />
+      <dl className="mx-auto mt-12 max-w-[72rem] space-y-8 sm:mt-14 sm:space-y-10">
         {FAQ.map((item, index) => (
-          <div key={item.q} className="grid gap-3 sm:grid-cols-[4rem_minmax(0,1fr)] sm:gap-8">
+          <div key={item.q} className="grid gap-3 sm:grid-cols-[5rem_minmax(0,52rem)] sm:justify-center sm:gap-8">
             <dt className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:pt-1 sm:text-[0.82rem]">
               Q.{String(index + 1).padStart(2, '0')}
             </dt>
-            <div className="max-w-[62ch]">
-              <p className="font-serif text-[1.6rem] leading-tight text-ink sm:text-[1.75rem]">
-                {item.q}
-              </p>
-              <dd className="mt-3 text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.06rem]">
-                {item.a}
-              </dd>
+            <div>
+              <p className="font-serif text-[1.6rem] leading-tight text-ink sm:text-[1.75rem]">{item.q}</p>
+              <dd className="mt-3 text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.06rem]">{item.a}</dd>
             </div>
           </div>
         ))}
@@ -315,27 +280,6 @@ function FaqSection() {
 
 function Rule() {
   return <div aria-hidden className="h-px w-full bg-rule/60 sm:my-2" role="presentation" />;
-}
-
-function SectionHead({
-  number,
-  label,
-  title,
-}: {
-  number: string;
-  label: string;
-  title: string;
-}) {
-  return (
-    <header className="grid gap-3 sm:grid-cols-[8rem_minmax(0,1fr)] sm:gap-8">
-      <p className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:pt-2 sm:text-[0.82rem]">
-        {number} · {label}
-      </p>
-      <h2 className="font-serif max-w-[26ch] text-balance text-[clamp(2.1rem,3.7vw,3.25rem)] leading-tight text-ink">
-        {title}
-      </h2>
-    </header>
-  );
 }
 
 function PhaseTag({ phase }: { phase: Phase }) {

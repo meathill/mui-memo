@@ -87,11 +87,7 @@ export function HeroDemo() {
   }
 
   return (
-    <div
-      className="relative"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
+    <div className="relative" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <div className="relative overflow-hidden rounded-sm border border-rule/70 bg-paper-2/40">
         <div className="flex items-center justify-between border-b border-rule/50 px-5 py-3 sm:px-6">
           <p className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.8rem]">
@@ -123,7 +119,7 @@ export function HeroDemo() {
               <p className="mt-1 font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.8rem]">
                 ↓ {f.label}
               </p>
-              <p className="mt-4 max-w-[30ch] text-[0.98rem] leading-[1.7] text-ink-soft sm:text-[1.02rem]">
+              <p className="mt-4 text-[0.98rem] leading-[1.7] text-ink-soft sm:text-[1.02rem] sm:whitespace-nowrap">
                 {f.summary}
               </p>
               <div className="mt-5 space-y-1.5 font-mono text-[0.8rem] text-ink-soft sm:text-[0.86rem]">

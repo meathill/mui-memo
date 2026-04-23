@@ -47,8 +47,7 @@ export const SCENES: Scene[] = [
     who: '王姐',
     context: '货架、收银台、找零同时在手上，手脏的时候更不想在表单里点来点去。',
     line: '晚上给老张结 3000 尾款。',
-    effect:
-      '先把这句收成任务。晚上她一说“开始打款”，相关转账事项自己浮出来，能在同一个节奏里一口气清掉。',
+    effect: '先把这句收成任务。晚上她一说“开始打款”，相关转账事项自己浮出来，能在同一个节奏里一口气清掉。',
     imageSrc: '/landing/shopkeeper-scene.webp',
     imageAlt: '小卖铺店主站在收银台和货架之间忙着手上的活，一边对着手机口述今晚要给老张结尾款。',
     imageSide: 'right',
@@ -61,8 +60,7 @@ export const SCENES: Scene[] = [
     effect:
       'MuiMemo 会把“去打疫苗”和“带出生证”一起收住，挂到明早那一段。临出门前看一眼，不必再回想刚才脑子里那句原话。',
     imageSrc: '/landing/parent-scene.webp',
-    imageAlt:
-      '一位带娃的家长在出门前的玄关整理包和证件，周围散着孩子用品，同时对着手机记下明早打疫苗要带出生证。',
+    imageAlt: '一位带娃的家长在出门前的玄关整理包和证件，周围散着孩子用品，同时对着手机记下明早打疫苗要带出生证。',
     imageSide: 'left',
   },
   {
@@ -73,8 +71,7 @@ export const SCENES: Scene[] = [
     effect:
       '一句“开始做 A 客户”，MuiMemo 就把这个客户相关的任务往前提，别的先安静下来。不是多一个系统，而是少一点切换成本。',
     imageSrc: '/landing/freelancer-scene.webp',
-    imageAlt:
-      '自由职业设计师坐在工作台前处理多个客户任务，桌面上有稿纸和设备，他对着手机说开始做 A 客户的 logo。',
+    imageAlt: '自由职业设计师坐在工作台前处理多个客户任务，桌面上有稿纸和设备，他对着手机说开始做 A 客户的 logo。',
     imageSide: 'right',
   },
 ];
