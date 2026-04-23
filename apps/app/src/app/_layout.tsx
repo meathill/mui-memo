@@ -11,19 +11,21 @@ export default function RootLayout() {
   const hydrate = useSession((s) => s.hydrate);
 
   useEffect(() => {
-    // 启动：先从 SecureStore 捞 token 恢复状态，再向后端刷一次 user 信息
+    // 启动：先从 SecureStore 捞 token + 缓存的 user（断网也能正常进主屏），
+    // 再尝试异步刷一份最新 user。
     hydrate().then(async () => {
       const token = useSession.getState().token;
       if (!token) return;
       try {
         const user = await api.auth.getSession();
         if (user) {
-          // 已有 token，刷新 user 即可；setSession 会重新写 SecureStore（没事）
           await useSession.getState().setSession(token, user);
+        } else {
+          // 200 但 user 为空（bearer token 已失效）：清掉，跳登录
+          await useSession.getState().clearSession();
         }
-        // getSession 返回 null 时 request() 已经在 401 里清了 session
       } catch {
-        // 网络错误先不动 session，让用户看登录态 UI
+        // 网络错误：token + 缓存 user 仍在内存，保持登录态，后续请求自己会重试
       }
     });
   }, [hydrate]);

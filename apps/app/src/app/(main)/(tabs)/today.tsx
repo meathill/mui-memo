@@ -10,7 +10,7 @@ import { BUCKET_LABEL, rerank } from '@mui-memo/shared/logic';
 import type { Bucket, TaskView } from '@mui-memo/shared/logic';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // 非 doing 的分桶顺序（doing 单独走 DoingCard 在顶部）
@@ -32,12 +32,15 @@ export default function TodayScreen() {
   } = useAppStore();
 
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const loadTasks = useCallback(async () => {
     try {
       const { tasks } = await api.tasks.list();
       hydrate({ tasks, ranked: [] });
+      setLoadError(null);
     } catch (err) {
-      if (err instanceof Error) Alert.alert('拉任务失败', err.message);
+      // 拉失败不再弹 Alert（网络抖动一弹就烦），放顶部 banner 让用户手动重试
+      setLoadError(err instanceof Error ? err.message : '请求失败');
     }
   }, [hydrate]);
   const onRefresh = useCallback(async () => {
@@ -145,6 +148,24 @@ export default function TodayScreen() {
         <View className="mt-5">
           <ContextStrip value={place} onChange={setPlace} />
         </View>
+
+        {loadError ? (
+          <View className="mt-4 rounded-lg border border-accent-warn/40 bg-accent-warn/10 p-3">
+            <Text className="font-medium text-accent-warn text-sm">
+              连不上服务器
+            </Text>
+            <Text className="mt-0.5 text-ink-soft text-xs" numberOfLines={1}>
+              {loadError}
+            </Text>
+            <Pressable
+              onPress={loadTasks}
+              hitSlop={6}
+              className="mt-2 self-start rounded-full bg-ink px-3 py-1.5 active:opacity-80"
+            >
+              <Text className="text-paper text-xs">重试</Text>
+            </Pressable>
+          </View>
+        ) : null}
 
         <EffectToast effect={lastEffect} utterance={lastUtterance} />
 

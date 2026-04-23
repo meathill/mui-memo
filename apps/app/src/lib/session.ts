@@ -2,6 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
 
 const TOKEN_KEY = 'mui-memo.session';
+const USER_KEY = 'mui-memo.user';
 
 export interface SessionUser {
   id: string;
@@ -17,7 +18,7 @@ interface SessionState {
   hydrating: boolean;
   setSession: (token: string, user: SessionUser) => Promise<void>;
   clearSession: () => Promise<void>;
-  /** App 启动时调一次，把 SecureStore 里的 token 读回内存 */
+  /** App 启动时调一次，把 SecureStore 里的 token + user 读回内存 */
   hydrate: () => Promise<void>;
 }
 
@@ -26,17 +27,34 @@ export const useSession = create<SessionState>((set) => ({
   user: null,
   hydrating: true,
   async setSession(token, user) {
-    await SecureStore.setItemAsync(TOKEN_KEY, token);
+    await Promise.all([
+      SecureStore.setItemAsync(TOKEN_KEY, token),
+      SecureStore.setItemAsync(USER_KEY, JSON.stringify(user)),
+    ]);
     set({ token, user, hydrating: false });
   },
   async clearSession() {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await Promise.all([
+      SecureStore.deleteItemAsync(TOKEN_KEY),
+      SecureStore.deleteItemAsync(USER_KEY),
+    ]);
     set({ token: null, user: null, hydrating: false });
   },
   async hydrate() {
-    const token = await SecureStore.getItemAsync(TOKEN_KEY);
-    // user 不持久化；启动时带 token 去 /api/auth/get-session 刷一份
-    set({ token, hydrating: false });
+    // token + user 一起缓存，断网启动也能显示用户名而不是退回「朋友」
+    const [token, userJson] = await Promise.all([
+      SecureStore.getItemAsync(TOKEN_KEY),
+      SecureStore.getItemAsync(USER_KEY),
+    ]);
+    let user: SessionUser | null = null;
+    if (userJson) {
+      try {
+        user = JSON.parse(userJson) as SessionUser;
+      } catch {
+        // 坏数据，忽略
+      }
+    }
+    set({ token, user, hydrating: false });
   },
 }));
 
