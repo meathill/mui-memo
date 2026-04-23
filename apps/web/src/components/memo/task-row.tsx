@@ -2,9 +2,14 @@
 
 import { CheckIcon } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PLACE_LABEL, type TaskView } from "@mui-memo/shared/logic";
 import { useNowTick } from "@/hooks/use-now-tick";
+import {
+  type CheckAnim,
+  CHECK_ANIM_DURATION,
+  readCheckAnim,
+} from "@/lib/settings";
 import { isOverdue, relativeTimeLabel } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
@@ -16,8 +21,19 @@ interface Props {
 export function TaskRow({ task, onDone }: Props) {
   const [checking, setChecking] = useState(false);
   const [checked, setChecked] = useState(false);
+  const [anim, setAnim] = useState<CheckAnim>("strike");
   const nowMs = useNowTick();
   const now = new Date(nowMs);
+
+  useEffect(() => {
+    setAnim(readCheckAnim());
+    function onChange() {
+      setAnim(readCheckAnim());
+    }
+    window.addEventListener("muimemo:check-anim-change", onChange);
+    return () =>
+      window.removeEventListener("muimemo:check-anim-change", onChange);
+  }, []);
 
   async function handleCheck(e: React.MouseEvent) {
     e.preventDefault();
@@ -26,6 +42,9 @@ export function TaskRow({ task, onDone }: Props) {
     setChecking(true);
     setChecked(true);
     try {
+      if (anim !== "strike") {
+        await new Promise((r) => setTimeout(r, CHECK_ANIM_DURATION[anim]));
+      }
       await onDone(task.id);
     } catch {
       setChecked(false);
@@ -47,8 +66,15 @@ export function TaskRow({ task, onDone }: Props) {
   const overdue = !task.done && isOverdue(anchor, now);
   const displayLabel = dynamicLabel || task.deadline || "";
 
+  const exitClass =
+    checked && anim === "fade"
+      ? "mm-fade"
+      : checked && anim === "fly"
+        ? "mm-fly"
+        : "";
+
   return (
-    <li>
+    <li className={exitClass}>
       <Link
         href={`/tasks/${task.id}`}
         prefetch={false}

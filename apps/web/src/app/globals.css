@@ -347,6 +347,35 @@
     animation: mm-strike 260ms ease-out forwards;
   }
 
+  /* check 动画：fade 变体 —— 淡出 + 压扁 */
+  @keyframes mm-fade {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+  .mm-fade {
+    animation: mm-fade 300ms ease-out forwards;
+  }
+
+  /* check 动画：fly 变体 —— 向右飞走 */
+  @keyframes mm-fly {
+    0% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(40%);
+    }
+  }
+  .mm-fly {
+    animation: mm-fly 340ms cubic-bezier(0.4, 0, 0.6, 1) forwards;
+  }
+
   /* doing 卡片呼吸灯 */
   @keyframes mm-pulse {
     0%,

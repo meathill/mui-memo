@@ -2,19 +2,32 @@
 
 import { useEffect, useState } from "react";
 import { track } from "@/lib/analytics";
+import {
+  type CheckAnim,
+  CHECK_ANIMS,
+  readCheckAnim,
+  writeCheckAnim,
+} from "@/lib/settings";
 import { readTheme, type Theme, THEMES, writeTheme } from "@/lib/theme";
 
 export function TweaksPanel() {
   const [theme, setTheme] = useState<Theme>("paper");
+  const [anim, setAnim] = useState<CheckAnim>("strike");
 
   useEffect(() => {
     setTheme(readTheme());
+    setAnim(readCheckAnim());
   }, []);
 
-  function handlePick(next: Theme) {
+  function handleTheme(next: Theme) {
     setTheme(next);
     writeTheme(next);
     track({ name: "theme_change", theme: next });
+  }
+
+  function handleAnim(next: CheckAnim) {
+    setAnim(next);
+    writeCheckAnim(next);
   }
 
   return (
@@ -26,33 +39,77 @@ export function TweaksPanel() {
         </span>
       </header>
 
-      <div>
-        <p className="mb-2 font-mono text-[10px] tracking-[0.15em] text-ink-mute uppercase">
-          主题
-        </p>
-        <div className="grid grid-cols-3 gap-2">
-          {THEMES.map((t) => {
-            const active = theme === t.value;
-            return (
-              <button
-                key={t.value}
-                type="button"
-                onClick={() => handlePick(t.value)}
-                aria-pressed={active}
-                className={
-                  "rounded-xl border px-3 py-2 text-left transition " +
-                  (active
-                    ? "border-accent-warm/60 bg-accent-warm/10"
-                    : "border-rule/60 bg-paper hover:bg-paper-2")
-                }
-              >
-                <p className="font-serif text-sm text-ink">{t.label}</p>
-                <p className="font-mono text-[10px] text-ink-mute">{t.hint}</p>
-              </button>
-            );
-          })}
-        </div>
+      <Group label="主题">
+        {THEMES.map((t) => (
+          <OptionCard
+            key={t.value}
+            label={t.label}
+            hint={t.hint}
+            active={theme === t.value}
+            onClick={() => handleTheme(t.value)}
+          />
+        ))}
+      </Group>
+
+      <div className="mt-4">
+        <Group label="勾选动画">
+          {CHECK_ANIMS.map((a) => (
+            <OptionCard
+              key={a.value}
+              label={a.label}
+              hint={a.hint}
+              active={anim === a.value}
+              onClick={() => handleAnim(a.value)}
+            />
+          ))}
+        </Group>
       </div>
     </section>
+  );
+}
+
+function Group({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <p className="mb-2 font-mono text-[10px] tracking-[0.15em] text-ink-mute uppercase">
+        {label}
+      </p>
+      <div className="grid grid-cols-3 gap-2">{children}</div>
+    </div>
+  );
+}
+
+function OptionCard({
+  label,
+  hint,
+  active,
+  onClick,
+}: {
+  label: string;
+  hint: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={
+        "rounded-xl border px-3 py-2 text-left transition " +
+        (active
+          ? "border-accent-warm/60 bg-accent-warm/10"
+          : "border-rule/60 bg-paper hover:bg-paper-2")
+      }
+    >
+      <p className="font-serif text-sm text-ink">{label}</p>
+      <p className="font-mono text-[10px] text-ink-mute">{hint}</p>
+    </button>
   );
 }
