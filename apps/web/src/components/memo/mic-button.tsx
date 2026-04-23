@@ -11,19 +11,30 @@ interface Props {
 
 type Phase = "idle" | "recording" | "processing";
 
+/** 最短录音时长：太短的录音 Gemini 没足够信号，AI 容易胡猜。 */
+const MIN_DURATION_MS = 5000;
+
 /**
  * 长按录音。支持触摸长按、鼠标长按、Space 键长按。
- * 最短录音时长 300ms，避免误触发。
+ * 低于 {@link MIN_DURATION_MS} 的录音会被丢弃并给用户提示。
  */
 export function MicButton({ disabled, onAudio }: Props) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [elapsedMs, setElapsedMs] = useState(0);
   const mediaRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const startAtRef = useRef(0);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopTick = useCallback(() => {
+    if (tickRef.current) clearInterval(tickRef.current);
+    tickRef.current = null;
+  }, []);
 
   const stopAll = useCallback(() => {
+    stopTick();
     const rec = mediaRef.current;
     mediaRef.current = null;
     if (rec && rec.state !== "inactive") {
@@ -33,7 +44,7 @@ export function MicButton({ disabled, onAudio }: Props) {
     }
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
-  }, []);
+  }, [stopTick]);
 
   const startRecording = useCallback(async () => {
     if (disabled || phase !== "idle") return;
@@ -52,11 +63,19 @@ export function MicButton({ disabled, onAudio }: Props) {
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
       rec.onstop = async () => {
+        stopTick();
         const blob = new Blob(chunksRef.current, { type: mime });
         chunksRef.current = [];
         streamRef.current?.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
-        if (Date.now() - startAtRef.current < 300 || blob.size === 0) {
+        const duration = Date.now() - startAtRef.current;
+        setElapsedMs(0);
+        if (duration < MIN_DURATION_MS) {
+          setError(`说久一点：至少 ${MIN_DURATION_MS / 1000} 秒`);
+          setPhase("idle");
+          return;
+        }
+        if (blob.size === 0) {
           setPhase("idle");
           return;
         }
@@ -72,6 +91,11 @@ export function MicButton({ disabled, onAudio }: Props) {
       startAtRef.current = Date.now();
       rec.start();
       setPhase("recording");
+      setElapsedMs(0);
+      // 每 100ms tick 一次，让按钮上显示的倒计时 / 进度平滑
+      tickRef.current = setInterval(() => {
+        setElapsedMs(Date.now() - startAtRef.current);
+      }, 100);
     } catch (err) {
       setError(err instanceof Error ? err.message : "无法访问麦克风");
       stopAll();
@@ -111,12 +135,17 @@ export function MicButton({ disabled, onAudio }: Props) {
 
   useEffect(() => stopAll, [stopAll]);
 
+  const reachedMin = elapsedMs >= MIN_DURATION_MS;
+  const elapsedSec = (elapsedMs / 1000).toFixed(1);
+  const minSec = MIN_DURATION_MS / 1000;
   const label =
     phase === "recording"
-      ? "松开发送"
+      ? reachedMin
+        ? `松开发送 · ${elapsedSec}s`
+        : `${elapsedSec}s / ${minSec}s`
       : phase === "processing"
         ? "AI 解析中…"
-        : "按住说话";
+        : `按住说话 · ≥${minSec}s`;
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -132,6 +161,10 @@ export function MicButton({ disabled, onAudio }: Props) {
           "relative flex h-20 w-20 items-center justify-center rounded-full transition-all touch-manipulation select-none",
           "bg-ink text-paper shadow-lg shadow-ink/25 active:scale-95",
           phase === "recording" &&
+            !reachedMin &&
+            "bg-ink/70 shadow-ink/20 scale-105",
+          phase === "recording" &&
+            reachedMin &&
             "bg-accent-warm shadow-accent-warm/30 scale-105",
           phase === "processing" && "animate-pulse bg-ink/60",
           disabled && "opacity-50",
