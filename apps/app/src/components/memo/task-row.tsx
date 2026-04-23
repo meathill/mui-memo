@@ -22,9 +22,9 @@ export function TaskRow({ task, onDone }: Props) {
         <CircleIcon size={18} color="#7a7266" />
       </Pressable>
       <View className="flex-1">
-        <Text className="text-ink text-base leading-snug">{task.text}</Text>
+        <Text className="text-ink text-lg leading-snug">{task.text}</Text>
         {task.aiReason ? (
-          <Text className="mt-1 text-ink-mute text-[13px]" numberOfLines={1}>
+          <Text className="mt-1 text-ink-mute text-sm" numberOfLines={1}>
             {task.aiReason}
           </Text>
         ) : null}

@@ -14,16 +14,16 @@ export function ErrorBanner({ message, onRetry, title = '连不上服务器' }: 
   if (!message) return null;
   return (
     <View className="rounded-lg border border-accent-warn/40 bg-accent-warn/10 p-3">
-      <Text className="font-medium text-accent-warn text-sm">{title}</Text>
-      <Text className="mt-0.5 text-ink-soft text-xs" numberOfLines={2}>
+      <Text className="font-medium text-accent-warn text-base">{title}</Text>
+      <Text className="mt-1 text-ink-soft text-sm" numberOfLines={2}>
         {message}
       </Text>
       <Pressable
         onPress={onRetry}
         hitSlop={6}
-        className="mt-2 self-start rounded-full bg-ink px-3 py-1.5 active:opacity-80"
+        className="mt-2 self-start rounded-full bg-ink px-4 py-2 active:opacity-80"
       >
-        <Text className="text-paper text-xs">重试</Text>
+        <Text className="text-paper text-sm">重试</Text>
       </Pressable>
     </View>
   );

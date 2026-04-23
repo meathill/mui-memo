@@ -88,7 +88,7 @@ export default function AllScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1d1a12" />
         }
       >
-        <Text className="font-mono text-ink-mute text-[11px] uppercase tracking-[2px]">
+        <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">
           MuiMemo · 全部
         </Text>
         <Text className="mt-1 font-serif text-2xl text-ink">清单全景</Text>
@@ -112,7 +112,7 @@ export default function AllScreen() {
         ) : (
           grouped.map(([tag, list]) => (
             <View key={tag} className="mt-6">
-              <Text className="mb-2 font-mono text-ink-mute text-[11px] uppercase tracking-[2px]">
+              <Text className="mb-2 font-mono text-ink-mute text-xs uppercase tracking-[2px]">
                 {tag} · {list.length}
               </Text>
               <View className="rounded-2xl border border-rule/60 bg-paper-2/40 px-3">

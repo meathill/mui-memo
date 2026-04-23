@@ -252,7 +252,7 @@ export default function TaskEditScreen() {
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View className="mb-6">
-      <Text className="mb-2 font-mono text-ink-mute text-[11px] uppercase tracking-[2px]">
+      <Text className="mb-2 font-mono text-ink-mute text-xs uppercase tracking-[2px]">
         {label}
       </Text>
       {children}

@@ -23,17 +23,17 @@ export function DoingCard({ task, onDone }: Props) {
     >
       <View className="flex-row items-center gap-1.5">
         <View className="h-1.5 w-1.5 rounded-full bg-accent-warm" />
-        <Text className="font-mono text-[11px] text-accent-warm uppercase tracking-[2px]">
+        <Text className="font-mono text-xs text-accent-warm uppercase tracking-[2px]">
           正在做
         </Text>
       </View>
-      <Text className="mt-1 font-serif text-ink text-xl leading-snug">{task.text}</Text>
+      <Text className="mt-1 font-serif text-ink text-2xl leading-snug">{task.text}</Text>
       <View className="mt-2 flex-row flex-wrap gap-x-2">
-        <Text className="font-mono text-ink-mute text-xs">
+        <Text className="font-mono text-ink-mute text-sm">
           {place.icon} {place.label}
         </Text>
         {task.aiReason ? (
-          <Text className="font-mono text-ink-mute text-xs" numberOfLines={1}>
+          <Text className="font-mono text-ink-mute text-sm" numberOfLines={1}>
             · {task.aiReason}
           </Text>
         ) : null}
@@ -55,10 +55,10 @@ export function DoingCard({ task, onDone }: Props) {
       <Pressable
         onPress={() => onDone(task.id)}
         hitSlop={6}
-        className="mt-3 flex-row items-center gap-1.5 self-start rounded-full bg-ink px-3 py-1.5 active:opacity-80"
+        className="mt-3 flex-row items-center gap-1.5 self-start rounded-full bg-ink px-4 py-2 active:opacity-80"
       >
-        <CheckIcon size={14} color="#f4ede0" />
-        <Text className="text-paper text-xs">搞定了</Text>
+        <CheckIcon size={16} color="#f4ede0" />
+        <Text className="text-paper text-sm">搞定了</Text>
       </Pressable>
     </Pressable>
   );

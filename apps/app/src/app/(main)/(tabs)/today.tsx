@@ -141,7 +141,7 @@ export default function TodayScreen() {
         }
       >
         <View>
-          <Text className="font-mono text-ink-mute text-[11px] uppercase tracking-[2px]">
+          <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">
             MuiMemo · 今天
           </Text>
           <Text className="mt-1 font-serif text-2xl text-ink">
@@ -173,7 +173,7 @@ export default function TodayScreen() {
             if (!list.length) return null;
             return (
               <View key={bucket} className="mt-4">
-                <Text className="mb-2 font-mono text-ink-mute text-[11px] uppercase tracking-[2px]">
+                <Text className="mb-2 font-mono text-ink-mute text-xs uppercase tracking-[2px]">
                   {BUCKET_LABEL[bucket]} · {list.length}
                 </Text>
                 <View className="rounded-2xl border border-rule/60 bg-paper-2/40 px-3">

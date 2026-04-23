@@ -105,7 +105,7 @@ export default function TaskDetailScreen() {
             className="flex-row items-center gap-1.5 rounded-full border border-rule px-3 py-1.5 active:opacity-70"
           >
             <PencilIcon size={14} color="#7a7266" />
-            <Text className="text-ink-soft text-xs">编辑</Text>
+            <Text className="text-ink-soft text-sm">编辑</Text>
           </Pressable>
           <Pressable
             onPress={handleDelete}
@@ -114,7 +114,7 @@ export default function TaskDetailScreen() {
             className="flex-row items-center gap-1.5 rounded-full border border-rule px-3 py-1.5 active:opacity-70"
           >
             <Trash2Icon size={14} color="#7a7266" />
-            <Text className="text-ink-soft text-xs">删除</Text>
+            <Text className="text-ink-soft text-sm">删除</Text>
           </Pressable>
         </View>
       </View>
@@ -131,13 +131,13 @@ export default function TaskDetailScreen() {
         </View>
       ) : (
         <ScrollView contentContainerClassName="px-5 pb-10">
-          <Text className="font-mono text-ink-mute text-[11px] uppercase tracking-[2px]">
+          <Text className="font-mono text-ink-mute text-sm uppercase tracking-[2px]">
             {STATUS_LABEL[task.status] ?? task.status}
             {task.tag ? ` · 🏷 ${task.tag}` : ''}
           </Text>
-          <Text className="mt-2 font-serif text-ink text-2xl leading-snug">{task.text}</Text>
+          <Text className="mt-2 font-serif text-ink text-3xl leading-snug">{task.text}</Text>
           {task.rawText && task.rawText !== task.text ? (
-            <Text className="mt-2 text-ink-soft text-sm">原话：「{task.rawText}」</Text>
+            <Text className="mt-2 text-ink-soft text-base">原话：「{task.rawText}」</Text>
           ) : null}
 
           <View className="mt-6 gap-2 rounded-2xl border border-rule/60 bg-paper-2/40 p-4">
@@ -154,16 +154,18 @@ export default function TaskDetailScreen() {
 
           {task.aiReason ? (
             <View className="mt-4 rounded-2xl border border-accent-warm/30 bg-accent-warm/10 p-4">
-              <Text className="font-mono text-[11px] text-ink-mute uppercase tracking-[2px]">
+              <Text className="font-mono text-sm text-ink-mute uppercase tracking-[2px]">
                 AI · 理由
               </Text>
-              <Text className="mt-1 text-ink text-sm">{task.aiReason}</Text>
+              <Text className="mt-1.5 text-ink text-base leading-relaxed">
+                {task.aiReason}
+              </Text>
             </View>
           ) : null}
 
           {attachments.length > 0 ? (
             <View className="mt-4">
-              <Text className="mb-2 font-mono text-[11px] text-ink-mute uppercase tracking-[2px]">
+              <Text className="mb-2 font-mono text-xs text-ink-mute uppercase tracking-[2px]">
                 附件 · {attachments.length}
               </Text>
               <View className="gap-2">
@@ -209,9 +211,9 @@ export default function TaskDetailScreen() {
 
 function Row({ label, value }: { label: string; value: string | null }) {
   return (
-    <View className="flex-row justify-between">
-      <Text className="text-ink-soft text-sm">{label}</Text>
-      <Text className="text-ink text-sm">{value ?? '—'}</Text>
+    <View className="flex-row items-center justify-between py-1">
+      <Text className="text-ink-soft text-base">{label}</Text>
+      <Text className="text-ink text-base">{value ?? '—'}</Text>
     </View>
   );
 }

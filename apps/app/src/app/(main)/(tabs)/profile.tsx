@@ -98,7 +98,7 @@ export default function ProfileScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1d1a12" />
         }
       >
-        <Text className="font-mono text-ink-mute text-[11px] uppercase tracking-[2px]">
+        <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">
           MuiMemo · 我的
         </Text>
         <Text className="mt-1 font-serif text-2xl text-ink">账号与数据</Text>
@@ -117,7 +117,7 @@ export default function ProfileScreen() {
             <Text className="font-serif text-ink text-lg" numberOfLines={1}>
               {data?.user.name ?? '…'}
             </Text>
-            <Text className="font-mono text-ink-mute text-xs" numberOfLines={1}>
+            <Text className="mt-0.5 font-mono text-ink-mute text-sm" numberOfLines={1}>
               {data?.user.email ?? ''}
             </Text>
           </View>
@@ -140,7 +140,7 @@ export default function ProfileScreen() {
           </View>
           <View className="flex-1">
             <Text className="font-serif text-base text-ink">到点提醒</Text>
-            <Text className="mt-0.5 text-ink-soft text-xs">
+            <Text className="mt-0.5 text-ink-soft text-sm">
               {notifPerm === 'granted'
                 ? '已打开 · 有预期时间的任务到点会弹通知'
                 : notifPerm === 'blocked'
@@ -149,7 +149,7 @@ export default function ProfileScreen() {
             </Text>
           </View>
           {notifPerm !== 'granted' ? (
-            <Text className="font-mono text-accent-warm text-xs">
+            <Text className="font-mono text-accent-warm text-sm">
               {notifPerm === 'blocked' ? '去设置' : '开启'}
             </Text>
           ) : null}
@@ -188,7 +188,7 @@ function StatCard({
         accent ? 'border-accent-warm/40 bg-accent-warm/10' : 'border-rule/60 bg-paper-2/50'
       }`}
     >
-      <Text className="font-mono text-[11px] text-ink-mute uppercase tracking-[2px]">{label}</Text>
+      <Text className="font-mono text-xs text-ink-mute uppercase tracking-[2px]">{label}</Text>
       <Text className="mt-1 font-serif text-3xl text-ink">{value}</Text>
     </View>
   );

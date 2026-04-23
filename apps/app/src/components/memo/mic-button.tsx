@@ -116,7 +116,7 @@ export function MicButton({ onAudio, disabled, processing }: Props) {
           <MicIcon size={28} color="#f4ede0" />
         )}
       </Pressable>
-      <Text className="mt-2 font-mono text-ink-mute text-xs">
+      <Text className="mt-2 font-mono text-ink-mute text-sm">
         {processing ? '解析中…' : durationLabel}
       </Text>
       {hint ? <Text className="mt-1 text-accent-warn text-sm">{hint}</Text> : null}

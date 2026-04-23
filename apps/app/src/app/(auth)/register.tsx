@@ -56,7 +56,7 @@ export default function RegisterScreen() {
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="none"
-                className="rounded-lg border border-rule bg-paper-2/50 px-4 py-3 text-ink"
+                className="rounded-lg border border-rule bg-paper-2/50 px-4 py-3 text-ink text-base"
               />
             </Field>
             <Field label="邮箱">
@@ -66,7 +66,7 @@ export default function RegisterScreen() {
                 autoCapitalize="none"
                 autoComplete="email"
                 keyboardType="email-address"
-                className="rounded-lg border border-rule bg-paper-2/50 px-4 py-3 text-ink"
+                className="rounded-lg border border-rule bg-paper-2/50 px-4 py-3 text-ink text-base"
               />
             </Field>
             <Field label="密码">
@@ -75,11 +75,11 @@ export default function RegisterScreen() {
                 onChangeText={setPassword}
                 secureTextEntry
                 autoComplete="new-password"
-                className="rounded-lg border border-rule bg-paper-2/50 px-4 py-3 text-ink"
+                className="rounded-lg border border-rule bg-paper-2/50 px-4 py-3 text-ink text-base"
               />
             </Field>
 
-            {error ? <Text className="text-red-700 text-xs">{error}</Text> : null}
+            {error ? <Text className="text-red-700 text-sm">{error}</Text> : null}
 
             <Pressable
               onPress={handleSubmit}
@@ -115,7 +115,7 @@ function Field({
 }) {
   return (
     <View className="space-y-1.5">
-      <Text className="text-ink-soft text-xs">{label}</Text>
+      <Text className="text-ink-soft text-sm">{label}</Text>
       {children}
     </View>
   );

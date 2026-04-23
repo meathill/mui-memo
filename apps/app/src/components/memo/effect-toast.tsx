@@ -27,10 +27,10 @@ export function EffectToast({ effect, utterance }: Props) {
   const tone = effect.kind === 'miss' ? 'bg-accent-warn' : 'bg-accent-good';
 
   return (
-    <View className={`mt-3 rounded-lg px-3 py-2 ${tone}`}>
-      <Text className="font-medium text-paper text-sm">{effect.verb ?? effect.kind}</Text>
+    <View className={`mt-3 rounded-lg px-4 py-2.5 ${tone}`}>
+      <Text className="font-medium text-paper text-base">{effect.verb ?? effect.kind}</Text>
       {utterance?.raw ? (
-        <Text className="text-paper/85 text-xs" numberOfLines={1}>
+        <Text className="mt-0.5 text-paper/85 text-sm" numberOfLines={1}>
           「{utterance.raw}」
         </Text>
       ) : null}

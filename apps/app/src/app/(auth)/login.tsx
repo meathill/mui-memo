@@ -61,7 +61,7 @@ export default function LoginScreen() {
                 autoCapitalize="none"
                 autoComplete="email"
                 keyboardType="email-address"
-                className="rounded-lg border border-rule bg-paper-2/50 px-4 py-3 text-ink"
+                className="rounded-lg border border-rule bg-paper-2/50 px-4 py-3 text-ink text-base"
               />
             </Field>
             <Field label="密码">
@@ -70,11 +70,11 @@ export default function LoginScreen() {
                 onChangeText={setPassword}
                 secureTextEntry
                 autoComplete="current-password"
-                className="rounded-lg border border-rule bg-paper-2/50 px-4 py-3 text-ink"
+                className="rounded-lg border border-rule bg-paper-2/50 px-4 py-3 text-ink text-base"
               />
             </Field>
 
-            {error ? <Text className="text-red-700 text-xs">{error}</Text> : null}
+            {error ? <Text className="text-red-700 text-sm">{error}</Text> : null}
 
             <Pressable
               onPress={handleSubmit}
@@ -110,7 +110,7 @@ function Field({
 }) {
   return (
     <View className="space-y-1.5">
-      <Text className="text-ink-soft text-xs">{label}</Text>
+      <Text className="text-ink-soft text-sm">{label}</Text>
       {children}
     </View>
   );

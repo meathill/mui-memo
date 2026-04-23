@@ -15,7 +15,7 @@ export default function TabsLayout() {
           height: 82,
           paddingTop: 8,
         },
-        tabBarLabelStyle: { fontSize: 12, fontWeight: '500' },
+        tabBarLabelStyle: { fontSize: 13, fontWeight: '500' },
         tabBarIconStyle: { marginBottom: 2 },
       }}
     >

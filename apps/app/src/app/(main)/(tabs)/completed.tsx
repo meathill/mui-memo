@@ -126,7 +126,7 @@ export default function CompletedScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1d1a12" />
         }
       >
-        <Text className="font-mono text-ink-mute text-[11px] uppercase tracking-[2px]">
+        <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">
           MuiMemo · 已完成
         </Text>
         <Text className="mt-1 font-serif text-2xl text-ink">你搞定的那些事</Text>
@@ -153,7 +153,7 @@ export default function CompletedScreen() {
           <>
             {grouped.map(([day, list]) => (
               <View key={day} className="mt-5">
-                <Text className="mb-2 font-mono text-ink-mute text-[11px] uppercase tracking-[2px]">
+                <Text className="mb-2 font-mono text-ink-mute text-xs uppercase tracking-[2px]">
                   {day} · {list.length}
                 </Text>
                 <View className="rounded-2xl border border-rule/60 bg-paper-2/40 px-3">
@@ -167,7 +167,7 @@ export default function CompletedScreen() {
                       </View>
                       <View className="min-w-0 flex-1">
                         <Text className="text-ink-soft text-base line-through">{t.text}</Text>
-                        <Text className="mt-0.5 font-mono text-ink-mute text-xs">
+                        <Text className="mt-1 font-mono text-ink-mute text-sm">
                           {t.tag ? `🏷 ${t.tag} · ` : ''}
                           {formatTime(t.completedAt)}
                         </Text>
@@ -195,12 +195,12 @@ export default function CompletedScreen() {
                   {loadingMore ? (
                     <ActivityIndicator color="#1d1a12" />
                   ) : (
-                    <Text className="text-ink-soft text-xs">加载更多</Text>
+                    <Text className="text-ink-soft text-sm">加载更多</Text>
                   )}
                 </Pressable>
               </View>
             ) : (
-              <Text className="mt-6 text-center font-mono text-[11px] text-ink-mute">
+              <Text className="mt-6 text-center font-mono text-xs text-ink-mute">
                 · 到底了 ·
               </Text>
             )}
