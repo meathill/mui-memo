@@ -58,6 +58,10 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
   },
   extra: {
     apiBase,
+    eas: {
+      // `eas init` 生成的固定 projectId，别改；重装 / 换机跑 eas build 都靠它认项目
+      projectId: 'b2890ed6-fdc6-4ec5-898d-9a7c6f7f8504',
+    },
   },
 };
 
