@@ -103,3 +103,39 @@ embedding VECTOR(1024)
   3. utterances 表里 task_id 置空（保留语音历史，去掉悬挂指针）
   4. 任务自己的 audioKey 对应 R2 对象 + 任务行
 - R2 delete 用 `Promise.allSettled`，单个失败不阻塞 DB 已清的语义
+
+## iOS App（apps/app · Phase 2 起步）
+
+**脚手架**：Expo SDK 55 + expo-router + TypeScript。手工搭，没跑 `create-expo-app`，所以装完依赖后第一次要 `cd apps/app && npx expo install --fix` 校准版本。
+
+**鉴权 · Bearer**：Better-Auth 在 [apps/web/src/lib/auth.ts](apps/web/src/lib/auth.ts) 开了 `bearer()` plugin。RN 端登录后拿到 `Authorization: Bearer <token>` 存进 `expo-secure-store`，之后所有请求带这个 header。Web 仍走 cookie，两条路并存。
+
+**Metro + pnpm monorepo**：[apps/app/metro.config.js](apps/app/metro.config.js) 里 `watchFolders` 指向 repo 根，`nodeModulesPaths` 同时加 `apps/app/node_modules` 和根 `node_modules`，`disableHierarchicalLookup: true`。少一项都会 bundle 挂。
+
+**⚠️ 根 `.npmrc` 必须设 `node-linker=hoisted`**：Expo / RN 生态大量 peer dep（`react-native-web` / `react-native-css-interop` / `whatwg-fetch` / `@expo/metro-runtime` …）在 pnpm 默认隔离下 Metro 穿透 `.pnpm` 路径后找不到兄弟依赖，`expo-router` 的 entry 一进来就 resolve 失败。hoisted linker 把整个 workspace 扁平化为 npm 布局，一劳永逸。对 apps/web (Next.js) 和 packages/shared (tsup) 无副作用。实测已 iOS bundle 通过（3.8MB hbc）。
+
+**NativeWind v4**：RN 不支持 CSS 变量，Web 的 `globals.css` 走 `color-mix` + `oklch` + var 那套完全没法运行时解析。所以 [apps/app/tailwind.config.ts](apps/app/tailwind.config.ts) 把 paper 主题的 token 预计算成 hex 硬编码。dark / mono 主题后续再补 JS 侧的 theme switch。
+
+**Shared 包的雷区**：`apps/app` 只许 import `@mui-memo/shared/validators` 和 `@mui-memo/shared/logic`。`@mui-memo/shared/schema` 拖着 drizzle-orm + TiDB 驱动，Metro 不认，一碰就 bundle 失败。review 代码时搜一遍确认没有。
+
+**音频格式**：Web MediaRecorder 默认 `audio/webm;codecs=opus`，iOS `expo-audio` 默认 `.m4a`。[apps/web/src/app/api/intent/route.ts](apps/web/src/app/api/intent/route.ts) 的 R2 扩展名分支已同时覆盖 webm / m4a / wav。Gemini 对两种格式都能识别，实测 m4a 联调成功。
+
+**图标库**：`lucide-react-native` + `react-native-svg` 对齐 Web 的 `lucide-react`。peer 依赖 `buffer` 要显式装（react-native-svg 的 `fetchData.ts` 用），否则 bundle 报 `Unable to resolve module buffer`。
+
+**路由结构**：
+```
+(main)/            Stack — 登录后总入口，未登录 redirect /login
+  (tabs)/          Tabs — 底部四 Tab
+    today.tsx      DoingCard + ContextStrip + MicButton + 分桶列表 + 下拉刷新
+    all.tsx        按 tag 分组
+    completed.tsx  按天分组 + 游标分页 + 删除
+    profile.tsx    统计卡 + 退出
+  tasks/[id].tsx   全屏可推详情（状态 / AI 理由 / 附件 / 搞定 / 删除）
+```
+入口 `index.tsx` 纯 gate：hydrating 时 spinner，token 有/无分别 replace 去 /today 或 /login。
+
+**录音权限 UX**：
+- 进屏不预请求（`getRecordingPermissionsAsync` 只查不问）
+- 首次按麦才弹系统权限框
+- 拒过且 `canAskAgain=false` → 点按钮直接弹 Alert 引导 `Linking.openSettings()`
+- 普通拒绝 → 按钮下方持久 hint，不用 Alert 闪一下就没

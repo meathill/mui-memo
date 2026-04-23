@@ -32,17 +32,28 @@
 - 任务手动编辑底部抽屉（TaskSheet）→ 语音兜底手感在 native 才成立
 - 到点提醒 → Web Push 在 iOS 上可靠性不够（见本轮讨论）
 
-## Phase 2: iOS App（战略预留 · 核心差异化）
+## Phase 2: iOS App（进行中）
 
-> 赌的是 native 独有的三件事：Siri 入口、端侧 ASR、Live Activity。
-> 顺带把 Phase 1 砍掉的 TaskSheet / 提醒 / 游戏化补齐。
+### 已完成（MVP 对齐 Web）
+- [x] Expo SDK 55 + expo-router 脚手架；pnpm monorepo + `node-linker=hoisted`
+- [x] Better-Auth bearer plugin + `expo-secure-store` 持久 token
+- [x] NativeWind v4（paper 主题 token 硬编码）
+- [x] API client（类型来自 `@mui-memo/shared`，bearer header 自动挂）
+- [x] Tabs 布局：today / all / completed / profile + pushable `tasks/[id]`
+- [x] 语音录制（`expo-audio`，长按 3s+ 门槛，m4a 上传 → Gemini 端到端）
+- [x] DoingCard + 分桶列表（rerank 复用 shared）+ EffectToast
+- [x] 下拉刷新（全部 Tab）+ 已完成游标分页 + 删除确认
+- [x] 权限双态处理（prompt / blocked，blocked 时跳系统设置）
+- [x] lucide-react-native 图标替换文字占位
 
+### 未完成（战略差异化，赌的是 native 独有）
 - Siri + Shortcuts 入口（「Hey Siri, 记一下 X」不开 app）
 - 端侧 ASR（Apple Speech / Whisper.cpp）+ 实时转写
 - Live Activity / 动态岛录音反馈
 - 本地定时提醒（UNCalendarNotificationTrigger）
 - TaskSheet 手动编辑底部抽屉
 - Foundation Models（端侧 LLM，隐私 + 零成本的简单分类/标签）
+- EAS Build 打包 + TestFlight
 
 ## Phase 3: Native Features（战略预留）
 ## Phase 4: Desktop Worker（战略预留）

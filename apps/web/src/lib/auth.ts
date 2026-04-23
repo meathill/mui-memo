@@ -1,9 +1,10 @@
-import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { headers } from "next/headers";
-import * as schema from "@mui-memo/shared/schema";
-import { createDb } from "./db";
+import * as schema from '@mui-memo/shared/schema';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { bearer } from 'better-auth/plugins';
+import { headers } from 'next/headers';
+import { createDb } from './db';
 
 export interface CreateAuthOptions {
   databaseUrl: string;
@@ -20,7 +21,7 @@ export function createAuth(opts: CreateAuthOptions) {
   const db = createDb(opts.databaseUrl);
   return betterAuth({
     database: drizzleAdapter(db, {
-      provider: "mysql",
+      provider: 'mysql',
       schema: {
         user: schema.users,
         session: schema.sessions,
@@ -34,6 +35,8 @@ export function createAuth(opts: CreateAuthOptions) {
     emailAndPassword: {
       enabled: true,
     },
+    // RN 客户端没有 cookie 语境，带 Authorization: Bearer <session-token> 走这个 plugin
+    plugins: [bearer()],
   });
 }
 
@@ -49,8 +52,7 @@ export async function getServerAuth() {
   // process.env 优先：Playwright webServer 会注入 localhost URL，拿它来跑 e2e；
   // 生产环境 Worker 里 process.env 是空的，自动回退到 CF env.BETTER_AUTH_URL。
   const baseURL =
-    process.env.BETTER_AUTH_URL ??
-    (env as unknown as { BETTER_AUTH_URL?: string }).BETTER_AUTH_URL;
+    process.env.BETTER_AUTH_URL ?? (env as unknown as { BETTER_AUTH_URL?: string }).BETTER_AUTH_URL;
   return createAuth({
     databaseUrl: env.TIDB_DATABASE_URL,
     secret: env.BETTER_AUTH_SECRET,
