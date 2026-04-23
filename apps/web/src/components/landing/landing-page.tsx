@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { HeroDemo } from '@/components/landing/hero-demo';
 import {
   BENEFITS,
@@ -9,19 +10,14 @@ import {
   type Scene,
 } from '@/components/landing/landing-content';
 import { CenteredSectionHead, SectionHead } from '@/components/landing/landing-section-head';
-import { buttonVariants } from '@/components/ui/button-variants';
-import Image from 'next/image';
-import Link from 'next/link';
+import { MarketingHeroActions } from '@/components/marketing/marketing-auth-links';
+import { MarketingShell } from '@/components/marketing/marketing-shell';
+import { LANDING_HEADER_LINKS } from '@/lib/site';
 
-type LandingPageProps = {
-  authed: boolean;
-};
-
-export function LandingPageView({ authed }: LandingPageProps) {
+export function LandingPageView() {
   return (
-    <main className="relative mx-auto w-full max-w-[76rem] px-5 pb-24 sm:px-8 sm:pb-28 lg:px-10">
-      <TopBar authed={authed} />
-      <Hero authed={authed} />
+    <MarketingShell nav={LANDING_HEADER_LINKS}>
+      <Hero />
       <Rule />
       <ExplainSection />
       <Rule />
@@ -32,52 +28,11 @@ export function LandingPageView({ authed }: LandingPageProps) {
       <RoadmapSection />
       <Rule />
       <FaqSection />
-      <Colophon />
-    </main>
+    </MarketingShell>
   );
 }
 
-function TopBar({ authed }: { authed: boolean }) {
-  return (
-    <header className="flex items-start justify-between gap-5 pt-6 pb-10 sm:items-center sm:pt-8 sm:pb-12">
-      <Link
-        href="/"
-        aria-label="MuiMemo 首页"
-        className="inline-flex items-center gap-3 text-ink transition-opacity hover:opacity-80"
-      >
-        <Image src="/brand/logo-mark.svg" alt="" width={32} height={32} className="h-8 w-8 shrink-0" priority />
-        <span className="min-w-0">
-          <span className="block font-mono text-[0.72rem] tracking-[0.2em] text-ink uppercase sm:text-[0.8rem]">
-            MuiMemo
-          </span>
-          <span className="font-serif mt-1 hidden text-[0.95rem] leading-none text-ink-soft sm:block">口述备忘</span>
-        </span>
-      </Link>
-      <nav className="flex items-center gap-4 font-mono text-[0.68rem] tracking-[0.16em] text-ink-mute uppercase sm:gap-6 sm:text-[0.76rem]">
-        <a href="#what" className="hover:text-ink">
-          是什么
-        </a>
-        <a href="#scenes" className="hover:text-ink">
-          场景
-        </a>
-        <a href="#faq" className="hover:text-ink">
-          FAQ
-        </a>
-        {authed ? (
-          <Link href="/app" className="text-accent-warm hover:text-ink">
-            进入应用 →
-          </Link>
-        ) : (
-          <Link href="/login" className="hover:text-ink">
-            登录
-          </Link>
-        )}
-      </nav>
-    </header>
-  );
-}
-
-function Hero({ authed }: { authed: boolean }) {
+function Hero() {
   return (
     <section className="grid gap-10 pt-2 pb-16 sm:grid-cols-[minmax(0,1.05fr)_minmax(23rem,0.95fr)] sm:gap-12 sm:pb-22 lg:gap-14 lg:items-start">
       <div>
@@ -96,23 +51,7 @@ function Hero({ authed }: { authed: boolean }) {
         </p>
 
         <div className="mt-8 flex flex-wrap items-center gap-4 sm:mt-9">
-          {authed ? (
-            <Link href="/app" className={`${buttonVariants({ size: 'lg' })} px-6`}>
-              进入应用
-            </Link>
-          ) : (
-            <>
-              <Link href="/register" className={`${buttonVariants({ size: 'lg' })} px-6`}>
-                免费注册
-              </Link>
-              <Link
-                href="/login"
-                className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-soft uppercase underline-offset-4 hover:text-ink hover:underline sm:text-[0.8rem]"
-              >
-                已有账号 · 登录
-              </Link>
-            </>
-          )}
+          <MarketingHeroActions />
         </div>
       </div>
 
@@ -297,23 +236,5 @@ function PhaseTag({ phase }: { phase: Phase }) {
     >
       {label}
     </span>
-  );
-}
-
-function Colophon() {
-  return (
-    <footer className="mt-8 flex flex-wrap items-baseline justify-between gap-4 border-t border-rule/60 pt-7 font-mono text-[0.7rem] tracking-[0.16em] text-ink-mute uppercase sm:mt-10 sm:pt-8 sm:text-[0.78rem]">
-      <span>MuiMemo · v{process.env.NEXT_PUBLIC_APP_VERSION}</span>
-      <span>
-        <Link href="/login" className="hover:text-ink">
-          登录
-        </Link>
-        <span className="mx-2 text-ink-mute/50">/</span>
-        <Link href="/register" className="hover:text-ink">
-          注册
-        </Link>
-      </span>
-      <span>Made by meathill · paper, deliberate, calm</span>
-    </footer>
   );
 }

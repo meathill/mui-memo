@@ -1,3 +1,4 @@
+import createMDX from '@next/mdx';
 import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
 import type { NextConfig } from 'next';
 import pkg from './package.json' with { type: 'json' };
@@ -7,10 +8,15 @@ initOpenNextCloudflareForDev({
   configPath: './wrangler.jsonc',
 });
 
+const withMDX = createMDX({
+  extension: /\.(md|mdx)$/,
+});
+
 const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_APP_VERSION: pkg.version,
   },
+  pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
 };
 
-export default nextConfig;
+export default withMDX(nextConfig);

@@ -1,8 +1,17 @@
-import { THEME_INIT_SCRIPT } from '@/lib/theme';
-import { cn } from '@/lib/utils';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import type { Metadata, Viewport } from 'next';
 import { Inter, JetBrains_Mono, Noto_Serif_SC } from 'next/font/google';
+import {
+  OG_IMAGE_PATH,
+  SHARE_IMAGE_ALT,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TITLE,
+  SITE_URL,
+  TWITTER_IMAGE_PATH,
+} from '@/lib/site';
+import { THEME_INIT_SCRIPT } from '@/lib/theme';
+import { cn } from '@/lib/utils';
 import './globals.css';
 
 const GA_ID = 'G-JXVMLJYDYZ';
@@ -25,10 +34,44 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'MuiMemo · 口述备忘',
-  description: '意图驱动的 AI 语音轻量任务调度',
-  applicationName: 'MuiMemo',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_TITLE,
+    template: `%s · ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  authors: [{ name: 'meathill', url: SITE_URL }],
+  creator: 'meathill',
+  publisher: 'meathill',
+  category: 'productivity',
+  keywords: ['MuiMemo', '口述备忘', '语音待办', 'AI 任务管理', '生产力工具'],
+  alternates: {
+    canonical: '/',
+  },
   manifest: '/manifest.webmanifest',
+  openGraph: {
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: '/',
+    siteName: SITE_NAME,
+    locale: 'zh_CN',
+    type: 'website',
+    images: [
+      {
+        url: OG_IMAGE_PATH,
+        width: 1200,
+        height: 630,
+        alt: SHARE_IMAGE_ALT,
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [TWITTER_IMAGE_PATH],
+  },
   icons: {
     other: [
       {
@@ -40,7 +83,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: 'MuiMemo',
+    title: SITE_NAME,
     statusBarStyle: 'default',
   },
 };

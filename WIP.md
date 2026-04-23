@@ -1,31 +1,28 @@
 # WIP · MuiMemo
 
-> 当前活跃迭代：**landing 中度重构 + 场景插画**（2026-04-23）。
+> 当前活跃迭代：**landing 收尾 + web SEO / 静态内容页**（2026-04-23）。
 
 线上稳定运行中。长期待办见 [TODO.md](./TODO.md)，架构与决策备忘见 [DEV_NOTE.md](./DEV_NOTE.md)。
 
 ## 当前任务
 
-### Landing 排版二次修正
+### Web SEO + 静态内容页
 
-- 复查线上 landing 的桌面端和移动端排版问题
-- 修正中文标题断行过碎、左右列节奏过散、辅助字过小的问题
-- 提高首页正文与辅助信息字号，压缩空白，提升页面密度
-- 检查场景插画加载表现，避免线上首屏或全页截图时出现空白图
+- 目标：把首页收成真正可索引的营销页，并补齐公开站点的基础内容与 SEO 入口
 - 已完成：
-  - [x] 用浏览器截图核对线上桌面端和手机端的真实显示
-  - [x] 调整 hero、explain、scenes、benefits、roadmap、faq 的间距与字号
-  - [x] 放大 `HeroDemo` 中的标签、摘要和明细文字，减轻“小字过多”的问题
-  - [x] 让场景插画以更积极的方式加载，修正第三张图偶发空白
-  - [x] 本地重新构建并截图验收桌面端和手机端版式
+  - [x] 单独提交漏掉的 landing 排版修正，不混入本轮 SEO 改动
+  - [x] 首页从依赖 server session 的动态页改成静态营销页，CTA 改成客户端增强
+  - [x] 抽出共享 marketing shell / footer，补齐 About / Contact / Privacy / Terms 入口
+  - [x] 接入 `md` / `mdx` 内容体系，新增静态内容页模板与 `content-doc` 样式
+  - [x] 新增 `/about`、`/contact`、`/privacy`、`/terms`
+  - [x] 新增 `/robots.txt`、`/sitemap.xml`、统一站点级 OG / Twitter 分享图
+  - [x] 根布局补齐 canonical / Open Graph / Twitter / authors / keywords
+  - [x] `(auth)`、`(app)`、`/onboarding` 明确输出 `noindex`
+  - [x] 校正 landing FAQ 中与当前数据删除能力不一致的表述
+  - [x] 本地通过 build 验证：首页与四个静态内容页为静态路由，`/app` 保持动态
 
 ### 品牌 Logo + 平台 Icon
 
-- 设计一套符合 `paper / deliberate / calm` 基线的 MuiMemo logo
-- 提供可复用的矢量母版（logo mark / lockup）
-- 生成 favicon、Apple touch icon、PWA / Android icon
-- 补齐 manifest 里的 `icons` 声明
-- 尽量让桌面浏览器、iOS 主屏、Android 安装图标都能直接吃到
 - 已完成：
   - [x] 以现有 `logo-mark / lockup / safari-pinned-tab` 为基础，补 `app-icon` 母版
   - [x] 用脚本批量导出 `apple-icon`、`192/512` 标准图标、`192/512 maskable`
