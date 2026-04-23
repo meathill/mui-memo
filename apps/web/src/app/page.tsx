@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HeroDemo } from "@/components/landing/hero-demo";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { getServerSession } from "@/lib/auth";
 
@@ -70,10 +71,10 @@ function Hero({ authed }: { authed: boolean }) {
           <br />
           就是一条<span className="text-accent-warm">备忘</span>。
         </h1>
-        <p className="font-serif mt-8 max-w-[28ch] text-lg leading-relaxed text-ink-soft sm:text-xl">
-          AI 语音驱动的轻量任务调度。
+        <p className="font-serif mt-8 max-w-[30ch] text-lg leading-relaxed text-ink-soft sm:text-xl">
+          按住说一句。
           <br />
-          按住说，意图、时间、地点、优先级，交给模型拆。
+          时间、优先级、归哪一堆，AI 都替你想好。
         </p>
 
         <div className="mt-10 flex flex-wrap items-center gap-4">
@@ -104,34 +105,9 @@ function Hero({ authed }: { authed: boolean }) {
       </div>
 
       <aside className="relative self-end">
-        <div className="rounded-sm border border-rule/70 bg-paper-2/40 p-6">
-          <p className="font-mono text-[10px] tracking-[0.22em] text-ink-mute uppercase">
-            示例 · 录入一条
-          </p>
-          <p className="font-serif mt-4 text-xl leading-snug text-ink">
-            「下午三点前给老张转五百。」
-          </p>
-          <div className="mt-5 space-y-1.5 font-mono text-[11px] text-ink-soft">
-            <Field k="意图" v="ADD" />
-            <Field k="标签" v="财务" />
-            <Field k="deadline" v="今日 15:00" />
-            <Field k="优先级" v="高" />
-          </div>
-        </div>
-        <p className="mt-4 text-right font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">
-          ↑ 模型拆解片段
-        </p>
+        <HeroDemo />
       </aside>
     </section>
-  );
-}
-
-function Field({ k, v }: { k: string; v: string }) {
-  return (
-    <div className="flex items-baseline gap-3">
-      <span className="w-20 text-ink-mute">{k}</span>
-      <span className="text-ink">{v}</span>
-    </div>
   );
 }
 
@@ -145,48 +121,72 @@ function Rule() {
   );
 }
 
-const SCENES: Array<{ where: string; quote: string; effect: string }> = [
+const ROLES: Array<{
+  tag: string;
+  who: string;
+  context: string;
+  line: string;
+  effect: string;
+}> = [
   {
-    where: "通勤 · 7 点 52 分",
-    quote: "今晚睡前记得给小宝打电话。",
-    effect: "新增「给小宝打电话」，时间『今晚』，地点『在家』，软截止。",
+    tag: "小卖铺店主",
+    who: "王姐",
+    context: "货架和收银台之间连轴转，手常常是脏的。打字这事儿，根本没空。",
+    line: "晚上给老张结 3000 尾款。",
+    effect:
+      "记下了。晚上她对着手机说一句「要打款了」，当天所有转账任务一起摆出来，一口气清。",
   },
   {
-    where: "工位 · 会议中",
-    quote: "刚那个想法——下周把埋点数据拉一版给产品看。",
-    effect: "新增「拉埋点数据给产品」，标签『工作』，优先级中，窗口『下周』。",
+    tag: "带娃的人",
+    who: "李妈",
+    context: "两岁娃的一天像打仗，宝宝睡着的十分钟要清一堆小事。",
+    line: "明天早上带娃去打疫苗，记得带出生证。",
+    effect:
+      "自动拆成『打疫苗』+『带出生证』两件事，都归到明早。出门前看一眼清单，啥都不落下。",
   },
   {
-    where: "厨房 · 刚洗完碗",
-    quote: "碗洗了。",
-    effect: "识别为 DONE 补登，匹配到昨晚那条「洗碗」并标记完成。",
+    tag: "自由职业者",
+    who: "接单的设计师小杨",
+    context: "三个客户同时催不同的事，脑子里一团线。",
+    line: "开始做 A 客户的 logo。",
+    effect:
+      "切到『A 客户』模式，这位客户的 5 条散落任务全调出来——别的先冻结，不打扰。",
   },
 ];
 
 function Scenarios() {
   return (
     <section id="scenes" className="py-24 sm:py-32">
-      <SectionHead number="01" label="场景" title="你说什么，它听什么。" />
+      <SectionHead
+        number="01"
+        label="谁在用"
+        title="三种人，三双忙不过来的手。"
+      />
       <div className="mt-16 space-y-14">
-        {SCENES.map((s) => (
+        {ROLES.map((r) => (
           <article
-            key={s.where}
+            key={r.tag}
             className="grid gap-5 sm:grid-cols-[10rem_1fr] sm:gap-10"
           >
             <p className="font-mono text-[10px] tracking-[0.22em] text-ink-mute uppercase sm:pt-3">
-              {s.where}
+              {r.tag}
             </p>
             <div>
-              <p className="font-serif text-2xl leading-relaxed text-ink sm:text-3xl">
+              <p className="font-serif text-lg text-ink sm:text-xl">
+                {r.who}
+                <span className="ml-3 text-ink-soft">·</span>
+                <span className="ml-3 text-ink-soft">{r.context}</span>
+              </p>
+              <p className="font-serif mt-5 text-2xl leading-relaxed text-ink sm:text-3xl">
                 <span className="select-none text-accent-warm/70">「</span>
-                {s.quote}
+                {r.line}
                 <span className="select-none text-accent-warm/70">」</span>
               </p>
-              <p className="mt-4 max-w-[46ch] text-[15px] leading-relaxed text-ink-soft">
+              <p className="mt-4 max-w-[48ch] text-[15px] leading-relaxed text-ink-soft">
                 <span className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">
-                  → 效果
+                  → MuiMemo
                 </span>{" "}
-                {s.effect}
+                {r.effect}
               </p>
             </div>
           </article>
@@ -199,25 +199,25 @@ function Scenarios() {
 const PRINCIPLES: Array<{ n: string; title: string; body: string }> = [
   {
     n: "01",
-    title: "意图闭环",
-    body: "新增 / 完成 / 关联 / 补登 由模型判断，不让用户自己分流。过期任务红标，AI 会给调度建议。",
+    title: "说什么 = 做什么",
+    body: "不分字段、不挑标签。一句大白话，AI 替你拆成「做什么 / 什么时候 / 多急」。",
   },
   {
     n: "02",
-    title: "混合搜索",
-    body: "TiDB 向量 + 全文检索，RRF 融合排序。「上次那个」也能被找到——不依赖精确匹配关键词。",
+    title: "记了就找得到",
+    body: "「上次那个给老张转钱的事」也能找出来——不用背关键词，像翻手账。",
   },
   {
     n: "03",
-    title: "纸感轻量",
-    body: "手账一样的排版与节奏。三主题（Paper / Night / Mono），勾选动画三变体，按习惯调。",
+    title: "像本手账，不像软件",
+    body: "三种主题、三种勾选动画，按自己习惯调。用完就合上，不抢注意力。",
   },
 ];
 
 function Principles() {
   return (
     <section className="py-24 sm:py-32">
-      <SectionHead number="02" label="核心" title="三件事做到底，别的不做。" />
+      <SectionHead number="02" label="核心" title="三件事，做到底。" />
       <div className="mt-16 grid gap-12 sm:grid-cols-3 sm:gap-10">
         {PRINCIPLES.map((p) => (
           <article key={p.n}>
@@ -241,26 +241,26 @@ const ROADMAP: Array<{ n: string; title: string; body: string; phase: Phase }> =
   [
     {
       n: "Phase 1",
-      title: "Web MVP · 验证语音能力",
-      body: "语音意图闭环、TiDB 混合搜索、附件与输入记录、PWA 可安装。",
+      title: "网页版 · 先用起来",
+      body: "说一句话就记下，想找就搜到。手机浏览器打开就能用，也能装进主屏幕当 app。",
       phase: "done",
     },
     {
       n: "Phase 2",
-      title: "iOS App · 体验做到位",
-      body: "Siri / Shortcuts 入口、端侧 ASR 实时转写、Live Activity 录音反馈、本地定时提醒、TaskSheet 抽屉。",
+      title: "iOS App · 把体验做到位",
+      body: "不用打开 app，对 Siri 说一句就记下。录音当场看到文字，锁屏也能瞄一眼在录什么。到点了手机会准时提醒。",
       phase: "active",
     },
     {
       n: "Phase 3",
-      title: "Native Features · 延伸",
-      body: "端侧 LLM 标签化（Foundation Models）、iCloud 同步、Widget 与锁屏入口。",
+      title: "日常延伸",
+      body: "iCloud 同步、主屏小组件、一秒进入录音——让 MuiMemo 藏在手指最方便的地方。",
       phase: "planned",
     },
     {
       n: "Phase 4",
-      title: "Desktop Worker · 串联",
-      body: "桌面录入入口，与 mobile 同步；跨设备统一调度。",
+      title: "桌面端串联",
+      body: "电脑前敲字也顺手，手机和桌面保持一致，换设备不用重新适应。",
       phase: "planned",
     },
   ];
@@ -268,7 +268,7 @@ const ROADMAP: Array<{ n: string; title: string; body: string; phase: Phase }> =
 function Roadmap() {
   return (
     <section id="roadmap" className="py-24 sm:py-32">
-      <SectionHead number="03" label="Roadmap" title="四步走完。" />
+      <SectionHead number="03" label="Roadmap" title="一步一步来。" />
       <ol className="mt-16 space-y-12 sm:space-y-14">
         {ROADMAP.map((item, i) => (
           <li
@@ -317,23 +317,23 @@ function PhaseTag({ phase }: { phase: Phase }) {
 const FAQ: Array<{ q: string; a: string }> = [
   {
     q: "一定要联网吗？能离线用吗？",
-    a: "当前 web 版需要联网——语音识别走 Gemini，存储走 TiDB。Phase 2 的 iOS App 会接端侧 ASR，常用操作能离线。",
+    a: "当前网页版需要联网——说的话要交给 AI 去听、去理解，结果也要存到云端。Phase 2 的 iOS App 会支持常用操作离线。",
   },
   {
-    q: "语音数据会被用来训练模型吗？",
-    a: "不会。音频只用于当次意图解析 + 可选归档（R2，仅你可访问）。你可以随时在「输入记录」页查看并删除原始语音。",
+    q: "能准时提醒我吗？",
+    a: "网页版暂时不太行——浏览器的提醒在手机上不稳定。准时提醒留给我们正在做的 iOS App，用系统闹钟才靠谱。",
   },
   {
-    q: "支持中文口音 / 方言吗？",
-    a: "普通话和常见带口音普通话基本可用。粤语、川话等方言当前由底层模型决定，实测精度因人而异，建议先短句试一试。",
+    q: "支持方言 / 口音吗？",
+    a: "普通话和带口音普通话基本都能听懂。粤语、川话这些方言实测因人而异，建议先说几句短的试试。",
   },
   {
-    q: "为什么 Web 版不做提醒通知？",
-    a: "Web Push 在 iOS 上的可靠性不够——iOS 必须安装为 PWA、后台容易被系统回收、没有送达回执。提醒通知留给 Phase 2 的 native，用系统闹钟 API 才能准点。",
+    q: "我说的话会被拿去训练 AI 吗？",
+    a: "不会。录音只用于当次识别，可选归档也只有你能看。想删的话「输入记录」页一键清掉。",
   },
   {
-    q: "收费吗？",
-    a: "当前是我个人项目，免费注册使用。未来若要覆盖模型与存储成本，会先告知再调整，不会突然收费。",
+    q: "要收费吗？",
+    a: "现在是我的个人项目，免费注册用。如果将来要收，我会先跟你讲清楚再调整，不会突然。",
   },
 ];
 
