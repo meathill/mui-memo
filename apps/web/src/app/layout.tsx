@@ -1,6 +1,7 @@
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Noto_Serif_SC } from "next/font/google";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
@@ -58,6 +59,10 @@ export default function RootLayout({
       )}
     >
       <body className="bg-paper text-ink min-h-full flex flex-col font-sans">
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: 主题早注入脚本，读 localStorage 防 FOUC
+          dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
+        />
         {children}
       </body>
       {process.env.NODE_ENV === "production" && (

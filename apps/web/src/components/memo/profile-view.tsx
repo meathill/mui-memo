@@ -3,6 +3,7 @@
 import { LogOutIcon, RefreshCcwIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { TweaksPanel } from "@/components/memo/tweaks-panel";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth-client";
 
@@ -77,6 +78,8 @@ export function ProfileView() {
         <StatCard label="清单待办" value={data?.stats.pending ?? 0} />
         <StatCard label="正在做" value={data?.stats.doing ?? 0} />
       </section>
+
+      <TweaksPanel />
 
       <section className="mt-6 space-y-2">
         <Link

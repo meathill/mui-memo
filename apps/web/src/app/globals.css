@@ -218,6 +218,17 @@
 }
 
 .dark {
+  /* MuiMemo · night —— 深夜纸感 */
+  --paper-bg: #1a1812;
+  --paper-bg-2: #232017;
+  --ink: #f0e6d2;
+  --ink-soft: color-mix(in srgb, var(--ink) 72%, var(--paper-bg));
+  --ink-mute: color-mix(in srgb, var(--ink) 45%, var(--paper-bg));
+  --accent-warm: oklch(0.72 0.13 55);
+  --accent-good: oklch(0.7 0.11 155);
+  --accent-warn: oklch(0.78 0.14 75);
+  --rule: color-mix(in srgb, var(--ink) 16%, var(--paper-bg));
+
   --destructive-foreground: var(--color-red-400);
   --info: var(--color-blue-500);
   --info-foreground: var(--color-blue-400);
@@ -279,6 +290,19 @@
   --sidebar-primary: var(--color-neutral-100);
   --sidebar-primary-foreground: var(--color-neutral-800);
   --sidebar-ring: var(--color-neutral-400);
+}
+
+.theme-mono {
+  /* MuiMemo · mono —— 极简黑白 */
+  --paper-bg: #fafaf8;
+  --paper-bg-2: #f1f1ee;
+  --ink: #0a0a0a;
+  --ink-soft: #3a3a3a;
+  --ink-mute: #7a7a7a;
+  --accent-warm: #0a0a0a;
+  --accent-good: #0a0a0a;
+  --accent-warn: #0a0a0a;
+  --rule: #d9d9d5;
 }
 
 @layer base {
