@@ -123,7 +123,15 @@ export const tasks = mysqlTable('tasks', {
   priority: int('priority').notNull().default(2),
   tag: varchar('tag', { length: 32 }),
   deadline: varchar('deadline', { length: 64 }),
-  /** AI 解析出的绝对截止时间（ISO 带时区），`deadline` 是自然语言 label。 */
+  /**
+   * 预期完成时间：用户原话里「打算做的时间」，如「明天下午三点」。
+   * 未来会被 rerank 用来排序、被 UI 用来显示相对时间 label。
+   */
+  expectAt: timestamp('expect_at'),
+  /**
+   * 真正的 deadline：可以晚于 expectAt，AI 只有用户显式说了才填。
+   * 例如「明天做，最晚这周」→ expectAt=明天，dueAt=周日 23:59。
+   */
   dueAt: timestamp('due_at'),
   aiReason: text('ai_reason'),
   actionType: varchar('action_type', { length: 50 }),

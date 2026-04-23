@@ -102,7 +102,7 @@ describe('rerank', () => {
 // applyIntent - ADD
 // ──────────────────────────────────────────────
 
-describe('applyIntent · dueAt', () => {
+describe('applyIntent · dueAt / expectAt', () => {
   it('ADD 时保留 AI 解析出的 dueAt', () => {
     const due = '2026-04-23T23:59:00+08:00';
     const u = utter({
@@ -113,6 +113,25 @@ describe('applyIntent · dueAt', () => {
     });
     const { tasks } = applyIntent([], u);
     expect(tasks[0].deadline).toBe('明天');
+    expect(tasks[0].dueAt).toBe(due);
+  });
+
+  it('ADD 同时带 expectAt + dueAt：两个字段都透传', () => {
+    const expect_ = '2026-04-24T23:59:00+08:00';
+    const due = '2026-04-26T23:59:00+08:00';
+    const u = utter({
+      intent: 'ADD',
+      raw: '明天写完，最晚这周',
+      aiVerb: '新增',
+      task: {
+        text: '写周报',
+        deadline: '明天 / 这周',
+        expectAt: expect_,
+        dueAt: due,
+      },
+    });
+    const { tasks } = applyIntent([], u);
+    expect(tasks[0].expectAt).toBe(expect_);
     expect(tasks[0].dueAt).toBe(due);
   });
 

@@ -22,7 +22,8 @@ const SYSTEM_PROMPT = `你是 MuiMemo 的语音意图解析器。用户会说一
     "priority"?: 1|2|3,
     "tag"?: string,                // 「工作」「家务」「财务」「联络」「采购」「自我」等
     "deadline"?: string,           // 自然语言 label，如「明天」「下周一」「下午三点」「17:00」
-    "dueAt"?: string               // 解析成绝对时间的 ISO 8601（带时区偏移，见 "时间解析" 节）
+    "expectAt"?: string,           // 用户「打算做」的时间，ISO 8601（见 "时间解析" 节）
+    "dueAt"?: string               // 真正 deadline（最晚要做完），仅当用户显式说「最晚…」「…之前必须」时才填
   },
   "patch"?: {                      // STATUS/MODIFY 时写补丁字段（同 task 结构的子集，可含 status）
     ...
@@ -58,20 +59,26 @@ const SYSTEM_PROMPT = `你是 MuiMemo 的语音意图解析器。用户会说一
 - 纯娱乐/自我 → priority:1
 - 其它一般 → priority:2
 
-## 时间解析（dueAt）
+## 时间解析（expectAt / dueAt）
 - 锚点是 user message 里给出的「当前时间 / 时区」，**绝对不要**猜今天是哪天，
   所有相对时间都要以这个锚点推算。
-- 用户原话里带时间表达，就把它解析成绝对时间写进 dueAt，
-  并同时把原话（或规整后的短语）写进 deadline。
-- dueAt 必须是 ISO 8601，带跟锚点相同的时区偏移，精确到分钟：
-  - 「明天下午三点」→ 明天 15:00 → 2026-04-23T15:00:00+08:00
-  - 「下周一」（未说时间）→ 下周一 23:59 → 2026-04-27T23:59:00+08:00
-  - 「月底」→ 本月最后一天 23:59
-  - 「晚上八点」→ 今天 20:00（当前时刻已过 20:00 则取明天 20:00）
-  - 只给「明天」「后天」（不带时间）→ 当日 23:59
-- 没有具体时间信号的话（「改天」「有空」「看心情」）**不要**填 dueAt；
-  只填 window=later 即可。
-- MODIFY 意图里如果用户改了时间（「改到下周一」），把新 dueAt 填进 patch。
+- 两个时间字段语义截然不同：
+  - **expectAt**：用户「打算做」的时刻。默认大部分时间表达都落在这里。
+  - **dueAt**：真正 deadline（最晚要做完）。**只有**用户显式说了「最晚…」、
+    「…之前必须」、「周五前要交」、「这周内」这种「宽限上限」时才填；否则
+    就不填 dueAt，让 expectAt 唱主角。
+- 两者都写进 deadline 这个自然语言 label（用户原话的规整短语）。
+- 两者都是 ISO 8601，带跟锚点相同的时区偏移，精确到分钟。
+- 样例：
+  - 「明天下午三点给老妈打电话」→ expectAt=明天 15:00；dueAt 不填
+  - 「明天给老妈打电话，最晚这周」→ expectAt=明天 23:59；dueAt=本周日 23:59
+  - 「下周一前把物业费交了」→ dueAt=下周一 23:59；expectAt 不填（或填同值）
+  - 「月底前」→ dueAt=本月最后一天 23:59
+  - 「晚上八点」→ expectAt=今天 20:00（当前已过 20:00 则明天 20:00）
+  - 「明天」「后天」不带时间 → expectAt=当日 23:59
+  - 纯「改天」「有空」「看心情」→ expectAt 和 dueAt 都不填，window=later
+- MODIFY 意图里用户改的时间通常是 expectAt（「改到下周一」）；除非他明
+  确说「最晚…」才改 dueAt。把变化写进 patch。
 `;
 
 export interface GenAIConfig {
@@ -118,7 +125,9 @@ function buildUserPrompt(tasks: TaskView[], now: TimeAnchor): string {
       (t) =>
         `- [${t.status}] ${t.text} · 地点:${t.place} · 时段:${t.window} · 优先:${t.priority}${
           t.deadline ? ` · 截止:${t.deadline}` : ""
-        }${t.dueAt ? ` · dueAt:${t.dueAt}` : ""}${t.tag ? ` · #${t.tag}` : ""}`,
+        }${t.expectAt ? ` · expectAt:${t.expectAt}` : ""}${
+          t.dueAt ? ` · dueAt:${t.dueAt}` : ""
+        }${t.tag ? ` · #${t.tag}` : ""}`,
     );
   return `${head}\n\n当前清单：\n${lines.join("\n")}`;
 }

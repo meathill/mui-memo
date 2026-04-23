@@ -178,11 +178,43 @@ test.describe("任务详情 · dueAt", () => {
       new Date(due).toISOString(),
     );
 
-    // 详情页渲染出 → 2026-4-23... 的展示文本（具体格式随 Intl 而定，
-    // 只断言包含「4月」和「15:00」这两个关键 token）
+    // 详情页 Deadline 行渲染出 4月23日... 15:00（格式随 Intl）
     await page.goto(`/tasks/${id}`);
-    const hint = page.locator("text=/→.*4月23日.*15:00/");
-    await expect(hint).toBeVisible();
+    const hint = page.locator("text=/4月23日.*15:00/");
+    await expect(hint.first()).toBeVisible();
+  });
+});
+
+test.describe("任务详情 · 过期 expectAt", () => {
+  test.beforeEach(async ({ resetTasks }) => {
+    await resetTasks();
+  });
+
+  test("expectAt 落在过去 → 详情页「预期」行变红", async ({ inject, page }) => {
+    const past = "2020-01-01T09:00:00+08:00";
+    const res = await inject(
+      buildUtterance({
+        raw: "ADD 过期",
+        intent: "ADD",
+        aiVerb: "新增",
+        task: {
+          text: "早该打的电话",
+          place: "any",
+          window: "today",
+          deadline: "很久以前",
+          expectAt: past,
+        },
+      }),
+    );
+    const id = (res.effect as { id?: string }).id as string;
+    await page.goto(`/tasks/${id}`);
+
+    const row = page
+      .getByRole("button", { name: "编辑 预期" })
+      .filter({ hasText: "过期" });
+    await expect(row).toBeVisible();
+    // 通过 class 验证走了过期样式（tailwind text-red-600）
+    await expect(row).toHaveClass(/text-red-600/);
   });
 });
 
@@ -206,7 +238,7 @@ test.describe("任务详情 · 手动编辑 dueAt", () => {
     const id = (addRes.effect as { id?: string }).id as string;
 
     await page.goto(`/tasks/${id}`);
-    await page.getByRole("button", { name: "编辑截止时间" }).click();
+    await page.getByRole("button", { name: "编辑 Deadline" }).click();
 
     // datetime-local 输入：本机时间 2027-01-02 09:30
     const input = page.locator('input[type="datetime-local"]');

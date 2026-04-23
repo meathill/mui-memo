@@ -4,6 +4,8 @@ import { CheckIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { PLACE_LABEL, type TaskView } from "@mui-memo/shared/logic";
+import { useNowTick } from "@/hooks/use-now-tick";
+import { isOverdue, relativeTimeLabel } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -14,6 +16,8 @@ interface Props {
 export function TaskRow({ task, onDone }: Props) {
   const [checking, setChecking] = useState(false);
   const [checked, setChecked] = useState(false);
+  const nowMs = useNowTick();
+  const now = new Date(nowMs);
 
   async function handleCheck(e: React.MouseEvent) {
     e.preventDefault();
@@ -36,6 +40,12 @@ export function TaskRow({ task, onDone }: Props) {
       : task.priority === 2
         ? "bg-accent-warn"
         : "bg-ink-mute/40";
+
+  // 优先看 expectAt；没有就看 dueAt；两者都没就退回静态 deadline label
+  const anchor = task.expectAt ?? task.dueAt ?? null;
+  const dynamicLabel = relativeTimeLabel(anchor, now);
+  const overdue = !task.done && isOverdue(anchor, now);
+  const displayLabel = dynamicLabel || task.deadline || "";
 
   return (
     <li>
@@ -71,7 +81,16 @@ export function TaskRow({ task, onDone }: Props) {
               {PLACE_LABEL[task.place].icon} {PLACE_LABEL[task.place].label}
             </span>
             {task.tag ? <span>· 🏷 {task.tag}</span> : null}
-            {task.deadline ? <span>· ⏱ {task.deadline}</span> : null}
+            {displayLabel ? (
+              <span
+                className={cn(
+                  overdue && "text-red-600 font-semibold",
+                  !overdue && "text-ink-mute",
+                )}
+              >
+                · ⏱ {displayLabel}
+              </span>
+            ) : null}
             {task.aiReason ? (
               <span className="not-italic text-ink-soft">
                 · {task.aiReason}

@@ -63,6 +63,7 @@ export async function GET(
       priority: row.priority,
       tag: row.tag,
       deadline: row.deadline,
+      expectAt: row.expectAt ? row.expectAt.toISOString() : null,
       dueAt: row.dueAt ? row.dueAt.toISOString() : null,
       aiReason: row.aiReason,
       status: row.status as TaskStatus,
@@ -110,6 +111,8 @@ export async function PATCH(
   if (p.priority !== undefined) update.priority = p.priority;
   if (p.tag !== undefined) update.tag = p.tag ?? null;
   if (p.deadline !== undefined) update.deadline = p.deadline ?? null;
+  if (p.expectAt !== undefined)
+    update.expectAt = p.expectAt ? new Date(p.expectAt) : null;
   if (p.dueAt !== undefined) update.dueAt = p.dueAt ? new Date(p.dueAt) : null;
   if (p.status !== undefined) {
     update.status = p.status;

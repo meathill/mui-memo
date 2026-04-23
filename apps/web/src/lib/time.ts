@@ -103,6 +103,67 @@ export function formatDueAt(iso: string, tz: string = DEFAULT_TZ): string {
 export const TZ_DEFAULT = DEFAULT_TZ;
 
 /**
+ * 把一个 ISO 时间点折算成相对当前时刻的简短中文 label。
+ * - 已过：「刚过期」「过期 3 小时」「过期 2 天」
+ * - 临近：「12 分钟后」「3 小时后」「今天 15:00」「明天 23:59」
+ * - 更远：「3 天后」「4月30日 周四」
+ * 空串入参返回空串。
+ */
+export function relativeTimeLabel(
+  iso: string | null | undefined,
+  now: Date = new Date(),
+  tz: string = DEFAULT_TZ,
+): string {
+  if (!iso) return "";
+  const target = new Date(iso);
+  if (Number.isNaN(target.getTime())) return "";
+  const diffMs = target.getTime() - now.getTime();
+  const mins = Math.round(Math.abs(diffMs) / 60000);
+  if (diffMs < 0) {
+    if (mins < 1) return "刚过期";
+    if (mins < 60) return `过期 ${mins} 分钟`;
+    const hrs = Math.round(mins / 60);
+    if (hrs < 24) return `过期 ${hrs} 小时`;
+    const days = Math.round(hrs / 24);
+    return `过期 ${days} 天`;
+  }
+  if (mins < 60) return `${Math.max(mins, 1)} 分钟后`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs} 小时后`;
+  const dayKey = (d: Date) =>
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(d);
+  const todayKey = dayKey(now);
+  const tomorrow = new Date(now.getTime() + 86400000);
+  const tomorrowKey = dayKey(tomorrow);
+  const tKey = dayKey(target);
+  const hm = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: tz,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(target);
+  if (tKey === todayKey) return `今天 ${hm}`;
+  if (tKey === tomorrowKey) return `明天 ${hm}`;
+  const days = Math.round((target.getTime() - now.getTime()) / 86400000);
+  if (days <= 7) return `${days} 天后`;
+  return formatDueAt(iso, tz);
+}
+
+export function isOverdue(
+  iso: string | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  if (!iso) return false;
+  const t = new Date(iso);
+  return !Number.isNaN(t.getTime()) && t.getTime() < now.getTime();
+}
+
+/**
  * `<input type="datetime-local">` 的值格式是 "YYYY-MM-DDTHH:mm"，无时区；
  * 这里把 ISO 转成本地（浏览器时区）下的那种格式给 input 默认值。
  */

@@ -46,9 +46,18 @@ export const taskCoreSchema = z.object({
   tag: z.string().max(32).optional(),
   deadline: z.string().max(64).optional(),
   /**
-   * 绝对截止时间，ISO 8601（含时区偏移）。AI 在解析 utterance 时根据
-   * 客户端上报的 tz + 当前时刻推算；自由文本 deadline 是对应的展示 label。
-   * 接受任何 `new Date()` 可解析的字符串。
+   * 预期完成时间（用户「打算做」的时刻）。ISO 8601 带时区偏移。
+   * 例：「明天下午三点给老妈打电话」→ expectAt = 明天 15:00。
+   */
+  expectAt: z
+    .string()
+    .refine((s) => !Number.isNaN(new Date(s).getTime()), {
+      message: "invalid ISO datetime",
+    })
+    .optional(),
+  /**
+   * 真正的 deadline（最晚要完成的时刻），可能晚于 expectAt。
+   * 例：「明天做，最晚这周」→ expectAt=明天，dueAt=本周日 23:59。
    */
   dueAt: z
     .string()

@@ -5,8 +5,15 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useNowTick } from "@/hooks/use-now-tick";
 import { ASSETS_URL, MAX_ATTACHMENT_SIZE } from "@/lib/config";
-import { formatDueAt, isoToLocalInput, localInputToISO } from "@/lib/time";
+import {
+  formatDueAt,
+  isOverdue,
+  isoToLocalInput,
+  localInputToISO,
+  relativeTimeLabel,
+} from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { PLACE_LABEL } from "@mui-memo/shared/logic";
 import type {
@@ -25,6 +32,7 @@ interface Task {
   priority: number;
   tag: string | null;
   deadline: string | null;
+  expectAt: string | null;
   dueAt: string | null;
   audioKey: string | null;
   aiReason: string | null;
@@ -119,6 +127,8 @@ export function TaskDetailView({ id }: { id: string }) {
       if (fields.tag !== undefined) body.tag = fields.tag || undefined;
       if (fields.deadline !== undefined)
         body.deadline = fields.deadline || undefined;
+      if (fields.expectAt !== undefined)
+        body.expectAt = fields.expectAt ?? null;
       if (fields.dueAt !== undefined) body.dueAt = fields.dueAt ?? null;
       if (fields.status !== undefined) body.status = fields.status;
       try {
@@ -284,18 +294,26 @@ export function TaskDetailView({ id }: { id: string }) {
               size="default"
             />
           </Field>
-          <Field label="截止">
+          <Field label="时间">
             <Input
               defaultValue={task.deadline ?? ""}
               onBlur={(e) => {
                 const v = e.target.value.trim();
                 if (v !== (task.deadline ?? "")) patch({ deadline: v });
               }}
-              placeholder="下周一 / 17:00"
+              placeholder="明天 / 17:00"
               size="default"
             />
-            <DueAtRow
-              dueAt={task.dueAt}
+            <TimeRow
+              label="预期"
+              value={task.expectAt}
+              overdueHint={task.status !== "done"}
+              onChange={(iso) => patch({ expectAt: iso ?? undefined })}
+            />
+            <TimeRow
+              label="Deadline"
+              value={task.dueAt}
+              overdueHint={task.status !== "done"}
               onChange={(iso) => patch({ dueAt: iso ?? undefined })}
             />
           </Field>
@@ -451,29 +469,37 @@ function AttachmentItem({
 }
 
 /**
- * 一行灰色辅助文案：默认展示 AI 解析出的 dueAt；点一下变成
- * datetime-local 输入框，blur 或按 Enter 保存。
+ * 一行灰色辅助文案：展示 expectAt / dueAt 等时间字段的解析结果。
+ * 点一下变成 datetime-local 输入框，blur 或按 Enter 保存；过期会标红。
+ * label 用来区分是「预期」还是「Deadline」。
  */
-function DueAtRow({
-  dueAt,
+function TimeRow({
+  label,
+  value,
+  overdueHint,
   onChange,
 }: {
-  dueAt: string | null;
+  label: string;
+  value: string | null;
+  overdueHint: boolean;
   onChange: (iso: string | null) => void;
 }) {
   const [editing, setEditing] = useState(false);
+  const nowMs = useNowTick();
+  const now = new Date(nowMs);
 
   if (editing) {
     return (
       <input
         type="datetime-local"
-        defaultValue={isoToLocalInput(dueAt)}
+        defaultValue={isoToLocalInput(value)}
         autoFocus
         className="mt-1 w-full rounded-lg border border-rule/60 bg-paper-2/50 px-2 py-1 font-mono text-xs text-ink outline-none focus:border-ink/60"
+        aria-label={`编辑 ${label}`}
         onBlur={(e) => {
           const iso = localInputToISO(e.target.value);
           setEditing(false);
-          if (iso !== dueAt) onChange(iso);
+          if (iso !== value) onChange(iso);
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter") (e.target as HTMLInputElement).blur();
@@ -483,14 +509,28 @@ function DueAtRow({
     );
   }
 
+  const rel = value ? relativeTimeLabel(value, now) : "";
+  const abs = value ? formatDueAt(value) : "";
+  const overdue = overdueHint && isOverdue(value, now);
+
   return (
     <button
       type="button"
       onClick={() => setEditing(true)}
-      className="mt-1 block w-full text-left font-mono text-[10px] text-ink-mute hover:text-ink-soft"
-      aria-label="编辑截止时间"
+      className={cn(
+        "mt-1 flex w-full items-baseline gap-2 text-left font-mono text-[10px] hover:text-ink-soft",
+        overdue ? "text-red-600 font-semibold" : "text-ink-mute",
+      )}
+      aria-label={`编辑 ${label}`}
     >
-      {dueAt ? `→ ${formatDueAt(dueAt)}` : "→ 点击设置具体时间"}
+      <span className="shrink-0 text-ink-mute">{label}</span>
+      {value ? (
+        <span>
+          {abs} · {rel}
+        </span>
+      ) : (
+        <span>→ 点击设置</span>
+      )}
     </button>
   );
 }

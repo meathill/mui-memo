@@ -3,6 +3,8 @@
 import { CheckIcon } from "lucide-react";
 import Link from "next/link";
 import { PLACE_LABEL, type TaskView } from "@mui-memo/shared/logic";
+import { useNowTick } from "@/hooks/use-now-tick";
+import { isOverdue, relativeTimeLabel } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -11,6 +13,13 @@ interface Props {
 }
 
 export function DoingCard({ task, onDone }: Props) {
+  const nowMs = useNowTick();
+  const now = new Date(nowMs);
+  const anchor = task.expectAt ?? task.dueAt ?? null;
+  const dynamicLabel = relativeTimeLabel(anchor, now);
+  const overdue = !task.done && isOverdue(anchor, now);
+  const displayLabel = dynamicLabel || task.deadline || "";
+
   return (
     <div className="mm-pulse rounded-2xl border border-accent-warm/40 bg-gradient-to-br from-accent-warm/10 to-paper-2/60 p-4">
       <div className="flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] text-accent-warm uppercase">
@@ -28,7 +37,16 @@ export function DoingCard({ task, onDone }: Props) {
         <span>
           {PLACE_LABEL[task.place].icon} {PLACE_LABEL[task.place].label}
         </span>
-        {task.deadline ? <span>· ⏱ {task.deadline}</span> : null}
+        {displayLabel ? (
+          <span
+            className={cn(
+              overdue && "text-red-600 font-semibold",
+              !overdue && "text-ink-mute",
+            )}
+          >
+            · ⏱ {displayLabel}
+          </span>
+        ) : null}
         {task.aiReason ? <span>· {task.aiReason}</span> : null}
       </div>
 
