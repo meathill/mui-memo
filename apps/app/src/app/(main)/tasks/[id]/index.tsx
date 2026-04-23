@@ -1,8 +1,8 @@
 import { type Attachment, api } from '@/lib/api';
 import type { TaskView } from '@mui-memo/shared/logic';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { CheckIcon, ChevronLeftIcon, Trash2Icon } from 'lucide-react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { Stack, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { CheckIcon, ChevronLeftIcon, PencilIcon, Trash2Icon } from 'lucide-react-native';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -33,9 +33,12 @@ export default function TaskDetailScreen() {
     }
   }, [id]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  // 屏聚焦时拉数据：从 edit 返回后自动显示最新
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load]),
+  );
 
   const handleDelete = useCallback(() => {
     if (!task) return;
@@ -67,15 +70,26 @@ export default function TaskDetailScreen() {
         >
           <ChevronLeftIcon size={22} color="#1d1a12" />
         </Pressable>
-        <Pressable
-          onPress={handleDelete}
-          disabled={!task}
-          hitSlop={8}
-          className="flex-row items-center gap-1.5 rounded-full border border-rule px-3 py-1.5 active:opacity-70"
-        >
-          <Trash2Icon size={14} color="#7a7266" />
-          <Text className="text-ink-soft text-xs">删除</Text>
-        </Pressable>
+        <View className="flex-row items-center gap-2">
+          <Pressable
+            onPress={() => task && router.push(`/tasks/${task.id}/edit`)}
+            disabled={!task}
+            hitSlop={8}
+            className="flex-row items-center gap-1.5 rounded-full border border-rule px-3 py-1.5 active:opacity-70"
+          >
+            <PencilIcon size={14} color="#7a7266" />
+            <Text className="text-ink-soft text-xs">编辑</Text>
+          </Pressable>
+          <Pressable
+            onPress={handleDelete}
+            disabled={!task}
+            hitSlop={8}
+            className="flex-row items-center gap-1.5 rounded-full border border-rule px-3 py-1.5 active:opacity-70"
+          >
+            <Trash2Icon size={14} color="#7a7266" />
+            <Text className="text-ink-soft text-xs">删除</Text>
+          </Pressable>
+        </View>
       </View>
 
       {loading || !task ? (

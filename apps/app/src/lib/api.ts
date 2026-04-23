@@ -175,6 +175,13 @@ export const api = {
     delete(id: string) {
       return request<{ ok: true }>(`/api/tasks/${id}`, { method: 'DELETE' });
     },
+    /** PATCH /api/tasks/[id] —— 手动编辑。body 只带要改的字段 */
+    patch(id: string, body: Partial<TaskPatch>) {
+      return request<{ ok: true }>(`/api/tasks/${id}`, {
+        method: 'PATCH',
+        body,
+      });
+    },
   },
 
   intent: {
@@ -223,6 +230,23 @@ export const api = {
     },
   },
 };
+
+/**
+ * 手动编辑可传的字段。对齐 apps/web PATCH 的 patchSchema（taskCoreSchema.partial + status）。
+ * tag / deadline 允许传 null 代表清空。
+ */
+export interface TaskPatch {
+  text: string;
+  place: TaskPlace;
+  window: 'now' | 'today' | 'later';
+  energy: number;
+  priority: number;
+  tag: string | null;
+  deadline: string | null;
+  expectAt: string | null;
+  dueAt: string | null;
+  status: 'pending' | 'doing' | 'done';
+}
 
 export interface CompletedTask {
   id: string;

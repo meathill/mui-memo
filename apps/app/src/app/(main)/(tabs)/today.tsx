@@ -8,7 +8,8 @@ import { useSession } from '@/lib/session';
 import { useAppStore } from '@/store';
 import { BUCKET_LABEL, rerank } from '@mui-memo/shared/logic';
 import type { Bucket, TaskView } from '@mui-memo/shared/logic';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -48,9 +49,12 @@ export default function TodayScreen() {
     }
   }, [loadTasks]);
 
-  useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
+  // 屏聚焦就拉一下，从详情/编辑返回时能看到新状态
+  useFocusEffect(
+    useCallback(() => {
+      loadTasks();
+    }, [loadTasks]),
+  );
 
   const doing = useMemo(() => tasks.find((t) => t.status === 'doing') ?? null, [tasks]);
   const ranked = useMemo(() => rerank(tasks, place), [tasks, place]);

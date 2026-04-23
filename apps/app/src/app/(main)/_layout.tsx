@@ -21,7 +21,20 @@ export default function MainLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="tasks/[id]" options={{ presentation: 'card', headerShown: false }} />
+      <Stack.Screen
+        name="tasks/[id]/index"
+        options={{ presentation: 'card', headerShown: false }}
+      />
+      <Stack.Screen
+        name="tasks/[id]/edit"
+        options={{
+          // iOS 15+ 原生 half-sheet：可下拉关闭，背景保留上下文
+          presentation: 'formSheet',
+          headerShown: false,
+          sheetAllowedDetents: [0.85, 1],
+          sheetGrabberVisible: true,
+        }}
+      />
     </Stack>
   );
 }

@@ -2,7 +2,8 @@ import { TaskRow } from '@/components/memo/task-row';
 import { api } from '@/lib/api';
 import { useAppStore } from '@/store';
 import type { TaskView } from '@mui-memo/shared/logic';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -22,9 +23,11 @@ export default function AllScreen() {
     }
   }, [hydrate]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load]),
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
