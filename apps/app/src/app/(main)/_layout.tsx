@@ -28,11 +28,9 @@ export default function MainLayout() {
       <Stack.Screen
         name="tasks/[id]/edit"
         options={{
-          // iOS 15+ 原生 half-sheet：可下拉关闭，背景保留上下文
-          presentation: 'formSheet',
+          // modal：全屏下滑返回，兼容性比 formSheet 稳
+          presentation: 'modal',
           headerShown: false,
-          sheetAllowedDetents: [0.85, 1],
-          sheetGrabberVisible: true,
         }}
       />
     </Stack>

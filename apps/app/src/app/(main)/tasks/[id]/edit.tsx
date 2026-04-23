@@ -1,4 +1,5 @@
 import { api, type TaskPatch } from '@/lib/api';
+import { useAppStore } from '@/store';
 import type { TaskView } from '@mui-memo/shared/logic';
 import type { TaskPlace } from '@mui-memo/shared/validators';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
@@ -37,6 +38,7 @@ const WINDOWS: { value: TaskWindow; label: string }[] = [
  */
 function expectPresets(): { label: string; iso: string | null }[] {
   const now = new Date();
+  const inAnHour = new Date(now.getTime() + 60 * 60 * 1000);
   const tonight = new Date(now);
   tonight.setHours(20, 0, 0, 0);
   const tomorrow = new Date(now);
@@ -46,12 +48,18 @@ function expectPresets(): { label: string; iso: string | null }[] {
   const daysToSat = (6 - weekend.getDay() + 7) % 7 || 7;
   weekend.setDate(weekend.getDate() + daysToSat);
   weekend.setHours(10, 0, 0, 0);
-  return [
-    { label: '今晚', iso: tonight.toISOString() },
+  // 今晚 / 明早 / 周末 是否已经过了「现在」，过了就不出，免得点完还是过期
+  const presets: { label: string; iso: string | null }[] = [
+    { label: '1 小时后', iso: inAnHour.toISOString() },
+  ];
+  if (tonight.getTime() > now.getTime())
+    presets.push({ label: '今晚', iso: tonight.toISOString() });
+  presets.push(
     { label: '明早', iso: tomorrow.toISOString() },
     { label: '周末', iso: weekend.toISOString() },
     { label: '清空', iso: null },
-  ];
+  );
+  return presets;
 }
 
 export default function TaskEditScreen() {
@@ -114,6 +122,13 @@ export default function TaskEditScreen() {
     setSaving(true);
     try {
       await api.tasks.patch(task.id, patch);
+      // 刷全局 tasks，reconciler 会立即看到新 expectAt 并注册通知，不用等回到 today
+      try {
+        const { tasks } = await api.tasks.list();
+        useAppStore.getState().hydrate({ tasks, ranked: [] });
+      } catch {
+        // 列表拉失败不阻塞保存，通知 reconcile 下次 focus 时补上
+      }
       router.back();
     } catch (err) {
       if (err instanceof Error) Alert.alert('保存失败', err.message);

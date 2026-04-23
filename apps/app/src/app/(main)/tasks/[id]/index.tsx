@@ -14,6 +14,30 @@ const STATUS_LABEL: Record<string, string> = {
   linked: '关联',
 };
 
+const PLACE_LABEL: Record<string, string> = {
+  home: '在家',
+  work: '工位',
+  out: '在外',
+  any: '不限',
+};
+
+const WINDOW_LABEL: Record<string, string> = {
+  now: '马上',
+  today: '今天内',
+  later: '改天',
+};
+
+function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString('zh-CN', {
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [task, setTask] = useState<TaskView | null>(null);
@@ -117,10 +141,12 @@ export default function TaskDetailScreen() {
           ) : null}
 
           <View className="mt-6 gap-2 rounded-2xl border border-rule/60 bg-paper-2/40 p-4">
-            <Row label="地点" value={task.place} />
-            <Row label="时段" value={task.window} />
-            {task.expectAt ? <Row label="预计" value={task.expectAt} /> : null}
-            {task.dueAt ? <Row label="截止" value={task.dueAt} /> : null}
+            <Row label="地点" value={PLACE_LABEL[task.place] ?? task.place} />
+            <Row label="时段" value={WINDOW_LABEL[task.window] ?? task.window} />
+            {task.expectAt ? (
+              <Row label="预计" value={formatDateTime(task.expectAt)} />
+            ) : null}
+            {task.dueAt ? <Row label="截止" value={formatDateTime(task.dueAt)} /> : null}
             {task.deadline ? <Row label="Deadline" value={task.deadline} /> : null}
             <Row label="优先级" value={String(task.priority ?? 0)} />
             <Row label="精力" value={String(task.energy ?? 0)} />
