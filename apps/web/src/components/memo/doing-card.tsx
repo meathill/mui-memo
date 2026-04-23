@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { CheckIcon } from "lucide-react";
-import Link from "next/link";
-import { PLACE_LABEL, type TaskView } from "@mui-memo/shared/logic";
-import { useNowTick } from "@/hooks/use-now-tick";
-import { isOverdue, relativeTimeLabel } from "@/lib/time";
-import { cn } from "@/lib/utils";
+import { useNowTick } from '@/hooks/use-now-tick';
+import { isOverdue, relativeTimeLabel } from '@/lib/time';
+import { cn } from '@/lib/utils';
+import { PLACE_LABEL, type TaskView } from '@mui-memo/shared/logic';
+import { CheckIcon } from 'lucide-react';
+import Link from 'next/link';
 
 interface Props {
   task: TaskView;
@@ -18,7 +18,7 @@ export function DoingCard({ task, onDone }: Props) {
   const anchor = task.expectAt ?? task.dueAt ?? null;
   const dynamicLabel = relativeTimeLabel(anchor, now);
   const overdue = !task.done && isOverdue(anchor, now);
-  const displayLabel = dynamicLabel || task.deadline || "";
+  const displayLabel = dynamicLabel || task.deadline || '';
 
   return (
     <div className="mm-pulse rounded-2xl border border-accent-warm/40 bg-gradient-to-br from-accent-warm/10 to-paper-2/60 p-4">
@@ -39,10 +39,7 @@ export function DoingCard({ task, onDone }: Props) {
         </span>
         {displayLabel ? (
           <span
-            className={cn(
-              overdue && "text-red-600 font-semibold",
-              !overdue && "text-ink-mute",
-            )}
+            className={cn(overdue && 'text-red-600 font-semibold', !overdue && 'text-ink-mute')}
           >
             · ⏱ {displayLabel}
           </span>
@@ -53,10 +50,7 @@ export function DoingCard({ task, onDone }: Props) {
       {task.linked?.length ? (
         <ul className="mt-3 space-y-1 border-t border-rule/50 pt-2">
           {task.linked.map((c) => (
-            <li
-              key={c.id}
-              className="flex items-center gap-2 text-sm text-ink-soft font-serif"
-            >
+            <li key={c.id} className="flex items-center gap-2 text-sm text-ink-soft font-serif">
               <span className="text-accent-warm/70">↳</span>
               {c.text}
             </li>
@@ -68,8 +62,8 @@ export function DoingCard({ task, onDone }: Props) {
         type="button"
         onClick={() => onDone(task.id)}
         className={cn(
-          "mt-3 inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs text-paper",
-          "transition-transform active:scale-95",
+          'mt-3 inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs text-paper',
+          'transition-transform active:scale-95',
         )}
       >
         <CheckIcon className="h-3.5 w-3.5" />

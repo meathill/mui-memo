@@ -1,18 +1,13 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { track } from "@/lib/analytics";
-import {
-  type CheckAnim,
-  CHECK_ANIMS,
-  readCheckAnim,
-  writeCheckAnim,
-} from "@/lib/settings";
-import { readTheme, type Theme, THEMES, writeTheme } from "@/lib/theme";
+import { track } from '@/lib/analytics';
+import { CHECK_ANIMS, type CheckAnim, readCheckAnim, writeCheckAnim } from '@/lib/settings';
+import { THEMES, type Theme, readTheme, writeTheme } from '@/lib/theme';
+import { useEffect, useState } from 'react';
 
 export function TweaksPanel() {
-  const [theme, setTheme] = useState<Theme>("paper");
-  const [anim, setAnim] = useState<CheckAnim>("strike");
+  const [theme, setTheme] = useState<Theme>('paper');
+  const [anim, setAnim] = useState<CheckAnim>('strike');
 
   useEffect(() => {
     setTheme(readTheme());
@@ -22,7 +17,7 @@ export function TweaksPanel() {
   function handleTheme(next: Theme) {
     setTheme(next);
     writeTheme(next);
-    track({ name: "theme_change", theme: next });
+    track({ name: 'theme_change', theme: next });
   }
 
   function handleAnim(next: CheckAnim) {
@@ -102,10 +97,10 @@ function OptionCard({
       onClick={onClick}
       aria-pressed={active}
       className={
-        "rounded-xl border px-3 py-2 text-left transition " +
+        'rounded-xl border px-3 py-2 text-left transition ' +
         (active
-          ? "border-accent-warm/60 bg-accent-warm/10"
-          : "border-rule/60 bg-paper hover:bg-paper-2")
+          ? 'border-accent-warm/60 bg-accent-warm/10'
+          : 'border-rule/60 bg-paper hover:bg-paper-2')
       }
     >
       <p className="font-serif text-sm text-ink">{label}</p>

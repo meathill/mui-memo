@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
-import { tasks as tasksTable } from "@mui-memo/shared/schema";
-import { R2_PREFIX } from "@/lib/config";
-import { ensureE2EEnabled } from "@/lib/e2e-guard";
-import { requireAuthDb } from "@/lib/route";
+import { R2_PREFIX } from '@/lib/config';
+import { ensureE2EEnabled } from '@/lib/e2e-guard';
+import { requireAuthDb } from '@/lib/route';
+import { tasks as tasksTable } from '@mui-memo/shared/schema';
+import { and, eq } from 'drizzle-orm';
+import { NextResponse } from 'next/server';
 
 /**
  * 测试辅助：往 R2 塞一条音频并挂到指定 taskId 上。
@@ -11,25 +11,24 @@ import { requireAuthDb } from "@/lib/route";
  */
 export async function POST(req: Request) {
   if (!(await ensureE2EEnabled())) {
-    return NextResponse.json({ error: "disabled" }, { status: 404 });
+    return NextResponse.json({ error: 'disabled' }, { status: 404 });
   }
   const [resp, ctx] = await requireAuthDb();
   if (resp) return resp;
   const userId = ctx.session.user.id;
 
   const form = await req.formData();
-  const file = form.get("file");
-  const taskId = String(form.get("taskId") ?? "");
+  const file = form.get('file');
+  const taskId = String(form.get('taskId') ?? '');
   if (!(file instanceof Blob) || !taskId) {
-    return NextResponse.json({ error: "bad_request" }, { status: 400 });
+    return NextResponse.json({ error: 'bad_request' }, { status: 400 });
   }
-  const mime = String(form.get("mime") ?? file.type ?? "audio/webm");
+  const mime = String(form.get('mime') ?? file.type ?? 'audio/webm');
 
   const bucket = ctx.env.AUDIO_BUCKET;
-  if (!bucket)
-    return NextResponse.json({ error: "r2_not_bound" }, { status: 500 });
+  if (!bucket) return NextResponse.json({ error: 'r2_not_bound' }, { status: 500 });
 
-  const ext = mime.includes("webm") ? "webm" : "bin";
+  const ext = mime.includes('webm') ? 'webm' : 'bin';
   const key = `${R2_PREFIX}/audio/${userId}/${Date.now()}-test.${ext}`;
   await bucket.put(key, await file.arrayBuffer(), {
     httpMetadata: { contentType: mime },

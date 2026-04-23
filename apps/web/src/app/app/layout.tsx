@@ -1,9 +1,9 @@
-import { redirect } from "next/navigation";
-import { getServerSession } from "@/lib/auth";
-import { BottomNav } from "@/components/memo/bottom-nav";
+import { BottomNav } from '@/components/memo/bottom-nav';
+import { getServerSession } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 
 // session 依赖 cookies —— 整个 (app) 分组都必须运行时渲染
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export default async function AppLayout({
   children,
@@ -12,7 +12,7 @@ export default async function AppLayout({
 }) {
   const session = await getServerSession();
   if (!session) {
-    redirect("/login");
+    redirect('/login');
   }
   return (
     <>

@@ -1,5 +1,5 @@
-import { sql } from "drizzle-orm";
-import type { Database } from "./db";
+import { sql } from 'drizzle-orm';
+import type { Database } from './db';
 
 /**
  * 混合搜索结果：fts + vec 各跑一遍 Top-K，在 TS 里用 RRF 合并，返回得分最高的一条。
@@ -38,7 +38,7 @@ type DbExecute = unknown;
 
 function extractRows<T>(result: DbExecute): T[] {
   if (Array.isArray(result)) return result as T[];
-  if (result && typeof result === "object") {
+  if (result && typeof result === 'object') {
     const obj = result as { rows?: T[] };
     if (Array.isArray(obj.rows)) return obj.rows;
   }
@@ -59,7 +59,7 @@ export async function resolveTargetTask(
   query: string,
   keyword: string | undefined,
 ): Promise<ResolveResult | null> {
-  const q = (query || keyword || "").trim();
+  const q = (query || keyword || '').trim();
   if (!q) return null;
 
   // fts / vec 分两路，各 fallback 单路也能出结果
@@ -72,19 +72,13 @@ export async function resolveTargetTask(
 
   // 纯语义召回但距离都超阈值 → 视为无关，放弃。防止无关 query 瞎 match。
   const ftsIds = new Set(ftsRows.map((r) => r.id));
-  const qualifiedVec = vecRows.filter(
-    (r) => ftsIds.has(r.id) || r.dist <= VEC_ONLY_MAX_DIST,
-  );
+  const qualifiedVec = vecRows.filter((r) => ftsIds.has(r.id) || r.dist <= VEC_ONLY_MAX_DIST);
 
   if (!ftsRows.length && !qualifiedVec.length) return null;
 
   // RRF：第 i 位贡献 weight / (K + i + 1)
   const scoreMap = new Map<string, ResolveResult>();
-  const accumulate = (
-    rows: Row[],
-    weight: number,
-    flag: "fromFts" | "fromVec",
-  ) => {
+  const accumulate = (rows: Row[], weight: number, flag: 'fromFts' | 'fromVec') => {
     rows.forEach((r, i) => {
       const inc = weight / (RRF_K + i + 1);
       const prev = scoreMap.get(r.id);
@@ -96,14 +90,14 @@ export async function resolveTargetTask(
           id: r.id,
           text: r.text,
           score: inc,
-          fromFts: flag === "fromFts",
-          fromVec: flag === "fromVec",
+          fromFts: flag === 'fromFts',
+          fromVec: flag === 'fromVec',
         });
       }
     });
   };
-  accumulate(ftsRows, FTS_WEIGHT, "fromFts");
-  accumulate(qualifiedVec, VEC_WEIGHT, "fromVec");
+  accumulate(ftsRows, FTS_WEIGHT, 'fromFts');
+  accumulate(qualifiedVec, VEC_WEIGHT, 'fromVec');
 
   let best: ResolveResult | null = null;
   for (const r of scoreMap.values()) {
@@ -112,11 +106,7 @@ export async function resolveTargetTask(
   return best;
 }
 
-async function queryFts(
-  db: Database,
-  userId: string,
-  q: string,
-): Promise<Row[]> {
+async function queryFts(db: Database, userId: string, q: string): Promise<Row[]> {
   const res = await db.execute<Row>(sql`
     SELECT id, text
     FROM tasks
@@ -129,11 +119,7 @@ async function queryFts(
   return extractRows<Row>(res);
 }
 
-async function queryVec(
-  db: Database,
-  userId: string,
-  q: string,
-): Promise<VecRow[]> {
+async function queryVec(db: Database, userId: string, q: string): Promise<VecRow[]> {
   // 走向量子查询拿 top-K，再回主表取 text，避免把 vector 列读回来
   const res = await db.execute<VecRow>(sql`
     SELECT t.id, t.text, ranked.dist AS dist
@@ -154,11 +140,7 @@ async function queryVec(
   }));
 }
 
-async function queryLike(
-  db: Database,
-  userId: string,
-  q: string,
-): Promise<Row[]> {
+async function queryLike(db: Database, userId: string, q: string): Promise<Row[]> {
   const like = `%${q}%`;
   const res = await db.execute<Row>(sql`
     SELECT id, text

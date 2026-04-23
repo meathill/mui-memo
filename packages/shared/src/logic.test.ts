@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyIntent, rerank, type TaskView } from './logic.js';
+import { type TaskView, applyIntent, rerank } from './logic.js';
 import type { Utterance } from './validators.js';
 
 // ──────────────────────────────────────────────
@@ -136,9 +136,7 @@ describe('applyIntent · dueAt / expectAt', () => {
   });
 
   it('MODIFY 时 patch 里的 dueAt 写到目标任务', () => {
-    const before: TaskView[] = [
-      task({ id: 'a', text: '付物业费', deadline: '本月', dueAt: null }),
-    ];
+    const before: TaskView[] = [task({ id: 'a', text: '付物业费', deadline: '本月', dueAt: null })];
     const due = '2026-04-27T23:59:00+08:00';
     const u = utter({
       intent: 'MODIFY',
@@ -213,10 +211,7 @@ describe('applyIntent · STATUS', () => {
   });
 
   it('matchId 优先于 match（即使正则更像别的任务也选 matchId）', () => {
-    const before: TaskView[] = [
-      task({ id: 'a', text: '买水' }),
-      task({ id: 'b', text: '打款' }),
-    ];
+    const before: TaskView[] = [task({ id: 'a', text: '买水' }), task({ id: 'b', text: '打款' })];
     const u = utter({
       intent: 'STATUS',
       matchId: 'b',
@@ -304,9 +299,7 @@ describe('applyIntent · DONE', () => {
 
 describe('applyIntent · MODIFY', () => {
   it('把 patch 里的字段合并到匹配任务', () => {
-    const before: TaskView[] = [
-      task({ id: 'a', text: '付物业费', window: 'today' }),
-    ];
+    const before: TaskView[] = [task({ id: 'a', text: '付物业费', window: 'today' })];
     const u = utter({
       intent: 'MODIFY',
       matchId: 'a',
@@ -357,10 +350,7 @@ describe('applyIntent · LINK', () => {
       task({ id: 'c1', text: '事 A' }),
       task({ id: 'c2', text: '事 B' }),
     ];
-    const step1 = applyIntent(
-      before,
-      utter({ intent: 'LINK', matchId: 'c1', aiVerb: '顺手做' }),
-    );
+    const step1 = applyIntent(before, utter({ intent: 'LINK', matchId: 'c1', aiVerb: '顺手做' }));
     const step2 = applyIntent(
       step1.tasks,
       utter({ intent: 'LINK', matchId: 'c2', aiVerb: '顺手做' }),

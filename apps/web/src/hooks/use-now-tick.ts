@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 /**
  * 按固定节奏重新 render，让基于 Date.now() 的相对时间 label 能自己更新。
@@ -10,7 +10,7 @@ export function useNowTick(intervalMs = 60_000): number {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    if (typeof document === "undefined") return;
+    if (typeof document === 'undefined') return;
     let timer: ReturnType<typeof setInterval> | null = null;
 
     const start = () => {
@@ -23,14 +23,14 @@ export function useNowTick(intervalMs = 60_000): number {
       timer = null;
     };
     const onVis = () => {
-      if (document.visibilityState === "visible") start();
+      if (document.visibilityState === 'visible') start();
       else stop();
     };
 
-    if (document.visibilityState === "visible") start();
-    document.addEventListener("visibilitychange", onVis);
+    if (document.visibilityState === 'visible') start();
+    document.addEventListener('visibilitychange', onVis);
     return () => {
-      document.removeEventListener("visibilitychange", onVis);
+      document.removeEventListener('visibilitychange', onVis);
       stop();
     };
   }, [intervalMs]);

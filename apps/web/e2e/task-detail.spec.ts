@@ -1,4 +1,4 @@
-import { buildUtterance, expect, test } from "./fixtures";
+import { buildUtterance, expect, test } from './fixtures';
 
 async function addTaskAndGetId(
   inject: (
@@ -10,47 +10,44 @@ async function addTaskAndGetId(
   const res = await inject(
     buildUtterance({
       raw: `ADD ${text}`,
-      intent: "ADD",
-      aiVerb: "新增",
+      intent: 'ADD',
+      aiVerb: '新增',
       task: {
         text,
-        place: "any",
-        window: "today",
+        place: 'any',
+        window: 'today',
         priority: 2,
         ...extra,
       },
     }),
   );
-  expect(res.effect.kind).toBe("add");
+  expect(res.effect.kind).toBe('add');
   expect(res.effect.id).toBeTruthy();
   return res.effect.id as string;
 }
 
-test.describe("任务详情 · 字段编辑", () => {
+test.describe('任务详情 · 字段编辑', () => {
   test.beforeEach(async ({ resetTasks }) => {
     await resetTasks();
   });
 
-  test("详情页展示 + 修改标签 + 修改状态 + 切换优先级", async ({
-    inject,
-    page,
-  }) => {
-    const id = await addTaskAndGetId(inject, "付物业费", { tag: "财务" });
+  test('详情页展示 + 修改标签 + 修改状态 + 切换优先级', async ({ inject, page }) => {
+    const id = await addTaskAndGetId(inject, '付物业费', { tag: '财务' });
 
     await page.goto(`/app/tasks/${id}`);
-    await expect(page.getByText("任务详情")).toBeVisible();
-    await expect(page.getByLabel("内容")).toHaveValue("付物业费");
+    await expect(page.getByText('任务详情')).toBeVisible();
+    await expect(page.getByLabel('内容')).toHaveValue('付物业费');
 
     // 改标签
-    const tagInput = page.getByLabel("标签");
-    await tagInput.fill("家务");
+    const tagInput = page.getByLabel('标签');
+    await tagInput.fill('家务');
     await tagInput.blur();
 
     // 改状态为 正在做
-    await page.getByRole("button", { name: "正在做", exact: true }).click();
+    await page.getByRole('button', { name: '正在做', exact: true }).click();
 
     // 改优先级为 高
-    await page.getByRole("button", { name: "高", exact: true }).click();
+    await page.getByRole('button', { name: '高', exact: true }).click();
 
     // 通过 API 直接拉，确认持久化
     await expect
@@ -64,17 +61,14 @@ test.describe("任务详情 · 字段编辑", () => {
         },
         { timeout: 10_000, intervals: [400, 800, 1500] },
       )
-      .toMatchObject({ tag: "家务", status: "doing", priority: 3 });
+      .toMatchObject({ tag: '家务', status: 'doing', priority: 3 });
   });
 
-  test("改完状态=done 会写 completedAt，并在 /completed 里看到", async ({
-    inject,
-    page,
-  }) => {
-    const id = await addTaskAndGetId(inject, "寄快递");
+  test('改完状态=done 会写 completedAt，并在 /completed 里看到', async ({ inject, page }) => {
+    const id = await addTaskAndGetId(inject, '寄快递');
 
     await page.goto(`/app/tasks/${id}`);
-    await page.getByRole("button", { name: "已完成", exact: true }).click();
+    await page.getByRole('button', { name: '已完成', exact: true }).click();
 
     // API 端 completedAt 非空
     await expect
@@ -87,53 +81,51 @@ test.describe("任务详情 · 字段编辑", () => {
       })
       .not.toBeNull();
 
-    await page.goto("/app/completed");
-    await expect(page.getByText("寄快递")).toBeVisible();
+    await page.goto('/app/completed');
+    await expect(page.getByText('寄快递')).toBeVisible();
   });
 });
 
-test.describe("任务详情 · 附件", () => {
+test.describe('任务详情 · 附件', () => {
   test.beforeEach(async ({ resetTasks }) => {
     await resetTasks();
   });
 
   // 最小合法 PNG（1×1 透明像素）
   const TINY_PNG = Buffer.from(
-    "89504E470D0A1A0A0000000D4948445200000001000000010806000000" +
-      "1F15C4890000000D49444154789C6360000000000200010B3C2D0B000000" +
-      "0049454E44AE426082",
-    "hex",
+    '89504E470D0A1A0A0000000D4948445200000001000000010806000000' +
+      '1F15C4890000000D49444154789C6360000000000200010B3C2D0B000000' +
+      '0049454E44AE426082',
+    'hex',
   );
 
-  test("上传图片 → 列表出现 → 删除 → 消失", async ({ inject, page }) => {
-    const id = await addTaskAndGetId(inject, "装修参考");
+  test('上传图片 → 列表出现 → 删除 → 消失', async ({ inject, page }) => {
+    const id = await addTaskAndGetId(inject, '装修参考');
 
     await page.goto(`/app/tasks/${id}`);
-    await expect(page.getByText("附件 · 0")).toBeVisible();
+    await expect(page.getByText('附件 · 0')).toBeVisible();
 
     // 直接喂 input[type=file]，触发 onChange → POST 上传
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles({
-      name: "tiny.png",
-      mimeType: "image/png",
+      name: 'tiny.png',
+      mimeType: 'image/png',
       buffer: TINY_PNG,
     });
 
     // 上传完列表更新
-    await expect(page.getByText("附件 · 1")).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText("tiny.png")).toBeVisible();
+    await expect(page.getByText('附件 · 1')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('tiny.png')).toBeVisible();
     await expect(page.getByText(/image\/png/)).toBeVisible();
 
     // 删除（等后端 DELETE 完成再查库，避免竞态）
     const deletePromise = page.waitForResponse(
-      (r) =>
-        r.url().includes("/api/attachments/") &&
-        r.request().method() === "DELETE",
+      (r) => r.url().includes('/api/attachments/') && r.request().method() === 'DELETE',
     );
-    await page.getByRole("button", { name: "删除附件" }).click();
+    await page.getByRole('button', { name: '删除附件' }).click();
     await deletePromise;
-    await expect(page.getByText("附件 · 0")).toBeVisible();
-    await expect(page.getByText("tiny.png")).toHaveCount(0);
+    await expect(page.getByText('附件 · 0')).toBeVisible();
+    await expect(page.getByText('tiny.png')).toHaveCount(0);
 
     // DB 端也确认
     const res = await page.request.get(`/api/tasks/${id}`);
@@ -142,26 +134,23 @@ test.describe("任务详情 · 附件", () => {
   });
 });
 
-test.describe("任务详情 · dueAt", () => {
+test.describe('任务详情 · dueAt', () => {
   test.beforeEach(async ({ resetTasks }) => {
     await resetTasks();
   });
 
-  test("ADD 时带 dueAt → 详情页展示 + /api/tasks/[id] 返回 ISO", async ({
-    inject,
-    page,
-  }) => {
-    const due = "2026-04-23T15:00:00+08:00";
+  test('ADD 时带 dueAt → 详情页展示 + /api/tasks/[id] 返回 ISO', async ({ inject, page }) => {
+    const due = '2026-04-23T15:00:00+08:00';
     const res = await inject(
       buildUtterance({
-        raw: "明天下午三点给老妈打电话",
-        intent: "ADD",
-        aiVerb: "新增",
+        raw: '明天下午三点给老妈打电话',
+        intent: 'ADD',
+        aiVerb: '新增',
         task: {
-          text: "给老妈打电话",
-          place: "any",
-          window: "today",
-          deadline: "明天 15:00",
+          text: '给老妈打电话',
+          place: 'any',
+          window: 'today',
+          deadline: '明天 15:00',
           dueAt: due,
         },
       }),
@@ -173,35 +162,33 @@ test.describe("任务详情 · dueAt", () => {
     const data = (await apiRes.json()) as {
       task: { deadline: string; dueAt: string };
     };
-    expect(data.task.deadline).toBe("明天 15:00");
-    expect(new Date(data.task.dueAt).toISOString()).toBe(
-      new Date(due).toISOString(),
-    );
+    expect(data.task.deadline).toBe('明天 15:00');
+    expect(new Date(data.task.dueAt).toISOString()).toBe(new Date(due).toISOString());
 
     // 详情页 Deadline 行渲染出 4月23日... 15:00（格式随 Intl）
     await page.goto(`/app/tasks/${id}`);
-    const hint = page.locator("text=/4月23日.*15:00/");
+    const hint = page.locator('text=/4月23日.*15:00/');
     await expect(hint.first()).toBeVisible();
   });
 });
 
-test.describe("任务详情 · 过期 expectAt", () => {
+test.describe('任务详情 · 过期 expectAt', () => {
   test.beforeEach(async ({ resetTasks }) => {
     await resetTasks();
   });
 
-  test("expectAt 落在过去 → 详情页「预期」行变红", async ({ inject, page }) => {
-    const past = "2020-01-01T09:00:00+08:00";
+  test('expectAt 落在过去 → 详情页「预期」行变红', async ({ inject, page }) => {
+    const past = '2020-01-01T09:00:00+08:00';
     const res = await inject(
       buildUtterance({
-        raw: "ADD 过期",
-        intent: "ADD",
-        aiVerb: "新增",
+        raw: 'ADD 过期',
+        intent: 'ADD',
+        aiVerb: '新增',
         task: {
-          text: "早该打的电话",
-          place: "any",
-          window: "today",
-          deadline: "很久以前",
+          text: '早该打的电话',
+          place: 'any',
+          window: 'today',
+          deadline: '很久以前',
           expectAt: past,
         },
       }),
@@ -209,40 +196,35 @@ test.describe("任务详情 · 过期 expectAt", () => {
     const id = (res.effect as { id?: string }).id as string;
     await page.goto(`/app/tasks/${id}`);
 
-    const row = page
-      .getByRole("button", { name: "编辑 预期" })
-      .filter({ hasText: "过期" });
+    const row = page.getByRole('button', { name: '编辑 预期' }).filter({ hasText: '过期' });
     await expect(row).toBeVisible();
     // 通过 class 验证走了过期样式（tailwind text-red-600）
     await expect(row).toHaveClass(/text-red-600/);
   });
 });
 
-test.describe("任务详情 · 手动编辑 dueAt", () => {
+test.describe('任务详情 · 手动编辑 dueAt', () => {
   test.beforeEach(async ({ resetTasks }) => {
     await resetTasks();
   });
 
-  test("点「→ 点击设置具体时间」→ 输入本地时间 → PATCH ISO", async ({
-    inject,
-    page,
-  }) => {
+  test('点「→ 点击设置具体时间」→ 输入本地时间 → PATCH ISO', async ({ inject, page }) => {
     const addRes = await inject(
       buildUtterance({
-        raw: "ADD 无时间任务",
-        intent: "ADD",
-        aiVerb: "新增",
-        task: { text: "等有空再看", place: "any", window: "later" },
+        raw: 'ADD 无时间任务',
+        intent: 'ADD',
+        aiVerb: '新增',
+        task: { text: '等有空再看', place: 'any', window: 'later' },
       }),
     );
     const id = (addRes.effect as { id?: string }).id as string;
 
     await page.goto(`/app/tasks/${id}`);
-    await page.getByRole("button", { name: "编辑 Deadline" }).click();
+    await page.getByRole('button', { name: '编辑 Deadline' }).click();
 
     // datetime-local 输入：本机时间 2027-01-02 09:30
     const input = page.locator('input[type="datetime-local"]');
-    await input.fill("2027-01-02T09:30");
+    await input.fill('2027-01-02T09:30');
     await input.blur();
 
     // 等 PATCH 写入
@@ -264,30 +246,30 @@ test.describe("任务详情 · 手动编辑 dueAt", () => {
   });
 });
 
-test.describe("任务详情 · 拖拽上传", () => {
+test.describe('任务详情 · 拖拽上传', () => {
   test.beforeEach(async ({ resetTasks }) => {
     await resetTasks();
   });
 
-  test("往附件区域 drop 一个文件 → 上传成功", async ({ inject, page }) => {
+  test('往附件区域 drop 一个文件 → 上传成功', async ({ inject, page }) => {
     const addRes = await inject(
       buildUtterance({
-        raw: "ADD 拖拽测试",
-        intent: "ADD",
-        aiVerb: "新增",
-        task: { text: "拖拽测试", place: "any", window: "today" },
+        raw: 'ADD 拖拽测试',
+        intent: 'ADD',
+        aiVerb: '新增',
+        task: { text: '拖拽测试', place: 'any', window: 'today' },
       }),
     );
     const id = (addRes.effect as { id?: string }).id as string;
 
     await page.goto(`/app/tasks/${id}`);
-    await expect(page.getByText("附件 · 0")).toBeVisible();
+    await expect(page.getByText('附件 · 0')).toBeVisible();
 
     // 合成一个带文件的 DataTransfer + drop 事件，丢到 attachments 区域
-    const zone = page.getByTestId("attachments");
+    const zone = page.getByTestId('attachments');
     await zone.evaluate((el) => {
-      const file = new File(["hello drag"], "drop.txt", {
-        type: "text/plain",
+      const file = new File(['hello drag'], 'drop.txt', {
+        type: 'text/plain',
       });
       const dt = new DataTransfer();
       dt.items.add(file);
@@ -297,38 +279,33 @@ test.describe("任务详情 · 拖拽上传", () => {
           cancelable: true,
           dataTransfer: dt,
         });
-      el.dispatchEvent(mk("dragenter"));
-      el.dispatchEvent(mk("dragover"));
-      el.dispatchEvent(mk("drop"));
+      el.dispatchEvent(mk('dragenter'));
+      el.dispatchEvent(mk('dragover'));
+      el.dispatchEvent(mk('drop'));
     });
 
-    await expect(page.getByText("附件 · 1")).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText("drop.txt")).toBeVisible();
+    await expect(page.getByText('附件 · 1')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('drop.txt')).toBeVisible();
   });
 });
 
-test.describe("任务详情 · 删除", () => {
+test.describe('任务详情 · 删除', () => {
   test.beforeEach(async ({ resetTasks }) => {
     await resetTasks();
   });
 
-  test("详情页右上角删除 → 确认 → 跳首页 + DB 清掉", async ({
-    inject,
-    page,
-  }) => {
-    const id = await addTaskAndGetId(inject, "要删掉的任务");
+  test('详情页右上角删除 → 确认 → 跳首页 + DB 清掉', async ({ inject, page }) => {
+    const id = await addTaskAndGetId(inject, '要删掉的任务');
 
     await page.goto(`/app/tasks/${id}`);
-    await page.getByTestId("task-delete-btn").click();
+    await page.getByTestId('task-delete-btn').click();
 
     // Dialog 出现，确认删除
-    await expect(page.getByText("删除任务？")).toBeVisible();
+    await expect(page.getByText('删除任务？')).toBeVisible();
     const deletePromise = page.waitForResponse(
-      (r) =>
-        r.url().includes(`/api/tasks/${id}`) &&
-        r.request().method() === "DELETE",
+      (r) => r.url().includes(`/api/tasks/${id}`) && r.request().method() === 'DELETE',
     );
-    await page.getByRole("button", { name: "删除", exact: true }).click();
+    await page.getByRole('button', { name: '删除', exact: true }).click();
     await deletePromise;
 
     await expect(page).toHaveURL(/\/app$/);
@@ -338,42 +315,40 @@ test.describe("任务详情 · 删除", () => {
     expect(res.status()).toBe(404);
   });
 
-  test("「已完成」页每条可删除，删完不再展示", async ({ inject, page }) => {
-    const id = await addTaskAndGetId(inject, "完成后要删除");
+  test('「已完成」页每条可删除，删完不再展示', async ({ inject, page }) => {
+    const id = await addTaskAndGetId(inject, '完成后要删除');
     // 标记完成
     await page.request.post(`/api/tasks/${id}/done`);
 
-    await page.goto("/app/completed");
-    await expect(page.getByText("完成后要删除")).toBeVisible();
+    await page.goto('/app/completed');
+    await expect(page.getByText('完成后要删除')).toBeVisible();
 
-    await page.getByTestId("completed-delete-btn").first().click();
-    await expect(page.getByText("删除这条完成记录？")).toBeVisible();
+    await page.getByTestId('completed-delete-btn').first().click();
+    await expect(page.getByText('删除这条完成记录？')).toBeVisible();
     const deletePromise = page.waitForResponse(
-      (r) =>
-        r.url().includes(`/api/tasks/${id}`) &&
-        r.request().method() === "DELETE",
+      (r) => r.url().includes(`/api/tasks/${id}`) && r.request().method() === 'DELETE',
     );
-    await page.getByRole("button", { name: "删除", exact: true }).click();
+    await page.getByRole('button', { name: '删除', exact: true }).click();
     await deletePromise;
 
-    await expect(page.getByText("完成后要删除")).toHaveCount(0);
+    await expect(page.getByText('完成后要删除')).toHaveCount(0);
   });
 });
 
-test.describe("任务详情 · 导航", () => {
+test.describe('任务详情 · 导航', () => {
   test.beforeEach(async ({ resetTasks }) => {
     await resetTasks();
   });
 
-  test("Today 页点任务行进入详情", async ({ inject, page }) => {
-    const id = await addTaskAndGetId(inject, "点进去试试", {
-      window: "now",
-      place: "any",
+  test('Today 页点任务行进入详情', async ({ inject, page }) => {
+    const id = await addTaskAndGetId(inject, '点进去试试', {
+      window: 'now',
+      place: 'any',
     });
 
-    await page.goto("/app");
-    await page.getByText("点进去试试").first().click();
+    await page.goto('/app');
+    await page.getByText('点进去试试').first().click();
     await expect(page).toHaveURL(new RegExp(`/app/tasks/${id}$`));
-    await expect(page.getByText("任务详情")).toBeVisible();
+    await expect(page.getByText('任务详情')).toBeVisible();
   });
 });

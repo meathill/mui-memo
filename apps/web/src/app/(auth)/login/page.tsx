@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { signIn } from "@/lib/auth-client";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { signIn } from '@/lib/auth-client';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,28 +17,26 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     const form = new FormData(event.currentTarget);
-    const email = String(form.get("email") ?? "");
-    const password = String(form.get("password") ?? "");
+    const email = String(form.get('email') ?? '');
+    const password = String(form.get('password') ?? '');
     const { error } = await signIn.email({
       email,
       password,
-      callbackURL: "/app",
+      callbackURL: '/app',
     });
     setLoading(false);
     if (error) {
-      setError(error.message ?? "登录失败，请检查邮箱与密码");
+      setError(error.message ?? '登录失败，请检查邮箱与密码');
       return;
     }
-    router.push("/app");
+    router.push('/app');
     router.refresh();
   }
 
   return (
     <div className="space-y-8">
       <header className="space-y-2 text-center">
-        <p className="font-mono text-xs tracking-[0.15em] uppercase text-ink-mute">
-          MuiMemo
-        </p>
+        <p className="font-mono text-xs tracking-[0.15em] uppercase text-ink-mute">MuiMemo</p>
         <h1 className="font-serif text-3xl font-medium text-ink">欢迎回来</h1>
         <p className="text-sm text-ink-soft">说一句话，把琐事记下来。</p>
       </header>
@@ -46,13 +44,7 @@ export default function LoginPage() {
       <form className="space-y-4" onSubmit={handleSubmit}>
         <label className="block space-y-1.5">
           <span className="text-xs font-medium text-ink-soft">邮箱</span>
-          <Input
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            size="lg"
-          />
+          <Input name="email" type="email" autoComplete="email" required size="lg" />
         </label>
         <label className="block space-y-1.5">
           <span className="text-xs font-medium text-ink-soft">密码</span>
@@ -71,11 +63,8 @@ export default function LoginPage() {
       </form>
 
       <p className="text-center text-sm text-ink-soft">
-        还没有账号？{" "}
-        <Link
-          href="/register"
-          className="text-accent-warm underline underline-offset-4"
-        >
+        还没有账号？{' '}
+        <Link href="/register" className="text-accent-warm underline underline-offset-4">
           去注册
         </Link>
       </p>

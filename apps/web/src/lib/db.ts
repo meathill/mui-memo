@@ -1,6 +1,6 @@
-import { connect } from "@tidbcloud/serverless";
-import { drizzle } from "drizzle-orm/tidb-serverless";
-import * as schema from "@mui-memo/shared/schema";
+import * as schema from '@mui-memo/shared/schema';
+import { connect } from '@tidbcloud/serverless';
+import { drizzle } from 'drizzle-orm/tidb-serverless';
 
 /**
  * 创建 Drizzle ORM 实例

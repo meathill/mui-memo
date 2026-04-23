@@ -1,10 +1,10 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { NextResponse } from "next/server";
-import { getServerSession } from "./auth";
-import { createDb, type Database } from "./db";
+import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { NextResponse } from 'next/server';
+import { getServerSession } from './auth';
+import { type Database, createDb } from './db';
 
 type Session = NonNullable<Awaited<ReturnType<typeof getServerSession>>>;
-type CfEnv = Awaited<ReturnType<typeof getCloudflareContext>>["env"];
+type CfEnv = Awaited<ReturnType<typeof getCloudflareContext>>['env'];
 
 /** Cloudflare ExecutionContext 的最小投影。@cloudflare/workers-types 没装，手写一份。 */
 interface ExecCtx {
@@ -32,15 +32,10 @@ export interface AuthedCtx {
  * 14 个路由全部复制过这四行；抽出来避免 401 的 JSON shape 漂移，
  * 也让新路由少写 3 行样板。
  */
-export async function requireAuthDb(): Promise<
-  [NextResponse, null] | [null, AuthedCtx]
-> {
+export async function requireAuthDb(): Promise<[NextResponse, null] | [null, AuthedCtx]> {
   const session = await getServerSession();
   if (!session) {
-    return [
-      NextResponse.json({ error: "unauthorized" }, { status: 401 }),
-      null,
-    ];
+    return [NextResponse.json({ error: 'unauthorized' }, { status: 401 }), null];
   }
   const { env, ctx: execCtx } = await getCloudflareContext({ async: true });
   const db = createDb(env.TIDB_DATABASE_URL);
@@ -55,10 +50,7 @@ export async function requireAuth(): Promise<
 > {
   const session = await getServerSession();
   if (!session) {
-    return [
-      NextResponse.json({ error: "unauthorized" }, { status: 401 }),
-      null,
-    ];
+    return [NextResponse.json({ error: 'unauthorized' }, { status: 401 }), null];
   }
   const { env } = await getCloudflareContext({ async: true });
   return [null, { session, env }];

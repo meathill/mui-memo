@@ -1,16 +1,12 @@
-import { NextResponse } from "next/server";
-import { applyIntent, rerank } from "@mui-memo/shared/logic";
-import { taskPlaceEnum, utteranceSchema } from "@mui-memo/shared/validators";
-import { ensureE2EEnabled } from "@/lib/e2e-guard";
-import { requireAuthDb } from "@/lib/route";
-import { resolveTargetTask } from "@/lib/search";
-import {
-  listTasksForUser,
-  logUtterance,
-  persistIntentResult,
-} from "@/lib/tasks";
+import { ensureE2EEnabled } from '@/lib/e2e-guard';
+import { requireAuthDb } from '@/lib/route';
+import { resolveTargetTask } from '@/lib/search';
+import { listTasksForUser, logUtterance, persistIntentResult } from '@/lib/tasks';
+import { applyIntent, rerank } from '@mui-memo/shared/logic';
+import { taskPlaceEnum, utteranceSchema } from '@mui-memo/shared/validators';
+import { NextResponse } from 'next/server';
 
-const INTENTS_NEEDING_RESOLVE = new Set(["STATUS", "DONE", "MODIFY", "LINK"]);
+const INTENTS_NEEDING_RESOLVE = new Set(['STATUS', 'DONE', 'MODIFY', 'LINK']);
 
 /**
  * 绕过 Gemini 的测试端点：直接接收 JSON Utterance + place，跑 applyIntent 和持久化。
@@ -19,7 +15,7 @@ const INTENTS_NEEDING_RESOLVE = new Set(["STATUS", "DONE", "MODIFY", "LINK"]);
  */
 export async function POST(req: Request) {
   if (!(await ensureE2EEnabled())) {
-    return NextResponse.json({ error: "disabled" }, { status: 404 });
+    return NextResponse.json({ error: 'disabled' }, { status: 404 });
   }
   const [resp, ctx] = await requireAuthDb();
   if (resp) return resp;
@@ -30,18 +26,17 @@ export async function POST(req: Request) {
     place?: unknown;
     skipResolve?: boolean;
   } | null;
-  if (!body)
-    return NextResponse.json({ error: "invalid body" }, { status: 400 });
+  if (!body) return NextResponse.json({ error: 'invalid body' }, { status: 400 });
 
   const utteranceParsed = utteranceSchema.safeParse(body.utterance);
   if (!utteranceParsed.success) {
     return NextResponse.json(
-      { error: "invalid utterance", issues: utteranceParsed.error.issues },
+      { error: 'invalid utterance', issues: utteranceParsed.error.issues },
       { status: 400 },
     );
   }
-  const placeParsed = taskPlaceEnum.safeParse(body.place ?? "any");
-  const ctxPlace = placeParsed.success ? placeParsed.data : "any";
+  const placeParsed = taskPlaceEnum.safeParse(body.place ?? 'any');
+  const ctxPlace = placeParsed.success ? placeParsed.data : 'any';
   const utterance = utteranceParsed.data;
 
   const tasksBefore = await listTasksForUser(ctx.db, userId);
@@ -62,18 +57,12 @@ export async function POST(req: Request) {
   try {
     await persistIntentResult(ctx.db, userId, tasksBefore, tasksAfter);
   } catch (err) {
-    const msg =
-      err instanceof Error ? `${err.message}\n${err.stack}` : String(err);
-    console.error("[test-e2e/intent] persist failed:", msg);
-    return NextResponse.json(
-      { error: "persist_failed", detail: msg },
-      { status: 500 },
-    );
+    const msg = err instanceof Error ? `${err.message}\n${err.stack}` : String(err);
+    console.error('[test-e2e/intent] persist failed:', msg);
+    return NextResponse.json({ error: 'persist_failed', detail: msg }, { status: 500 });
   }
 
-  await logUtterance(ctx.db, userId, utterance, effect, null).catch(
-    () => undefined,
-  );
+  await logUtterance(ctx.db, userId, utterance, effect, null).catch(() => undefined);
 
   const ranked = rerank(tasksAfter, ctxPlace);
   return NextResponse.json({ utterance, effect, tasks: tasksAfter, ranked });

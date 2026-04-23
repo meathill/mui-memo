@@ -1,32 +1,21 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo } from "react";
-import {
-  BUCKET_LABEL,
-  type Bucket,
-  rerank,
-  type TaskView,
-} from "@mui-memo/shared/logic";
-import type { TaskPlace } from "@mui-memo/shared/validators";
-import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
-import { track } from "@/lib/analytics";
-import { useAppStore } from "@/store";
-import { ContextStrip } from "./context-strip";
-import { DoingCard } from "./doing-card";
-import { EffectToast } from "./effect-toast";
-import { MicButton } from "./mic-button";
-import { PullIndicator } from "./pull-indicator";
-import { SectionHeader } from "./section-header";
-import { TaskRow } from "./task-row";
+import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
+import { track } from '@/lib/analytics';
+import { useAppStore } from '@/store';
+import { BUCKET_LABEL, type Bucket, type TaskView, rerank } from '@mui-memo/shared/logic';
+import type { TaskPlace } from '@mui-memo/shared/validators';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo } from 'react';
+import { ContextStrip } from './context-strip';
+import { DoingCard } from './doing-card';
+import { EffectToast } from './effect-toast';
+import { MicButton } from './mic-button';
+import { PullIndicator } from './pull-indicator';
+import { SectionHeader } from './section-header';
+import { TaskRow } from './task-row';
 
-const SECTION_ORDER: Bucket[] = [
-  "now",
-  "today_here",
-  "today_else",
-  "blocked",
-  "later",
-];
+const SECTION_ORDER: Bucket[] = ['now', 'today_here', 'today_else', 'blocked', 'later'];
 
 interface Props {
   userName: string;
@@ -36,8 +25,8 @@ export function TodayView({ userName }: Props) {
   const router = useRouter();
   useEffect(() => {
     try {
-      if (!window.localStorage.getItem("muimemo:onboarded")) {
-        router.replace("/onboarding");
+      if (!window.localStorage.getItem('muimemo:onboarded')) {
+        router.replace('/onboarding');
       }
     } catch {}
   }, [router]);
@@ -56,7 +45,7 @@ export function TodayView({ userName }: Props) {
 
   // 单次拉取：只拉全量 tasks，不带 place；筛选和 rerank 都在前端。
   const fetchAll = useCallback(async () => {
-    const res = await fetch(`/api/tasks`, { cache: "no-store" });
+    const res = await fetch(`/api/tasks`, { cache: 'no-store' });
     if (!res.ok) return;
     const data = (await res.json()) as { tasks: TaskView[] };
     hydrate({ tasks: data.tasks, ranked: [] });
@@ -69,42 +58,37 @@ export function TodayView({ userName }: Props) {
   const { pullOffset, refreshing, trigger } = usePullToRefresh(fetchAll);
 
   const ranked = useMemo(() => rerank(tasks, place), [tasks, place]);
-  const doing = useMemo(() => tasks.find((t) => t.status === "doing"), [tasks]);
+  const doing = useMemo(() => tasks.find((t) => t.status === 'doing'), [tasks]);
   const grouped = useMemo(() => {
     const buckets = new Map<Bucket, TaskView[]>();
     for (const t of ranked) {
-      if (t.bucket === "doing") continue;
+      if (t.bucket === 'doing') continue;
       const arr = buckets.get(t.bucket) ?? [];
       arr.push(t);
       buckets.set(t.bucket, arr);
     }
     return buckets;
   }, [ranked]);
-  const nowCount =
-    (grouped.get("now")?.length ?? 0) +
-    (grouped.get("today_here")?.length ?? 0);
+  const nowCount = (grouped.get('now')?.length ?? 0) + (grouped.get('today_here')?.length ?? 0);
 
-  const handlePlaceChange = useCallback(
-    (p: TaskPlace) => setPlace(p),
-    [setPlace],
-  );
+  const handlePlaceChange = useCallback((p: TaskPlace) => setPlace(p), [setPlace]);
 
   const handleAudio = useCallback(
     async (blob: Blob) => {
       setProcessing(true);
       try {
         const fd = new FormData();
-        fd.append("audio", blob, "utterance.webm");
-        fd.append("place", place);
+        fd.append('audio', blob, 'utterance.webm');
+        fd.append('place', place);
         try {
-          fd.append("tz", Intl.DateTimeFormat().resolvedOptions().timeZone);
+          fd.append('tz', Intl.DateTimeFormat().resolvedOptions().timeZone);
         } catch {}
-        const res = await fetch("/api/intent", { method: "POST", body: fd });
+        const res = await fetch('/api/intent', { method: 'POST', body: fd });
         if (!res.ok) {
           const err = (await res.json().catch(() => ({}))) as {
             detail?: string;
           };
-          setLastEffect({ kind: "miss", verb: err.detail ?? "识别失败" }, null);
+          setLastEffect({ kind: 'miss', verb: err.detail ?? '识别失败' }, null);
           return;
         }
         const data = (await res.json()) as {
@@ -114,7 +98,7 @@ export function TodayView({ userName }: Props) {
         };
         hydrate({ tasks: data.tasks, ranked: [] });
         setLastEffect(data.effect, data.utterance);
-        track({ name: "voice_intent", intent: data.effect?.kind });
+        track({ name: 'voice_intent', intent: data.effect?.kind });
       } finally {
         setProcessing(false);
       }
@@ -131,7 +115,7 @@ export function TodayView({ userName }: Props) {
           t.id === id
             ? {
                 ...t,
-                status: "done",
+                status: 'done',
                 done: true,
                 completedAt: new Date().toISOString(),
               }
@@ -139,8 +123,8 @@ export function TodayView({ userName }: Props) {
         ),
         ranked: [],
       });
-      await fetch(`/api/tasks/${id}/done`, { method: "POST" });
-      track({ name: "task_complete", source: "today" });
+      await fetch(`/api/tasks/${id}/done`, { method: 'POST' });
+      track({ name: 'task_complete', source: 'today' });
     },
     [hydrate],
   );
@@ -162,11 +146,7 @@ export function TodayView({ userName }: Props) {
       </header>
 
       <div className="mt-5">
-        <ContextStrip
-          value={place}
-          onChange={handlePlaceChange}
-          nowCount={nowCount}
-        />
+        <ContextStrip value={place} onChange={handlePlaceChange} nowCount={nowCount} />
       </div>
 
       {doing ? (
@@ -205,7 +185,7 @@ export function TodayView({ userName }: Props) {
 
       <div
         className="fixed inset-x-0 z-30 flex justify-center bg-gradient-to-t from-paper via-paper/95 to-transparent pt-10 pb-4"
-        style={{ bottom: "calc(env(safe-area-inset-bottom) + 60px)" }}
+        style={{ bottom: 'calc(env(safe-area-inset-bottom) + 60px)' }}
       >
         <MicButton disabled={isProcessing} onAudio={handleAudio} />
       </div>

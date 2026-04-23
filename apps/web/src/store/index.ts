@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import type { TaskView, Bucket, IntentEffect } from "@mui-memo/shared/logic";
-import type { TaskPlace, Utterance } from "@mui-memo/shared/validators";
+import type { Bucket, IntentEffect, TaskView } from '@mui-memo/shared/logic';
+import type { TaskPlace, Utterance } from '@mui-memo/shared/validators';
+import { create } from 'zustand';
 
 type RankedTask = TaskView & { bucket: Bucket };
 
@@ -25,7 +25,7 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  place: "home",
+  place: 'home',
   tasks: [],
   ranked: [],
   lastEffect: null,
@@ -34,8 +34,7 @@ export const useAppStore = create<AppState>((set) => ({
   isRecording: false,
 
   setPlace: (p) => set({ place: p }),
-  hydrate: ({ tasks, ranked, place }) =>
-    set((s) => ({ tasks, ranked, place: place ?? s.place })),
+  hydrate: ({ tasks, ranked, place }) => set((s) => ({ tasks, ranked, place: place ?? s.place })),
   setRecording: (v) => set({ isRecording: v }),
   setProcessing: (v) => set({ isProcessing: v }),
   setLastEffect: (e, u) => set({ lastEffect: e, lastUtterance: u ?? null }),

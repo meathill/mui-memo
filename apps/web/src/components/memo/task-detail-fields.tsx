@@ -1,41 +1,37 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useNowTick } from "@/hooks/use-now-tick";
+import { useNowTick } from '@/hooks/use-now-tick';
 import {
   formatDueAt,
   isOverdue,
   isoToLocalInput,
   localInputToISO,
   relativeTimeLabel,
-} from "@/lib/time";
-import { cn } from "@/lib/utils";
-import type {
-  TaskPlace,
-  TaskStatus,
-  TaskWindow,
-} from "@mui-memo/shared/validators";
+} from '@/lib/time';
+import { cn } from '@/lib/utils';
+import type { TaskPlace, TaskStatus, TaskWindow } from '@mui-memo/shared/validators';
+import { useState } from 'react';
 
-export const PLACES: TaskPlace[] = ["home", "work", "out", "any"];
-export const WINDOWS: TaskWindow[] = ["now", "today", "later"];
+export const PLACES: TaskPlace[] = ['home', 'work', 'out', 'any'];
+export const WINDOWS: TaskWindow[] = ['now', 'today', 'later'];
 export const PRIORITIES = [1, 2, 3] as const;
-export const STATUSES: TaskStatus[] = ["pending", "doing", "done"];
+export const STATUSES: TaskStatus[] = ['pending', 'doing', 'done'];
 
 export const STATUS_LABEL: Record<TaskStatus, string> = {
-  pending: "待做",
-  doing: "正在做",
-  done: "已完成",
-  linked: "顺手做",
+  pending: '待做',
+  doing: '正在做',
+  done: '已完成',
+  linked: '顺手做',
 };
 export const WINDOW_LABEL: Record<TaskWindow, string> = {
-  now: "此刻",
-  today: "今天",
-  later: "不急",
+  now: '此刻',
+  today: '今天',
+  later: '不急',
 };
 export const PRIORITY_LABEL: Record<number, string> = {
-  1: "低",
-  2: "中",
-  3: "高",
+  1: '低',
+  2: '中',
+  3: '高',
 };
 
 export function Field({
@@ -72,10 +68,8 @@ export function Segmented({
           type="button"
           onClick={() => onChange(o.value)}
           className={cn(
-            "flex-1 rounded-lg px-2 py-1.5 text-center text-xs transition-colors whitespace-nowrap",
-            value === o.value
-              ? "bg-ink text-paper"
-              : "text-ink-soft hover:text-ink",
+            'flex-1 rounded-lg px-2 py-1.5 text-center text-xs transition-colors whitespace-nowrap',
+            value === o.value ? 'bg-ink text-paper' : 'text-ink-soft hover:text-ink',
           )}
         >
           {o.label}
@@ -119,15 +113,15 @@ export function TimeRow({
           if (iso !== value) onChange(iso);
         }}
         onKeyDown={(e) => {
-          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-          if (e.key === "Escape") setEditing(false);
+          if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+          if (e.key === 'Escape') setEditing(false);
         }}
       />
     );
   }
 
-  const rel = value ? relativeTimeLabel(value, now) : "";
-  const abs = value ? formatDueAt(value) : "";
+  const rel = value ? relativeTimeLabel(value, now) : '';
+  const abs = value ? formatDueAt(value) : '';
   const overdue = overdueHint && isOverdue(value, now);
 
   return (
@@ -135,8 +129,8 @@ export function TimeRow({
       type="button"
       onClick={() => setEditing(true)}
       className={cn(
-        "mt-1 flex w-full items-baseline gap-2 text-left font-mono text-[10px] hover:text-ink-soft",
-        overdue ? "text-red-600 font-semibold" : "text-ink-mute",
+        'mt-1 flex w-full items-baseline gap-2 text-left font-mono text-[10px] hover:text-ink-soft',
+        overdue ? 'text-red-600 font-semibold' : 'text-ink-mute',
       )}
       aria-label={`编辑 ${label}`}
     >

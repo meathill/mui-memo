@@ -51,7 +51,10 @@ export const BUCKET_LABEL: Record<Bucket, string> = {
  * 把任务按场景分桶并排序，端口自设计稿 data.jsx。
  * linked 状态的子任务不会出现在主列表（由父任务的 linked[] 展示）。
  */
-export function rerank(tasks: TaskView[], ctxPlace: TaskPlace): Array<TaskView & { bucket: Bucket }> {
+export function rerank(
+  tasks: TaskView[],
+  ctxPlace: TaskPlace,
+): Array<TaskView & { bucket: Bucket }> {
   const list = tasks.filter((t) => !t.done && t.status !== 'linked');
   const canDoHere = (t: TaskView) => t.place === 'any' || t.place === ctxPlace;
 
@@ -178,9 +181,7 @@ export function applyIntent(tasks: TaskView[], u: Utterance, now: Date = new Dat
     const t = matchTask(tasks, u);
     if (t) {
       const next = tasks.map((x) =>
-        x.id === t.id
-          ? { ...x, done: true, status: 'done' as TaskStatus, completedAt: stamp }
-          : x,
+        x.id === t.id ? { ...x, done: true, status: 'done' as TaskStatus, completedAt: stamp } : x,
       );
       return {
         tasks: next,
@@ -201,7 +202,7 @@ export function applyIntent(tasks: TaskView[], u: Utterance, now: Date = new Dat
         tag: core.tag,
         deadline: core.deadline,
         expectAt: core.expectAt,
-      dueAt: core.dueAt,
+        dueAt: core.dueAt,
         aiReason: u.aiReason,
         status: 'done',
         done: true,

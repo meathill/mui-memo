@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { RefreshCcwIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
+import { RefreshCcwIcon } from 'lucide-react';
 
 /**
  * 配合 usePullToRefresh 展示顶部的下拉条。pullOffset 是 0~1.2 的阻尼值。
@@ -24,8 +24,8 @@ export function PullIndicator({
       <div
         aria-hidden
         className={cn(
-          "pointer-events-none flex items-center justify-center text-ink-mute transition-opacity",
-          visible ? "opacity-100" : "opacity-0",
+          'pointer-events-none flex items-center justify-center text-ink-mute transition-opacity',
+          visible ? 'opacity-100' : 'opacity-0',
         )}
         style={{
           height: `${Math.min(pullOffset, 1) * 48}px`,
@@ -33,9 +33,9 @@ export function PullIndicator({
       >
         <RefreshCcwIcon
           className={cn(
-            "h-4 w-4 transition-transform",
-            refreshing && "animate-spin",
-            !refreshing && ready && "rotate-180",
+            'h-4 w-4 transition-transform',
+            refreshing && 'animate-spin',
+            !refreshing && ready && 'rotate-180',
           )}
         />
       </div>
@@ -44,8 +44,8 @@ export function PullIndicator({
         onClick={onManualRefresh}
         aria-label="刷新"
         className={cn(
-          "absolute right-3 top-5 flex h-7 w-7 items-center justify-center rounded-full border border-rule/60 bg-paper-2/70 text-ink-mute transition-colors hover:text-ink",
-          refreshing && "animate-spin",
+          'absolute right-3 top-5 flex h-7 w-7 items-center justify-center rounded-full border border-rule/60 bg-paper-2/70 text-ink-mute transition-colors hover:text-ink',
+          refreshing && 'animate-spin',
         )}
         data-testid="manual-refresh"
       >

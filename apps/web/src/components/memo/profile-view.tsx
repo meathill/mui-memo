@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { LogOutIcon, RefreshCcwIcon } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { TweaksPanel } from "@/components/memo/tweaks-panel";
-import { Button } from "@/components/ui/button";
-import { signOut } from "@/lib/auth-client";
+import { TweaksPanel } from '@/components/memo/tweaks-panel';
+import { Button } from '@/components/ui/button';
+import { signOut } from '@/lib/auth-client';
+import { LogOutIcon, RefreshCcwIcon } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 interface ProfileData {
   user: { name: string; email: string };
@@ -24,7 +24,7 @@ export function ProfileView() {
 
   async function load() {
     setLoading(true);
-    const res = await fetch("/api/profile/stats", { cache: "no-store" });
+    const res = await fetch('/api/profile/stats', { cache: 'no-store' });
     if (res.ok) setData((await res.json()) as ProfileData);
     setLoading(false);
   }
@@ -35,17 +35,17 @@ export function ProfileView() {
 
   async function handleLogout() {
     await signOut();
-    window.location.href = "/login";
+    window.location.href = '/login';
   }
 
   function restartOnboarding() {
     try {
-      window.localStorage.removeItem("muimemo:onboarded");
+      window.localStorage.removeItem('muimemo:onboarded');
     } catch {}
-    window.location.href = "/onboarding";
+    window.location.href = '/onboarding';
   }
 
-  const initial = data?.user.name?.charAt(0)?.toUpperCase() ?? "·";
+  const initial = data?.user.name?.charAt(0)?.toUpperCase() ?? '·';
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-6 pb-24 sm:pt-10">
@@ -62,12 +62,8 @@ export function ProfileView() {
             {initial}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-serif text-lg text-ink truncate">
-              {data?.user.name ?? "…"}
-            </p>
-            <p className="truncate text-xs text-ink-mute font-mono">
-              {data?.user.email ?? ""}
-            </p>
+            <p className="font-serif text-lg text-ink truncate">{data?.user.name ?? '…'}</p>
+            <p className="truncate text-xs text-ink-mute font-mono">{data?.user.email ?? ''}</p>
           </div>
         </div>
       </section>
@@ -100,20 +96,13 @@ export function ProfileView() {
       </section>
 
       <section className="mt-6">
-        <Button
-          variant="outline"
-          size="lg"
-          className="w-full"
-          onClick={handleLogout}
-        >
+        <Button variant="outline" size="lg" className="w-full" onClick={handleLogout}>
           <LogOutIcon />
           退出登录
         </Button>
       </section>
 
-      {loading ? (
-        <p className="mt-4 text-center text-xs text-ink-mute">加载中…</p>
-      ) : null}
+      {loading ? <p className="mt-4 text-center text-xs text-ink-mute">加载中…</p> : null}
 
       <footer className="mt-8 text-center">
         <p className="font-mono text-[10px] tracking-[0.15em] text-ink-mute">
@@ -136,15 +125,11 @@ function StatCard({
   return (
     <div
       className={
-        "rounded-2xl border p-4 " +
-        (accent
-          ? "border-accent-warm/40 bg-accent-warm/10"
-          : "border-rule/60 bg-paper-2/50")
+        'rounded-2xl border p-4 ' +
+        (accent ? 'border-accent-warm/40 bg-accent-warm/10' : 'border-rule/60 bg-paper-2/50')
       }
     >
-      <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">
-        {label}
-      </p>
+      <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">{label}</p>
       <p className="mt-1 font-serif text-3xl text-ink">{value}</p>
     </div>
   );

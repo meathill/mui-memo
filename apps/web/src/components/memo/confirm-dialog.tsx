@@ -1,6 +1,5 @@
-"use client";
+'use client';
 
-import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogClose,
@@ -9,8 +8,9 @@ import {
   AlertDialogHeader,
   AlertDialogPopup,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 
 interface Props {
   open: boolean;
@@ -29,8 +29,8 @@ export function ConfirmDialog({
   onOpenChange,
   title,
   description,
-  confirmText = "确定",
-  cancelText = "取消",
+  confirmText = '确定',
+  cancelText = '取消',
   destructive = false,
   onConfirm,
 }: Props) {
@@ -51,16 +51,12 @@ export function ConfirmDialog({
       <AlertDialogPopup>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
-          {description ? (
-            <AlertDialogDescription>{description}</AlertDialogDescription>
-          ) : null}
+          {description ? <AlertDialogDescription>{description}</AlertDialogDescription> : null}
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogClose
-            render={<Button variant="outline">{cancelText}</Button>}
-          />
+          <AlertDialogClose render={<Button variant="outline">{cancelText}</Button>} />
           <Button
-            variant={destructive ? "destructive" : "default"}
+            variant={destructive ? 'destructive' : 'default'}
             loading={busy}
             onClick={handleConfirm}
           >

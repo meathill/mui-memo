@@ -1,8 +1,8 @@
-import { GoogleGenAI } from "@google/genai";
-import type { TaskView } from "@mui-memo/shared/logic";
-import { type Utterance, utteranceSchema } from "@mui-memo/shared/validators";
+import { GoogleGenAI } from '@google/genai';
+import type { TaskView } from '@mui-memo/shared/logic';
+import { type Utterance, utteranceSchema } from '@mui-memo/shared/validators';
 
-const CHAT_MODEL = "gemini-3-flash-preview";
+const CHAT_MODEL = 'gemini-3-flash-preview';
 
 const SYSTEM_PROMPT = `你是 MuiMemo 的语音意图解析器。用户会说一句中文大白话，你需要把它转成一条结构化的 JSON 操作，用来更新用户的任务清单。
 
@@ -145,22 +145,22 @@ function buildUserPrompt(tasks: TaskView[], now: TimeAnchor): string {
   const head = `当前时间：${now.iso}（${now.tz}，${now.weekday}）。所有相对时间都要以此为锚。`;
   if (!tasks.length) return `${head}\n\n当前清单：空。`;
   const lines = tasks
-    .filter((t) => !t.done && t.status !== "linked")
+    .filter((t) => !t.done && t.status !== 'linked')
     .slice(0, 30)
     .map(
       (t) =>
         `- [${t.status}] ${t.text} · 地点:${t.place} · 时段:${t.window} · 优先:${t.priority}${
-          t.deadline ? ` · 截止:${t.deadline}` : ""
-        }${t.expectAt ? ` · expectAt:${t.expectAt}` : ""}${
-          t.dueAt ? ` · dueAt:${t.dueAt}` : ""
-        }${t.tag ? ` · #${t.tag}` : ""}`,
+          t.deadline ? ` · 截止:${t.deadline}` : ''
+        }${t.expectAt ? ` · expectAt:${t.expectAt}` : ''}${
+          t.dueAt ? ` · dueAt:${t.dueAt}` : ''
+        }${t.tag ? ` · #${t.tag}` : ''}`,
     );
-  return `${head}\n\n当前清单：\n${lines.join("\n")}`;
+  return `${head}\n\n当前清单：\n${lines.join('\n')}`;
 }
 
 async function audioToBase64(audio: ArrayBuffer): Promise<string> {
   const bytes = new Uint8Array(audio);
-  let binary = "";
+  let binary = '';
   const chunk = 0x8000;
   for (let i = 0; i < bytes.length; i += chunk) {
     binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
@@ -171,8 +171,8 @@ async function audioToBase64(audio: ArrayBuffer): Promise<string> {
 function extractJson(text: string): string {
   const fenced = text.match(/```json\s*([\s\S]*?)```/);
   if (fenced) return fenced[1];
-  const first = text.indexOf("{");
-  const last = text.lastIndexOf("}");
+  const first = text.indexOf('{');
+  const last = text.lastIndexOf('}');
   if (first >= 0 && last > first) return text.slice(first, last + 1);
   return text;
 }
@@ -197,22 +197,19 @@ export async function parseVoiceIntent(opts: ParseOptions): Promise<Utterance> {
     model: CHAT_MODEL,
     contents: [
       {
-        role: "user",
-        parts: [
-          { text: userText },
-          { inlineData: { mimeType: opts.audioMimeType, data: base64 } },
-        ],
+        role: 'user',
+        parts: [{ text: userText }, { inlineData: { mimeType: opts.audioMimeType, data: base64 } }],
       },
     ],
     config: {
       systemInstruction: SYSTEM_PROMPT,
-      responseMimeType: "application/json",
+      responseMimeType: 'application/json',
       temperature: 0.2,
     },
   });
 
-  const raw = response.text ?? "";
-  if (!raw) throw new Error("Gemini returned empty content");
+  const raw = response.text ?? '';
+  if (!raw) throw new Error('Gemini returned empty content');
 
   const json = JSON.parse(extractJson(raw));
   return utteranceSchema.parse(json);

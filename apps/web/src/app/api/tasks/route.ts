@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import { requireAuthDb } from "@/lib/route";
-import { listTasksForUser } from "@/lib/tasks";
+import { requireAuthDb } from '@/lib/route';
+import { listTasksForUser } from '@/lib/tasks';
+import { NextResponse } from 'next/server';
 
 /**
  * 返回当前用户的全量未归档任务视图。
@@ -13,6 +13,6 @@ export async function GET() {
   const all = await listTasksForUser(ctx.db, ctx.session.user.id);
   // 只返回未完成的：done 的去 /completed 页看。linked 作为子任务保留，
   // applyIntent 期待 rerank 上下文里有 doing 父任务的 linked[]。
-  const tasks = all.filter((t) => t.status !== "done");
+  const tasks = all.filter((t) => t.status !== 'done');
   return NextResponse.json({ tasks });
 }

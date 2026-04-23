@@ -1,4 +1,4 @@
-import { TaskDetailView } from "@/components/memo/task-detail-view";
+import { TaskDetailView } from '@/components/memo/task-detail-view';
 
 export default async function TaskDetailPage({
   params,

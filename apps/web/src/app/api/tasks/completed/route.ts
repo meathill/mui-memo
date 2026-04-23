@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
-import { and, desc, eq, lt } from "drizzle-orm";
-import { tasks as tasksTable } from "@mui-memo/shared/schema";
-import { requireAuthDb } from "@/lib/route";
+import { requireAuthDb } from '@/lib/route';
+import { tasks as tasksTable } from '@mui-memo/shared/schema';
+import { and, desc, eq, lt } from 'drizzle-orm';
+import { NextResponse } from 'next/server';
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 200;
@@ -15,16 +15,13 @@ export async function GET(req: Request) {
   if (resp) return resp;
 
   const url = new URL(req.url);
-  const before = url.searchParams.get("before");
+  const before = url.searchParams.get('before');
   const limit = Math.min(
-    Number(url.searchParams.get("limit") ?? DEFAULT_LIMIT) || DEFAULT_LIMIT,
+    Number(url.searchParams.get('limit') ?? DEFAULT_LIMIT) || DEFAULT_LIMIT,
     MAX_LIMIT,
   );
 
-  const conds = [
-    eq(tasksTable.userId, ctx.session.user.id),
-    eq(tasksTable.status, "done"),
-  ];
+  const conds = [eq(tasksTable.userId, ctx.session.user.id), eq(tasksTable.status, 'done')];
   if (before) {
     const d = new Date(before);
     if (!Number.isNaN(d.getTime())) conds.push(lt(tasksTable.completedAt, d));
@@ -49,9 +46,7 @@ export async function GET(req: Request) {
     tag: r.tag,
     completedAt: r.completedAt ? r.completedAt.toISOString() : null,
   }));
-  const nextCursor = hasMore
-    ? (tasks[tasks.length - 1]?.completedAt ?? null)
-    : null;
+  const nextCursor = hasMore ? (tasks[tasks.length - 1]?.completedAt ?? null) : null;
 
   return NextResponse.json({ tasks, nextCursor, hasMore });
 }

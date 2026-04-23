@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
-import { requireAuthDb } from "@/lib/route";
-import { markBatchDone } from "@/lib/tasks";
-import { batchCompleteSchema } from "@mui-memo/shared/validators";
+import { requireAuthDb } from '@/lib/route';
+import { markBatchDone } from '@/lib/tasks';
+import { batchCompleteSchema } from '@mui-memo/shared/validators';
+import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   const [resp, ctx] = await requireAuthDb();
@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   const parsed = batchCompleteSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "invalid input", issues: parsed.error.issues },
+      { error: 'invalid input', issues: parsed.error.issues },
       { status: 400 },
     );
   }

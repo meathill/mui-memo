@@ -28,12 +28,6 @@
     }
   },
   "files": {
-    "ignore": [
-      "node_modules",
-      "dist",
-      ".next",
-      ".turbo",
-      "drizzle"
-    ]
+    "ignore": ["node_modules", "dist", ".next", ".turbo", "drizzle"]
   }
 }

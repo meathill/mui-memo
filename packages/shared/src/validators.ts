@@ -52,7 +52,7 @@ export const taskCoreSchema = z.object({
   expectAt: z
     .string()
     .refine((s) => !Number.isNaN(new Date(s).getTime()), {
-      message: "invalid ISO datetime",
+      message: 'invalid ISO datetime',
     })
     .optional(),
   /**
@@ -62,7 +62,7 @@ export const taskCoreSchema = z.object({
   dueAt: z
     .string()
     .refine((s) => !Number.isNaN(new Date(s).getTime()), {
-      message: "invalid ISO datetime",
+      message: 'invalid ISO datetime',
     })
     .optional(),
 });

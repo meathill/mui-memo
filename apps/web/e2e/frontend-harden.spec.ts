@@ -1,82 +1,82 @@
-import { buildUtterance, expect, test } from "./fixtures";
+import { buildUtterance, expect, test } from './fixtures';
 
-test.describe("Today · 内存筛选", () => {
+test.describe('Today · 内存筛选', () => {
   test.beforeEach(async ({ resetTasks }) => {
     await resetTasks();
   });
 
-  test("切换场景不触发新的 /api/tasks 请求", async ({ inject, page }) => {
+  test('切换场景不触发新的 /api/tasks 请求', async ({ inject, page }) => {
     await inject(
       buildUtterance({
-        raw: "ADD",
-        intent: "ADD",
-        aiVerb: "新增",
+        raw: 'ADD',
+        intent: 'ADD',
+        aiVerb: '新增',
         task: {
-          text: "给花浇水",
-          place: "home",
-          window: "today",
+          text: '给花浇水',
+          place: 'home',
+          window: 'today',
         },
       }),
     );
 
     // 首次进入 Today，拉一次 /api/tasks
     let tasksCalls = 0;
-    page.on("request", (req) => {
+    page.on('request', (req) => {
       const url = req.url();
-      if (url.endsWith("/api/tasks") || url.includes("/api/tasks?")) {
+      if (url.endsWith('/api/tasks') || url.includes('/api/tasks?')) {
         tasksCalls++;
       }
     });
 
-    await page.goto("/app");
-    await expect(page.getByText("给花浇水")).toBeVisible();
+    await page.goto('/app');
+    await expect(page.getByText('给花浇水')).toBeVisible();
 
     // 记录当前计数作为基线
     const baseline = tasksCalls;
 
     // 切场景三次
-    await page.getByRole("button", { name: /在公司/ }).click();
-    await page.getByRole("button", { name: /在外/ }).click();
-    await page.getByRole("button", { name: /在家/ }).click();
+    await page.getByRole('button', { name: /在公司/ }).click();
+    await page.getByRole('button', { name: /在外/ }).click();
+    await page.getByRole('button', { name: /在家/ }).click();
 
     // 给浏览器一点时间（如果真有多余请求会发出）
     await page.waitForTimeout(500);
     expect(tasksCalls).toBe(baseline);
   });
 
-  test("手动刷新按钮重新拉 /api/tasks", async ({ page }) => {
-    await page.goto("/app");
-    await page.waitForLoadState("networkidle");
+  test('手动刷新按钮重新拉 /api/tasks', async ({ page }) => {
+    await page.goto('/app');
+    await page.waitForLoadState('networkidle');
     let tasksCalls = 0;
-    page.on("request", (req) => {
-      if (req.url().endsWith("/api/tasks")) tasksCalls++;
+    page.on('request', (req) => {
+      if (req.url().endsWith('/api/tasks')) tasksCalls++;
     });
-    await page.getByTestId("manual-refresh").first().click();
+    await page.getByTestId('manual-refresh').first().click();
     await expect.poll(() => tasksCalls).toBeGreaterThanOrEqual(1);
   });
 });
 
-test.describe("Completed · 分页", () => {
+test.describe('Completed · 分页', () => {
   test.beforeEach(async ({ resetTasks }) => {
     await resetTasks();
   });
 
-  test("limit=2 + nextCursor 正确翻页", async ({ inject, page }) => {
+  test('limit=2 + nextCursor 正确翻页', async ({ inject, page }) => {
     // 先造 3 条 done 任务（时间戳递增）
     for (const n of [1, 2, 3]) {
       await inject(
         buildUtterance({
           raw: `ADD-${n}`,
-          intent: "ADD",
-          aiVerb: "新增",
-          task: { text: `任务 ${n}`, place: "any", window: "today" },
+          intent: 'ADD',
+          aiVerb: '新增',
+          task: { text: `任务 ${n}`, place: 'any', window: 'today' },
         }),
       );
     }
     // 登录后 cookie 就绪，直接打 API 把它们都 mark done；
     // tasks.completed_at 是 TIMESTAMP 秒精度，同一秒 mark 多条会让游标分页丢条目，
     // 用 1.1s 的间隔拉开让测试稳定（真实用户手点间隔更长）。
-    const listRes = await page.request.get("/api/tasks");
+    const listRes = await page.request.get('/api/tasks');
     const { tasks } = (await listRes.json()) as {
       tasks: Array<{ id: string }>;
     };
@@ -86,7 +86,7 @@ test.describe("Completed · 分页", () => {
     }
 
     // 第一页 limit=2 → 2 条 + hasMore=true + nextCursor 非空
-    const page1 = await page.request.get("/api/tasks/completed?limit=2");
+    const page1 = await page.request.get('/api/tasks/completed?limit=2');
     const p1 = (await page1.json()) as {
       tasks: Array<{ id: string }>;
       nextCursor: string | null;

@@ -1,12 +1,9 @@
-import { NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
-import { attachments as attachmentsTable } from "@mui-memo/shared/schema";
-import { requireAuthDb } from "@/lib/route";
+import { requireAuthDb } from '@/lib/route';
+import { attachments as attachmentsTable } from '@mui-memo/shared/schema';
+import { and, eq } from 'drizzle-orm';
+import { NextResponse } from 'next/server';
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const [resp, ctx] = await requireAuthDb();
   if (resp) return resp;
   const { id } = await params;
@@ -15,18 +12,14 @@ export async function DELETE(
   const [row] = await ctx.db
     .select({ key: attachmentsTable.key })
     .from(attachmentsTable)
-    .where(
-      and(eq(attachmentsTable.id, id), eq(attachmentsTable.userId, userId)),
-    )
+    .where(and(eq(attachmentsTable.id, id), eq(attachmentsTable.userId, userId)))
     .limit(1);
 
   if (!row) return NextResponse.json({ ok: true }); // 幂等
 
   await ctx.db
     .delete(attachmentsTable)
-    .where(
-      and(eq(attachmentsTable.id, id), eq(attachmentsTable.userId, userId)),
-    );
+    .where(and(eq(attachmentsTable.id, id), eq(attachmentsTable.userId, userId)));
 
   const bucket = ctx.env.AUDIO_BUCKET;
   if (bucket) {

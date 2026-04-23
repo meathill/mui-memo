@@ -1,10 +1,10 @@
-import type { NextConfig } from "next";
-import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
-import pkg from "./package.json" with { type: "json" };
+import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
+import type { NextConfig } from 'next';
+import pkg from './package.json' with { type: 'json' };
 
 // 让 `next dev` 能读到 wrangler.jsonc 顶层绑定 + `.dev.vars` 里的 secrets
 initOpenNextCloudflareForDev({
-  configPath: "./wrangler.jsonc",
+  configPath: './wrangler.jsonc',
 });
 
 const nextConfig: NextConfig = {

@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { cn } from "@/lib/utils";
-import { PLACE_LABEL } from "@mui-memo/shared/logic";
-import type { TaskPlace } from "@mui-memo/shared/validators";
+import { cn } from '@/lib/utils';
+import { PLACE_LABEL } from '@mui-memo/shared/logic';
+import type { TaskPlace } from '@mui-memo/shared/validators';
 
-const OPTIONS: TaskPlace[] = ["home", "work", "out"];
+const OPTIONS: TaskPlace[] = ['home', 'work', 'out'];
 
 interface Props {
   value: TaskPlace;
@@ -34,10 +34,8 @@ export function ContextStrip({ value, onChange, nowCount }: Props) {
               type="button"
               onClick={() => onChange(p)}
               className={cn(
-                "rounded-full px-3 py-1.5 transition-colors",
-                value === p
-                  ? "bg-ink text-paper"
-                  : "text-ink-soft hover:text-ink",
+                'rounded-full px-3 py-1.5 transition-colors',
+                value === p ? 'bg-ink text-paper' : 'text-ink-soft hover:text-ink',
               )}
             >
               {PLACE_LABEL[p].icon} {PLACE_LABEL[p].label}

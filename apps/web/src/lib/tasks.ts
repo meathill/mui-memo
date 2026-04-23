@@ -1,19 +1,14 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
-import type { IntentEffect, TaskView } from "@mui-memo/shared/logic";
+import type { IntentEffect, TaskView } from '@mui-memo/shared/logic';
 import {
-  tasks as tasksTable,
-  utterances as utterancesTable,
   type NewTaskRow,
   type NewUtteranceRow,
   type TaskRow,
-} from "@mui-memo/shared/schema";
-import type {
-  TaskPlace,
-  TaskStatus,
-  TaskWindow,
-  Utterance,
-} from "@mui-memo/shared/validators";
-import type { Database } from "./db";
+  tasks as tasksTable,
+  utterances as utterancesTable,
+} from '@mui-memo/shared/schema';
+import type { TaskPlace, TaskStatus, TaskWindow, Utterance } from '@mui-memo/shared/validators';
+import { and, desc, eq, inArray } from 'drizzle-orm';
+import type { Database } from './db';
 
 type NullableField<T> = T | null | undefined;
 
@@ -37,7 +32,7 @@ function rowToView(
     status: row.status as TaskStatus,
     linkedTo: row.linkedTo,
     linked: linkedChildren,
-    done: row.status === "done",
+    done: row.status === 'done',
     completedAt: row.completedAt ? row.completedAt.toISOString() : undefined,
     audioKey: row.audioKey,
   };
@@ -58,10 +53,7 @@ export async function linkAudioKey(
     .where(and(eq(tasksTable.id, taskId), eq(tasksTable.userId, userId)));
 }
 
-export async function listTasksForUser(
-  db: Database,
-  userId: string,
-): Promise<TaskView[]> {
+export async function listTasksForUser(db: Database, userId: string): Promise<TaskView[]> {
   const rows = await db
     .select({
       id: tasksTable.id,
@@ -92,7 +84,7 @@ export async function listTasksForUser(
 
   const linkedMap = new Map<string, Array<{ id: string; text: string }>>();
   for (const r of rows) {
-    if (r.status === "linked" && r.linkedTo) {
+    if (r.status === 'linked' && r.linkedTo) {
       const arr = linkedMap.get(r.linkedTo) ?? [];
       arr.push({ id: r.id, text: r.text });
       linkedMap.set(r.linkedTo, arr);
@@ -122,24 +114,18 @@ function viewPatchToRow(patch: ViewPatch): Partial<NewTaskRow> {
   const out: Partial<NewTaskRow> = {};
   if (patch.text !== undefined) out.text = patch.text;
   if (patch.rawText !== undefined) out.rawText = patch.rawText;
-  if (patch.place !== undefined && patch.place !== null)
-    out.place = patch.place;
-  if (patch.window !== undefined && patch.window !== null)
-    out.taskWindow = patch.window;
-  if (patch.energy !== undefined && patch.energy !== null)
-    out.energy = patch.energy;
-  if (patch.priority !== undefined && patch.priority !== null)
-    out.priority = patch.priority;
+  if (patch.place !== undefined && patch.place !== null) out.place = patch.place;
+  if (patch.window !== undefined && patch.window !== null) out.taskWindow = patch.window;
+  if (patch.energy !== undefined && patch.energy !== null) out.energy = patch.energy;
+  if (patch.priority !== undefined && patch.priority !== null) out.priority = patch.priority;
   if (patch.tag !== undefined) out.tag = patch.tag ?? null;
   if (patch.deadline !== undefined) out.deadline = patch.deadline ?? null;
   if (patch.expectAt !== undefined) out.expectAt = patch.expectAt ?? null;
   if (patch.dueAt !== undefined) out.dueAt = patch.dueAt ?? null;
   if (patch.aiReason !== undefined) out.aiReason = patch.aiReason ?? null;
-  if (patch.status !== undefined && patch.status !== null)
-    out.status = patch.status;
+  if (patch.status !== undefined && patch.status !== null) out.status = patch.status;
   if (patch.linkedTo !== undefined) out.linkedTo = patch.linkedTo ?? null;
-  if (patch.completedAt !== undefined)
-    out.completedAt = patch.completedAt ?? null;
+  if (patch.completedAt !== undefined) out.completedAt = patch.completedAt ?? null;
   out.updatedAt = new Date();
   return out;
 }
@@ -189,19 +175,16 @@ export async function persistIntentResult(
     if (b.energy !== a.energy) diff.energy = a.energy;
     if (b.priority !== a.priority) diff.priority = a.priority;
     if ((b.tag ?? null) !== (a.tag ?? null)) diff.tag = a.tag ?? null;
-    if ((b.deadline ?? null) !== (a.deadline ?? null))
-      diff.deadline = a.deadline ?? null;
+    if ((b.deadline ?? null) !== (a.deadline ?? null)) diff.deadline = a.deadline ?? null;
     if ((b.expectAt ?? null) !== (a.expectAt ?? null)) {
       diff.expectAt = a.expectAt ? new Date(a.expectAt) : null;
     }
     if ((b.dueAt ?? null) !== (a.dueAt ?? null)) {
       diff.dueAt = a.dueAt ? new Date(a.dueAt) : null;
     }
-    if ((b.aiReason ?? null) !== (a.aiReason ?? null))
-      diff.aiReason = a.aiReason ?? null;
+    if ((b.aiReason ?? null) !== (a.aiReason ?? null)) diff.aiReason = a.aiReason ?? null;
     if (b.status !== a.status) diff.status = a.status;
-    if ((b.linkedTo ?? null) !== (a.linkedTo ?? null))
-      diff.linkedTo = a.linkedTo ?? null;
+    if ((b.linkedTo ?? null) !== (a.linkedTo ?? null)) diff.linkedTo = a.linkedTo ?? null;
     if ((b.completedAt ?? null) !== (a.completedAt ?? null)) {
       diff.completedAt = a.completedAt ? new Date(a.completedAt) : null;
     }
@@ -231,8 +214,7 @@ export async function logUtterance(
   effect: IntentEffect,
   audioKey: string | null,
 ): Promise<void> {
-  const taskId =
-    effect.kind === "miss" ? null : ((effect as { id?: string }).id ?? null);
+  const taskId = effect.kind === 'miss' ? null : ((effect as { id?: string }).id ?? null);
   const row: NewUtteranceRow = {
     id: crypto.randomUUID(),
     userId,
@@ -240,10 +222,7 @@ export async function logUtterance(
     intent: utterance.intent,
     effectKind: effect.kind,
     verb: effect.verb ?? null,
-    reason:
-      effect.kind === "miss"
-        ? null
-        : ((effect as { reason?: string }).reason ?? null),
+    reason: effect.kind === 'miss' ? null : ((effect as { reason?: string }).reason ?? null),
     taskId,
     audioKey,
     dims: utterance.dims,
@@ -251,25 +230,17 @@ export async function logUtterance(
   await db.insert(utterancesTable).values(row);
 }
 
-export async function markTaskDone(
-  db: Database,
-  userId: string,
-  id: string,
-): Promise<void> {
+export async function markTaskDone(db: Database, userId: string, id: string): Promise<void> {
   await db
     .update(tasksTable)
-    .set({ status: "done", completedAt: new Date(), updatedAt: new Date() })
+    .set({ status: 'done', completedAt: new Date(), updatedAt: new Date() })
     .where(and(eq(tasksTable.id, id), eq(tasksTable.userId, userId)));
 }
 
-export async function markBatchDone(
-  db: Database,
-  userId: string,
-  ids: string[],
-): Promise<void> {
+export async function markBatchDone(db: Database, userId: string, ids: string[]): Promise<void> {
   if (!ids.length) return;
   await db
     .update(tasksTable)
-    .set({ status: "done", completedAt: new Date(), updatedAt: new Date() })
+    .set({ status: 'done', completedAt: new Date(), updatedAt: new Date() })
     .where(and(inArray(tasksTable.id, ids), eq(tasksTable.userId, userId)));
 }
