@@ -2,59 +2,88 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { TaskView } from "@mui-memo/shared/logic";
-import { TaskRow } from "./task-row";
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
+import { useAppStore } from "@/store";
+import { PullIndicator } from "./pull-indicator";
 import { SectionHeader } from "./section-header";
+import { TaskRow } from "./task-row";
 
 const UNTAGGED = "（未分类）";
 
 export function AllView() {
-  const [tasks, setTasks] = useState<TaskView[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { tasks, hydrate } = useAppStore();
+  const [loaded, setLoaded] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/tasks?place=any", { cache: "no-store" });
+    const res = await fetch("/api/tasks", { cache: "no-store" });
     if (!res.ok) return;
     const data = (await res.json()) as { tasks: TaskView[] };
-    setTasks(data.tasks.filter((t) => !t.done && t.status !== "linked"));
-    setLoading(false);
-  }, []);
+    hydrate({ tasks: data.tasks, ranked: [] });
+    setLoaded(true);
+  }, [hydrate]);
 
   useEffect(() => {
+    // 有 store 就直接渲染；同时后台静默刷新一次拿最新数据
+    if (tasks.length > 0) setLoaded(true);
     load();
-  }, [load]);
+  }, [load, tasks.length]);
+
+  const { pullOffset, refreshing, trigger } = usePullToRefresh(load);
 
   const handleDone = useCallback(
     async (id: string) => {
+      const current = useAppStore.getState().tasks;
+      hydrate({
+        tasks: current.map((t) =>
+          t.id === id
+            ? {
+                ...t,
+                status: "done",
+                done: true,
+                completedAt: new Date().toISOString(),
+              }
+            : t,
+        ),
+        ranked: [],
+      });
       await fetch(`/api/tasks/${id}/done`, { method: "POST" });
-      await load();
     },
-    [load],
+    [hydrate],
   );
 
+  const pending = useMemo(
+    () => tasks.filter((t) => !t.done && t.status !== "linked"),
+    [tasks],
+  );
   const grouped = useMemo(() => {
     const map = new Map<string, TaskView[]>();
-    for (const t of tasks) {
+    for (const t of pending) {
       const key = t.tag || UNTAGGED;
       const arr = map.get(key) ?? [];
       arr.push(t);
       map.set(key, arr);
     }
     return Array.from(map.entries()).sort((a, b) => b[1].length - a[1].length);
-  }, [tasks]);
+  }, [pending]);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-6 pb-24 sm:pt-10">
+    <main className="relative mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-6 pb-24 sm:pt-10">
+      <PullIndicator
+        pullOffset={pullOffset}
+        refreshing={refreshing}
+        onManualRefresh={() => trigger()}
+      />
       <header>
         <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">
           MuiMemo · 全部
         </p>
         <h1 className="font-serif text-2xl text-ink">清单全景</h1>
         <p className="mt-1 text-sm text-ink-soft">
-          共 {tasks.length} 件待办，按标签分组
+          共 {pending.length} 件待办，按标签分组
         </p>
       </header>
 
-      {loading ? (
+      {!loaded ? (
         <p className="mt-12 text-center text-sm text-ink-mute">加载中…</p>
       ) : grouped.length === 0 ? (
         <div className="mt-12 rounded-2xl border border-dashed border-rule/60 px-6 py-10 text-center">

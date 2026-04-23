@@ -27,16 +27,22 @@ test.describe("任务完成链路", () => {
     const row = page.getByText("寄快递给妈妈").first();
     await expect(row).toBeVisible();
 
-    // 点击任务行左边的圆形勾
+    // 点击任务行左边的圆形勾，同时等服务端 done POST 回来
+    const donePromise = page.waitForResponse(
+      (r) =>
+        /\/api\/tasks\/[^/]+\/done$/.test(r.url()) &&
+        r.request().method() === "POST",
+    );
     await page.getByRole("button", { name: "标记为完成" }).first().click();
+    await donePromise;
 
-    // 等接口 round-trip，fetchTasks 重新拉
+    // 乐观更新：Today 里那条任务立刻消失
     await expect(page.getByText("寄快递给妈妈")).toHaveCount(0, {
       timeout: 10_000,
     });
 
     await page.goto("/completed");
-    await expect(page.getByText("累计 1 件")).toBeVisible();
+    await expect(page.getByText(/已加载 1 件/)).toBeVisible();
     await expect(page.getByText("寄快递给妈妈")).toBeVisible();
     // "今天" 分组头：限定在 h2（避免与 BottomNav 的 Today 标签冲突）
     await expect(page.locator("h2", { hasText: "今天" })).toBeVisible();

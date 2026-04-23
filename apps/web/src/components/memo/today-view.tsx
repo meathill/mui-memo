@@ -2,17 +2,20 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
-import { useAppStore } from "@/store";
 import {
   BUCKET_LABEL,
   type Bucket,
+  rerank,
   type TaskView,
 } from "@mui-memo/shared/logic";
 import type { TaskPlace } from "@mui-memo/shared/validators";
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
+import { useAppStore } from "@/store";
 import { ContextStrip } from "./context-strip";
 import { DoingCard } from "./doing-card";
 import { EffectToast } from "./effect-toast";
 import { MicButton } from "./mic-button";
+import { PullIndicator } from "./pull-indicator";
 import { SectionHeader } from "./section-header";
 import { TaskRow } from "./task-row";
 
@@ -41,7 +44,6 @@ export function TodayView({ userName }: Props) {
   const {
     place,
     setPlace,
-    ranked,
     tasks,
     hydrate,
     setProcessing,
@@ -51,27 +53,38 @@ export function TodayView({ userName }: Props) {
     setLastEffect,
   } = useAppStore();
 
-  const fetchTasks = useCallback(
-    async (p: TaskPlace) => {
-      const res = await fetch(`/api/tasks?place=${p}`, { cache: "no-store" });
-      if (!res.ok) return;
-      const data = (await res.json()) as {
-        tasks: TaskView[];
-        ranked: (TaskView & { bucket: Bucket })[];
-      };
-      hydrate({ tasks: data.tasks, ranked: data.ranked, place: p });
-    },
-    [hydrate],
-  );
+  // 单次拉取：只拉全量 tasks，不带 place；筛选和 rerank 都在前端。
+  const fetchAll = useCallback(async () => {
+    const res = await fetch(`/api/tasks`, { cache: "no-store" });
+    if (!res.ok) return;
+    const data = (await res.json()) as { tasks: TaskView[] };
+    hydrate({ tasks: data.tasks, ranked: [] });
+  }, [hydrate]);
 
   useEffect(() => {
-    fetchTasks(place);
-  }, [fetchTasks, place]);
+    fetchAll();
+  }, [fetchAll]);
+
+  const { pullOffset, refreshing, trigger } = usePullToRefresh(fetchAll);
+
+  const ranked = useMemo(() => rerank(tasks, place), [tasks, place]);
+  const doing = useMemo(() => tasks.find((t) => t.status === "doing"), [tasks]);
+  const grouped = useMemo(() => {
+    const buckets = new Map<Bucket, TaskView[]>();
+    for (const t of ranked) {
+      if (t.bucket === "doing") continue;
+      const arr = buckets.get(t.bucket) ?? [];
+      arr.push(t);
+      buckets.set(t.bucket, arr);
+    }
+    return buckets;
+  }, [ranked]);
+  const nowCount =
+    (grouped.get("now")?.length ?? 0) +
+    (grouped.get("today_here")?.length ?? 0);
 
   const handlePlaceChange = useCallback(
-    (p: TaskPlace) => {
-      setPlace(p);
-    },
+    (p: TaskPlace) => setPlace(p),
     [setPlace],
   );
 
@@ -97,9 +110,8 @@ export function TodayView({ userName }: Props) {
           utterance: typeof lastUtterance;
           effect: typeof lastEffect;
           tasks: TaskView[];
-          ranked: (TaskView & { bucket: Bucket })[];
         };
-        hydrate({ tasks: data.tasks, ranked: data.ranked });
+        hydrate({ tasks: data.tasks, ranked: [] });
         setLastEffect(data.effect, data.utterance);
       } finally {
         setProcessing(false);
@@ -110,31 +122,34 @@ export function TodayView({ userName }: Props) {
 
   const handleDone = useCallback(
     async (id: string) => {
+      // 乐观更新：本地先打 done，省一次回拉
+      const current = useAppStore.getState().tasks;
+      hydrate({
+        tasks: current.map((t) =>
+          t.id === id
+            ? {
+                ...t,
+                status: "done",
+                done: true,
+                completedAt: new Date().toISOString(),
+              }
+            : t,
+        ),
+        ranked: [],
+      });
       await fetch(`/api/tasks/${id}/done`, { method: "POST" });
-      await fetchTasks(place);
     },
-    [fetchTasks, place],
+    [hydrate],
   );
 
-  const doing = useMemo(() => tasks.find((t) => t.status === "doing"), [tasks]);
-  const grouped = useMemo(() => {
-    const buckets = new Map<Bucket, TaskView[]>();
-    for (const t of ranked) {
-      if (t.bucket === "doing") continue;
-      const arr = buckets.get(t.bucket) ?? [];
-      arr.push(t);
-      buckets.set(t.bucket, arr);
-    }
-    return buckets;
-  }, [ranked]);
-
-  const nowCount =
-    (grouped.get("now")?.length ?? 0) +
-    (grouped.get("today_here")?.length ?? 0);
-
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-6 pb-48 sm:pt-10">
+    <main className="relative mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-6 pb-48 sm:pt-10">
       <EffectToast effect={lastEffect} utterance={lastUtterance} />
+      <PullIndicator
+        pullOffset={pullOffset}
+        refreshing={refreshing}
+        onManualRefresh={() => trigger()}
+      />
 
       <header>
         <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">

@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { CheckIcon } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
+import { PullIndicator } from "./pull-indicator";
 import { SectionHeader } from "./section-header";
 
 interface CompletedTask {
@@ -40,16 +43,67 @@ function formatTime(iso: string | null): string {
 
 export function CompletedView() {
   const [tasks, setTasks] = useState<CompletedTask[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const fetchPage = useCallback(async (before?: string | null) => {
+    const url = before
+      ? `/api/tasks/completed?before=${encodeURIComponent(before)}`
+      : "/api/tasks/completed";
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+    return (await res.json()) as {
+      tasks: CompletedTask[];
+      nextCursor: string | null;
+      hasMore: boolean;
+    };
+  }, []);
+
+  const refresh = useCallback(async () => {
+    const data = await fetchPage();
+    if (!data) return;
+    setTasks(data.tasks);
+    setNextCursor(data.nextCursor);
+    setHasMore(data.hasMore);
+    setLoaded(true);
+  }, [fetchPage]);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore || !nextCursor) return;
+    setLoadingMore(true);
+    try {
+      const data = await fetchPage(nextCursor);
+      if (!data) return;
+      setTasks((prev) => [...prev, ...data.tasks]);
+      setNextCursor(data.nextCursor);
+      setHasMore(data.hasMore);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [fetchPage, loadingMore, hasMore, nextCursor]);
 
   useEffect(() => {
-    fetch("/api/tasks/completed", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : { tasks: [] }))
-      .then((data: { tasks: CompletedTask[] }) => {
-        setTasks(data.tasks);
-        setLoading(false);
-      });
-  }, []);
+    refresh();
+  }, [refresh]);
+
+  // 上拉到底部自动加载
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) loadMore();
+      },
+      { rootMargin: "120px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [loadMore]);
+
+  const { pullOffset, refreshing, trigger } = usePullToRefresh(refresh);
 
   const grouped = useMemo(() => {
     const map = new Map<string, CompletedTask[]>();
@@ -63,16 +117,23 @@ export function CompletedView() {
   }, [tasks]);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-6 pb-24 sm:pt-10">
+    <main className="relative mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-6 pb-24 sm:pt-10">
+      <PullIndicator
+        pullOffset={pullOffset}
+        refreshing={refreshing}
+        onManualRefresh={() => trigger()}
+      />
       <header>
         <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">
           MuiMemo · 已完成
         </p>
         <h1 className="font-serif text-2xl text-ink">你搞定的那些事</h1>
-        <p className="mt-1 text-sm text-ink-soft">累计 {tasks.length} 件</p>
+        <p className="mt-1 text-sm text-ink-soft">
+          已加载 {tasks.length} 件{hasMore ? "（还可下拉/滚到底部看更多）" : ""}
+        </p>
       </header>
 
-      {loading ? (
+      {!loaded ? (
         <p className="mt-12 text-center text-sm text-ink-mute">加载中…</p>
       ) : tasks.length === 0 ? (
         <div className="mt-12 rounded-2xl border border-dashed border-rule/60 px-6 py-10 text-center">
@@ -111,6 +172,27 @@ export function CompletedView() {
               </ul>
             </div>
           ))}
+          <div
+            ref={sentinelRef}
+            data-testid="load-more-sentinel"
+            className="h-4"
+          />
+          {hasMore ? (
+            <div className="mt-4 text-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={loadMore}
+                loading={loadingMore}
+              >
+                加载更多
+              </Button>
+            </div>
+          ) : tasks.length > 0 ? (
+            <p className="mt-6 text-center font-mono text-[10px] text-ink-mute">
+              · 到底了 ·
+            </p>
+          ) : null}
         </section>
       )}
     </main>
