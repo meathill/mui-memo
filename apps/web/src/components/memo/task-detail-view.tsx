@@ -15,6 +15,7 @@ import {
   relativeTimeLabel,
 } from "@/lib/time";
 import { cn } from "@/lib/utils";
+import { ConfirmDialog } from "./confirm-dialog";
 import { PLACE_LABEL } from "@mui-memo/shared/logic";
 import type {
   TaskPlace,
@@ -91,7 +92,17 @@ export function TaskDetailView({ id }: { id: string }) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  async function handleDeleteTask() {
+    const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      setError("删除失败");
+      return;
+    }
+    router.push("/");
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -225,7 +236,26 @@ export function TaskDetailView({ id }: { id: string }) {
         {saving ? (
           <span className="font-mono text-[10px] text-ink-mute">保存中…</span>
         ) : null}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setDeleteOpen(true)}
+          aria-label="删除任务"
+          data-testid="task-delete-btn"
+        >
+          <TrashIcon />
+        </Button>
       </header>
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="删除任务？"
+        description="将同时删除它的附件与原始语音。此操作不可撤销。"
+        confirmText="删除"
+        destructive
+        onConfirm={handleDeleteTask}
+      />
 
       <section className="mt-6 space-y-5">
         <Field label="内容">

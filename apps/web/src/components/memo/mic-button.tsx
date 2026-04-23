@@ -12,7 +12,7 @@ interface Props {
 type Phase = "idle" | "recording" | "processing";
 
 /** 最短录音时长：太短的录音 Gemini 没足够信号，AI 容易胡猜。 */
-const MIN_DURATION_MS = 5000;
+const MIN_DURATION_MS = 3000;
 
 /**
  * 长按录音。支持触摸长按、鼠标长按、Space 键长按。

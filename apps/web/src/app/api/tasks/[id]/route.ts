@@ -4,6 +4,7 @@ import { and, asc, eq } from "drizzle-orm";
 import {
   attachments as attachmentsTable,
   tasks as tasksTable,
+  utterances as utterancesTable,
 } from "@mui-memo/shared/schema";
 import type {
   TaskPlace,
@@ -127,6 +128,74 @@ export async function PATCH(
     .update(tasksTable)
     .set(update)
     .where(and(eq(tasksTable.id, id), eq(tasksTable.userId, session.user.id)));
+
+  return NextResponse.json({ ok: true });
+}
+
+/**
+ * 删除任务：级联删附件（DB + R2）、置空 utterance.task_id、删任务本体与语音音频。
+ * 幂等：找不到也返回 ok。
+ */
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await getServerSession();
+  if (!session)
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+  const { env } = await getCloudflareContext({ async: true });
+  const db = createDb(env.TIDB_DATABASE_URL);
+
+  const [task] = await db
+    .select({ id: tasksTable.id, audioKey: tasksTable.audioKey })
+    .from(tasksTable)
+    .where(and(eq(tasksTable.id, id), eq(tasksTable.userId, session.user.id)))
+    .limit(1);
+
+  if (!task) return NextResponse.json({ ok: true });
+
+  const atts = await db
+    .select({ id: attachmentsTable.id, key: attachmentsTable.key })
+    .from(attachmentsTable)
+    .where(
+      and(
+        eq(attachmentsTable.taskId, id),
+        eq(attachmentsTable.userId, session.user.id),
+      ),
+    );
+
+  await db
+    .delete(attachmentsTable)
+    .where(
+      and(
+        eq(attachmentsTable.taskId, id),
+        eq(attachmentsTable.userId, session.user.id),
+      ),
+    );
+
+  // utterance 记录保留（用户的语音历史），只把 task_id 置空避免悬挂指针
+  await db
+    .update(utterancesTable)
+    .set({ taskId: null })
+    .where(
+      and(
+        eq(utterancesTable.taskId, id),
+        eq(utterancesTable.userId, session.user.id),
+      ),
+    );
+
+  await db
+    .delete(tasksTable)
+    .where(and(eq(tasksTable.id, id), eq(tasksTable.userId, session.user.id)));
+
+  const bucket = env.AUDIO_BUCKET;
+  if (bucket) {
+    const keys = atts.map((a) => a.key);
+    if (task.audioKey) keys.push(task.audioKey);
+    await Promise.allSettled(keys.map((k) => bucket.delete(k)));
+  }
 
   return NextResponse.json({ ok: true });
 }

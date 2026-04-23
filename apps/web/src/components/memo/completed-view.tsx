@@ -1,9 +1,10 @@
 "use client";
 
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, TrashIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
+import { ConfirmDialog } from "./confirm-dialog";
 import { PullIndicator } from "./pull-indicator";
 import { SectionHeader } from "./section-header";
 
@@ -47,7 +48,16 @@ export function CompletedView() {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<CompletedTask | null>(
+    null,
+  );
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const handleDelete = useCallback(async (taskId: string) => {
+    const res = await fetch(`/api/tasks/${taskId}`, { method: "DELETE" });
+    if (!res.ok) return;
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+  }, []);
 
   const fetchPage = useCallback(async (before?: string | null) => {
     const url = before
@@ -167,6 +177,15 @@ export function CompletedView() {
                         ) : null}
                       </div>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setPendingDelete(t)}
+                      aria-label="删除任务"
+                      data-testid="completed-delete-btn"
+                    >
+                      <TrashIcon />
+                    </Button>
                   </li>
                 ))}
               </ul>
@@ -195,6 +214,21 @@ export function CompletedView() {
           ) : null}
         </section>
       )}
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        onOpenChange={(v) => !v && setPendingDelete(null)}
+        title="删除这条完成记录？"
+        description={
+          pendingDelete
+            ? `「${pendingDelete.text}」将被彻底删除，附件与原始语音也一并清除。`
+            : undefined
+        }
+        confirmText="删除"
+        destructive
+        onConfirm={async () => {
+          if (pendingDelete) await handleDelete(pendingDelete.id);
+        }}
+      />
     </main>
   );
 }

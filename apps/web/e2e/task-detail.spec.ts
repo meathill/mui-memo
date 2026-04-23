@@ -307,6 +307,59 @@ test.describe("任务详情 · 拖拽上传", () => {
   });
 });
 
+test.describe("任务详情 · 删除", () => {
+  test.beforeEach(async ({ resetTasks }) => {
+    await resetTasks();
+  });
+
+  test("详情页右上角删除 → 确认 → 跳首页 + DB 清掉", async ({
+    inject,
+    page,
+  }) => {
+    const id = await addTaskAndGetId(inject, "要删掉的任务");
+
+    await page.goto(`/tasks/${id}`);
+    await page.getByTestId("task-delete-btn").click();
+
+    // Dialog 出现，确认删除
+    await expect(page.getByText("删除任务？")).toBeVisible();
+    const deletePromise = page.waitForResponse(
+      (r) =>
+        r.url().includes(`/api/tasks/${id}`) &&
+        r.request().method() === "DELETE",
+    );
+    await page.getByRole("button", { name: "删除", exact: true }).click();
+    await deletePromise;
+
+    await expect(page).toHaveURL(/\/$/);
+
+    // DB 端 404
+    const res = await page.request.get(`/api/tasks/${id}`);
+    expect(res.status()).toBe(404);
+  });
+
+  test("「已完成」页每条可删除，删完不再展示", async ({ inject, page }) => {
+    const id = await addTaskAndGetId(inject, "完成后要删除");
+    // 标记完成
+    await page.request.post(`/api/tasks/${id}/done`);
+
+    await page.goto("/completed");
+    await expect(page.getByText("完成后要删除")).toBeVisible();
+
+    await page.getByTestId("completed-delete-btn").first().click();
+    await expect(page.getByText("删除这条完成记录？")).toBeVisible();
+    const deletePromise = page.waitForResponse(
+      (r) =>
+        r.url().includes(`/api/tasks/${id}`) &&
+        r.request().method() === "DELETE",
+    );
+    await page.getByRole("button", { name: "删除", exact: true }).click();
+    await deletePromise;
+
+    await expect(page.getByText("完成后要删除")).toHaveCount(0);
+  });
+});
+
 test.describe("任务详情 · 导航", () => {
   test.beforeEach(async ({ resetTasks }) => {
     await resetTasks();
