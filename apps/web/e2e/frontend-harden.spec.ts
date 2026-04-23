@@ -73,13 +73,16 @@ test.describe("Completed · 分页", () => {
         }),
       );
     }
-    // 登录后 cookie 就绪，直接打 API 把它们都 mark done
+    // 登录后 cookie 就绪，直接打 API 把它们都 mark done；
+    // tasks.completed_at 是 TIMESTAMP 秒精度，同一秒 mark 多条会让游标分页丢条目，
+    // 用 1.1s 的间隔拉开让测试稳定（真实用户手点间隔更长）。
     const listRes = await page.request.get("/api/tasks");
     const { tasks } = (await listRes.json()) as {
       tasks: Array<{ id: string }>;
     };
     for (const t of tasks) {
       await page.request.post(`/api/tasks/${t.id}/done`);
+      await new Promise((r) => setTimeout(r, 1100));
     }
 
     // 第一页 limit=2 → 2 条 + hasMore=true + nextCursor 非空

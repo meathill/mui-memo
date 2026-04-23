@@ -170,3 +170,36 @@ export const attachments = mysqlTable('attachments', {
 
 export type AttachmentRow = typeof attachments.$inferSelect;
 export type NewAttachmentRow = typeof attachments.$inferInsert;
+
+// ──────────────────────────────────────────────
+// 输入记录（每一次 /api/intent 的原始语音 → AI 结果）
+// ──────────────────────────────────────────────
+
+/**
+ * 每条 utterance 是一次用户语音事件（ADD / STATUS / DONE / MODIFY / LINK）。
+ * 存下来让用户能在「我的 · 输入记录」里翻看自己说过什么、AI 是怎么理解的。
+ */
+export const utterances = mysqlTable('utterances', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  userId: varchar('user_id', { length: 36 }).notNull(),
+  /** AI 转写出的原话 */
+  rawText: text('raw_text').notNull(),
+  /** ADD / STATUS / DONE / MODIFY / LINK */
+  intent: varchar('intent', { length: 16 }).notNull(),
+  /** effect.kind：add / status / done / done-backfill / modify / link / miss */
+  effectKind: varchar('effect_kind', { length: 24 }).notNull(),
+  /** effect.verb 直接用作展示主文案 */
+  verb: varchar('verb', { length: 32 }),
+  /** effect.reason 保存为展示副文案 */
+  reason: text('reason'),
+  /** 如果命中 / 产生了某个 task，记它的 id（可能是新建、可能是已存在） */
+  taskId: varchar('task_id', { length: 36 }),
+  /** R2 里原始语音的 key，没存音频就为 null */
+  audioKey: varchar('audio_key', { length: 512 }),
+  /** AI 给出的 dims[]，用 JSON 保留便于未来加调试面板 */
+  dims: json('dims'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type UtteranceRow = typeof utterances.$inferSelect;
+export type NewUtteranceRow = typeof utterances.$inferInsert;

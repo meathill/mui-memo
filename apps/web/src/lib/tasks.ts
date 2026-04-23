@@ -1,9 +1,13 @@
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import {
   tasks as tasksTable,
+  utterances as utterancesTable,
   type NewTaskRow,
+  type NewUtteranceRow,
   type TaskRow,
 } from "@mui-memo/shared/schema";
+import type { IntentEffect } from "@mui-memo/shared/logic";
+import type { Utterance } from "@mui-memo/shared/validators";
 import type { Embedder } from "./embedding";
 import type { TaskView } from "@mui-memo/shared/logic";
 import type {
@@ -244,6 +248,38 @@ export async function backfillEmbeddings(
       // swallow
     }
   }
+}
+
+/**
+ * 写一条 utterance 记录，供「我的 · 输入记录」页回看。
+ * effect 里能拿到的 task id / verb / reason 都摊平进去；
+ * dims 直接塞 JSON 保全调试信息。
+ */
+export async function logUtterance(
+  db: Database,
+  userId: string,
+  utterance: Utterance,
+  effect: IntentEffect,
+  audioKey: string | null,
+): Promise<void> {
+  const taskId =
+    effect.kind === "miss" ? null : ((effect as { id?: string }).id ?? null);
+  const row: NewUtteranceRow = {
+    id: crypto.randomUUID(),
+    userId,
+    rawText: utterance.raw,
+    intent: utterance.intent,
+    effectKind: effect.kind,
+    verb: effect.verb ?? null,
+    reason:
+      effect.kind === "miss"
+        ? null
+        : ((effect as { reason?: string }).reason ?? null),
+    taskId,
+    audioKey,
+    dims: utterance.dims,
+  };
+  await db.insert(utterancesTable).values(row);
 }
 
 export async function markTaskDone(

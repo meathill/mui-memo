@@ -7,6 +7,7 @@ import {
   sessions,
   tasks as tasksTable,
   users,
+  utterances as utterancesTable,
 } from "@mui-memo/shared/schema";
 import { createDb } from "@/lib/db";
 import { ensureE2EEnabled } from "@/lib/e2e-guard";
@@ -58,6 +59,10 @@ export async function POST(req: Request) {
   await db
     .delete(attachmentsTable)
     .where(inArray(attachmentsTable.userId, userIds));
+
+  await db
+    .delete(utterancesTable)
+    .where(inArray(utterancesTable.userId, userIds));
 
   await db.delete(tasksTable).where(inArray(tasksTable.userId, userIds));
 

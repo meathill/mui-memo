@@ -50,6 +50,13 @@
       "when": 1776907253086,
       "tag": "0006_brainy_wrecker",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1776908882203,
+      "tag": "0007_minor_wild_child",
+      "breakpoints": true
     }
   ]
 }

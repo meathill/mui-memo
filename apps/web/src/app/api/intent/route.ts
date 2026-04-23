@@ -6,6 +6,7 @@ import {
   backfillEmbeddings,
   linkAudioKey,
   listTasksForUser,
+  logUtterance,
   persistIntentResult,
 } from "@/lib/tasks";
 import { createGenAI, parseVoiceIntent } from "@/lib/gemini";
@@ -100,9 +101,11 @@ export async function POST(req: Request) {
   const bucket = env.AUDIO_BUCKET;
   const shouldLinkAudio =
     (effect.kind === "add" || effect.kind === "done-backfill") && effect.id;
+  let audioKeyForLog: string | null = null;
   if (bucket && ctx) {
     const ext = mimeType.includes("webm") ? "webm" : "bin";
     const audioKey = `${R2_PREFIX}/audio/${session.user.id}/${Date.now()}.${ext}`;
+    audioKeyForLog = audioKey;
     ctx.waitUntil(
       bucket
         .put(audioKey, audioBuffer, { httpMetadata: { contentType: mimeType } })
@@ -115,6 +118,19 @@ export async function POST(req: Request) {
         ),
       );
     }
+  }
+
+  // 写输入记录（所有意图都记，包括 miss 以便回看「没识别到」的那些）
+  if (ctx) {
+    ctx.waitUntil(
+      logUtterance(
+        db,
+        session.user.id,
+        utterance,
+        effect,
+        audioKeyForLog,
+      ).catch(() => undefined),
+    );
   }
 
   // 机会性回填历史任务的 embedding

@@ -5,7 +5,11 @@ import { taskPlaceEnum, utteranceSchema } from "@mui-memo/shared/validators";
 import { createDb } from "@/lib/db";
 import { getServerSession } from "@/lib/auth";
 import { ensureE2EEnabled } from "@/lib/e2e-guard";
-import { listTasksForUser, persistIntentResult } from "@/lib/tasks";
+import {
+  listTasksForUser,
+  logUtterance,
+  persistIntentResult,
+} from "@/lib/tasks";
 import { resolveTargetTask } from "@/lib/search";
 import { createEmbedder } from "@/lib/embedding";
 import { createGenAI } from "@/lib/gemini";
@@ -89,6 +93,11 @@ export async function POST(req: Request) {
       { status: 500 },
     );
   }
+
+  // 写输入记录，测试里能同步查到
+  await logUtterance(db, session.user.id, utterance, effect, null).catch(
+    () => undefined,
+  );
 
   const ranked = rerank(tasksAfter, ctxPlace);
   return NextResponse.json({ utterance, effect, tasks: tasksAfter, ranked });
