@@ -1,0 +1,61 @@
+<svg
+  width="1040"
+  height="280"
+  viewBox="0 0 1040 280"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <title>MuiMemo Logo</title>
+  <rect
+    x="20"
+    y="20"
+    width="176"
+    height="176"
+    rx="44"
+    fill="#F4EDE0"
+    stroke="#D8CCB7"
+    stroke-width="3"
+  />
+  <path d="M148 20H196V68L148 20Z" fill="#C7793E" />
+  <path
+    d="M148 20L172 44C176.571 48.5712 182.286 50.856 188.286 50.856H196"
+    stroke="#A15C2B"
+    stroke-width="3"
+    stroke-linecap="round"
+  />
+  <path
+    d="M58 160V56H77L108 101L139 56H158V160H139V93L108 138L77 93V160H58Z"
+    fill="#1D1A12"
+  />
+  <text
+    x="236"
+    y="112"
+    fill="#1D1A12"
+    font-family="'Noto Serif SC', serif"
+    font-size="88"
+    font-weight="600"
+    letter-spacing="-2"
+  >
+    MuiMemo
+  </text>
+  <text
+    x="240"
+    y="162"
+    fill="#6B6152"
+    font-family="Inter, sans-serif"
+    font-size="28"
+    letter-spacing="0.16em"
+  >
+    口述备忘
+  </text>
+  <text
+    x="240"
+    y="208"
+    fill="#A15C2B"
+    font-family="'JetBrains Mono', monospace"
+    font-size="20"
+    letter-spacing="0.2em"
+  >
+    PAPER · DELIBERATE · CALM
+  </text>
+</svg>

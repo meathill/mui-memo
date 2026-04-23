@@ -1,8 +1,22 @@
 # WIP · MuiMemo
 
-> 当前无活跃迭代。最近一次发布：**0.8.0**（2026-04）。
+> 当前活跃迭代：**landing 中度重构 + 场景插画**（2026-04-23）。
 
 线上稳定运行中。长期待办见 [TODO.md](./TODO.md)，架构与决策备忘见 [DEV_NOTE.md](./DEV_NOTE.md)。
+
+## 当前任务
+
+### 品牌 Logo + 平台 Icon
+
+- 设计一套符合 `paper / deliberate / calm` 基线的 MuiMemo logo
+- 提供可复用的矢量母版（logo mark / lockup）
+- 生成 favicon、Apple touch icon、PWA / Android icon
+- 补齐 manifest 里的 `icons` 声明
+- 尽量让桌面浏览器、iOS 主屏、Android 安装图标都能直接吃到
+- 已完成：
+  - [x] 以现有 `logo-mark / lockup / safari-pinned-tab` 为基础，补 `app-icon` 母版
+  - [x] 用脚本批量导出 `apple-icon`、`192/512` 标准图标、`192/512 maskable`
+  - [x] 将 landing 顶部品牌露出替换为 logo，避免只剩纯文本字标
 
 ## 已完成的里程碑
 

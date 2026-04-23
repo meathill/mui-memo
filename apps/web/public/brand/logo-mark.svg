@@ -1,0 +1,30 @@
+<svg
+  width="512"
+  height="512"
+  viewBox="0 0 128 128"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <title>MuiMemo Logo Mark</title>
+  <rect
+    x="12"
+    y="12"
+    width="104"
+    height="104"
+    rx="28"
+    fill="#F4EDE0"
+    stroke="#D8CCB7"
+    stroke-width="2"
+  />
+  <path d="M88 12H116V40L88 12Z" fill="#C7793E" />
+  <path
+    d="M88 12L102 26C104.667 28.6667 108 30 111.5 30H116"
+    stroke="#A15C2B"
+    stroke-width="2"
+    stroke-linecap="round"
+  />
+  <path
+    d="M35 92V36H46L64 62L82 36H93V92H82V53L64 79L46 53V92H35Z"
+    fill="#1D1A12"
+  />
+</svg>

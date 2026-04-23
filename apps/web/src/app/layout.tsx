@@ -29,6 +29,15 @@ export const metadata: Metadata = {
   description: "意图驱动的 AI 语音轻量任务调度",
   applicationName: "MuiMemo",
   manifest: "/manifest.webmanifest",
+  icons: {
+    other: [
+      {
+        rel: "mask-icon",
+        url: "/brand/safari-pinned-tab.svg",
+        color: "#1d1a12",
+      },
+    ],
+  },
   appleWebApp: {
     capable: true,
     title: "MuiMemo",

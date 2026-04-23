@@ -1,46 +1,67 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from 'react';
 
 type Frame = {
+  step: string;
   stage: string;
   quote: string;
   label: string;
+  summary: string;
   lines: Array<{ k: string; v: string }>;
 };
 
 const FRAMES: Frame[] = [
   {
-    stage: "帧 01 · 录入",
-    quote: "下午三点前给老张转五百。",
-    label: "一句话建立任务",
+    step: '01',
+    stage: '记下',
+    quote: '明天下午给老张转五百。',
+    label: '一句话先收成待办',
+    summary: 'AI 先判断你要做什么，再补进清单。',
     lines: [
-      { k: "意图", v: "新增任务" },
-      { k: "标签", v: "财务" },
-      { k: "截止", v: "今日 15:00" },
-      { k: "优先级", v: "高" },
+      { k: '动作', v: '新增任务' },
+      { k: '内容', v: '给老张转 500' },
+      { k: '时间', v: '明日 15:00 前' },
+      { k: '紧急', v: '较高' },
     ],
   },
   {
-    stage: "帧 02 · 归堆",
-    quote: "我要登网银打款了。",
-    label: "声明状态，自动挑相关的",
+    step: '02',
+    stage: '切场景',
+    quote: '我到公司了，开始处理账。',
+    label: '换到此刻能做的那一堆',
+    summary: '不是全盘重排，而是让相关事项先浮出来。',
     lines: [
-      { k: "状态", v: "网银 / 转账" },
-      { k: "归堆", v: "给老张转 500" },
-      { k: "归堆", v: "退 3 号桌押金" },
-      { k: "其余", v: "先按下不表" },
+      { k: '状态', v: '网银 / 转账' },
+      { k: '浮出', v: '给老张转 500' },
+      { k: '浮出', v: '退 3 号桌押金' },
+      { k: '其余', v: '先安静待着' },
     ],
   },
   {
-    stage: "帧 03 · 完成",
-    quote: "老张的钱打过了。",
-    label: "说一声就勾掉，不用找",
+    step: '03',
+    stage: '正在做',
+    quote: '我现在去网银转账。',
+    label: '先把当前这一件顶到前面',
+    summary: '进入单线程模式，顺手项也能被带出来。',
     lines: [
-      { k: "意图", v: "补登完成" },
-      { k: "命中", v: "「给老张转 500」" },
-      { k: "状态", v: "已勾 ✓" },
-      { k: "耗时", v: "3 秒" },
+      { k: '正在做', v: '招行转账确认' },
+      { k: '顺手', v: '物业费' },
+      { k: '其它', v: '暂时收起' },
+      { k: '目的', v: '别被别的事打断' },
+    ],
+  },
+  {
+    step: '04',
+    stage: '完成',
+    quote: '老张那笔已经打了。',
+    label: '说一声就勾掉，不用翻找',
+    summary: '说的是结果，系统处理的是对应任务状态。',
+    lines: [
+      { k: '动作', v: '补登完成' },
+      { k: '命中', v: '「给老张转 500」' },
+      { k: '状态', v: '已勾 ✓' },
+      { k: '下一条', v: '继续处理账单' },
     ],
   },
 ];
@@ -50,17 +71,20 @@ const INTERVAL = 4200;
 export function HeroDemo() {
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (paused) return;
-    timerRef.current = setInterval(() => {
+    const timer = window.setInterval(() => {
       setIdx((i) => (i + 1) % FRAMES.length);
     }, INTERVAL);
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      window.clearInterval(timer);
     };
   }, [paused]);
+
+  function handleSelect(index: number) {
+    setIdx(index);
+  }
 
   return (
     <div
@@ -71,11 +95,10 @@ export function HeroDemo() {
       <div className="relative overflow-hidden rounded-sm border border-rule/70 bg-paper-2/40">
         <div className="flex items-center justify-between border-b border-rule/50 px-6 py-3">
           <p className="font-mono text-[10px] tracking-[0.22em] text-ink-mute uppercase">
-            {FRAMES[idx].stage}
+            {FRAMES[idx].step} · {FRAMES[idx].stage}
           </p>
           <p className="font-mono text-[10px] tracking-[0.22em] text-ink-mute uppercase">
-            {String(idx + 1).padStart(2, "0")} /{" "}
-            {FRAMES.length.toString().padStart(2, "0")}
+            {String(idx + 1).padStart(2, '0')} / {FRAMES.length.toString().padStart(2, '0')}
           </p>
         </div>
 
@@ -86,10 +109,10 @@ export function HeroDemo() {
               aria-hidden={i !== idx}
               className={`absolute inset-0 px-6 py-7 transition-[opacity,transform] duration-[520ms] ease-[cubic-bezier(.22,.61,.36,1)] ${
                 i === idx
-                  ? "opacity-100 translate-y-0"
+                  ? 'opacity-100 translate-y-0'
                   : i < idx
-                    ? "-translate-y-3 opacity-0"
-                    : "translate-y-3 opacity-0"
+                    ? '-translate-y-3 opacity-0'
+                    : 'translate-y-3 opacity-0'
               }`}
             >
               <p className="font-serif text-xl leading-snug text-ink sm:text-[1.4rem]">
@@ -100,12 +123,12 @@ export function HeroDemo() {
               <p className="mt-1 font-mono text-[10px] tracking-[0.22em] text-ink-mute uppercase">
                 ↓ {f.label}
               </p>
+              <p className="mt-4 max-w-[26ch] text-[14px] leading-relaxed text-ink-soft">
+                {f.summary}
+              </p>
               <div className="mt-5 space-y-1.5 font-mono text-[11px] text-ink-soft">
                 {f.lines.map((l) => (
-                  <div
-                    key={`${l.k}-${l.v}`}
-                    className="flex items-baseline gap-3"
-                  >
+                  <div key={`${l.k}-${l.v}`} className="flex items-baseline gap-3">
                     <span className="w-16 text-ink-mute">{l.k}</span>
                     <span className="text-ink">{l.v}</span>
                   </div>
@@ -120,23 +143,21 @@ export function HeroDemo() {
             <button
               key={f.stage}
               type="button"
-              onClick={() => setIdx(i)}
+              onClick={() => handleSelect(i)}
               aria-label={`切到${f.stage}`}
               className={`h-1 rounded-full transition-all ${
-                i === idx
-                  ? "w-8 bg-accent-warm"
-                  : "w-4 bg-ink-mute/40 hover:bg-ink-mute/70"
+                i === idx ? 'w-8 bg-accent-warm' : 'w-4 bg-ink-mute/40 hover:bg-ink-mute/70'
               }`}
             />
           ))}
           <span className="ml-auto font-mono text-[10px] tracking-[0.22em] text-ink-mute uppercase">
-            {paused ? "已暂停" : "自动演示"}
+            {paused ? '已暂停' : '自动演示'}
           </span>
         </div>
       </div>
 
       <p className="mt-4 text-right font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">
-        ↑ 一个完整的生活片段
+        ↑ 从一句话到完成的四步闭环
       </p>
     </div>
   );

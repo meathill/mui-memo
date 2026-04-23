@@ -1,0 +1,31 @@
+<svg
+  width="1024"
+  height="1024"
+  viewBox="0 0 512 512"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <title>MuiMemo App Icon Maskable</title>
+  <rect width="512" height="512" fill="#E7D7C1" />
+  <rect
+    x="116"
+    y="104"
+    width="280"
+    height="304"
+    rx="74"
+    fill="#F5EEE2"
+    stroke="#CEBEA5"
+    stroke-width="8"
+  />
+  <path d="M318 104H396V182L318 104Z" fill="#C7793E" />
+  <path
+    d="M318 104L355 141C362.62 148.62 372.955 152.9 383.733 152.9H396"
+    stroke="#A15C2B"
+    stroke-width="8"
+    stroke-linecap="round"
+  />
+  <path
+    d="M176 338V176H206L256 247L306 176H336V338H306V230L256 301L206 230V338H176Z"
+    fill="#1D1A12"
+  />
+</svg>

@@ -19,13 +19,10 @@
   --font-mono: var(--font-mono);
   --animate-skeleton: skeleton 2s -1s infinite linear;
   --animate-caret-blink: 1s ease-out infinite caret-blink;
-  --animate-toast-success-odd: toast-success-odd 0.32s
-    cubic-bezier(0.5, 1, 0.89, 1);
-  --animate-toast-success-even: toast-success-even 0.32s
-    cubic-bezier(0.5, 1, 0.89, 1);
+  --animate-toast-success-odd: toast-success-odd 0.32s cubic-bezier(0.5, 1, 0.89, 1);
+  --animate-toast-success-even: toast-success-even 0.32s cubic-bezier(0.5, 1, 0.89, 1);
   --animate-toast-error-odd: toast-error-odd 0.28s cubic-bezier(0.5, 1, 0.89, 1);
-  --animate-toast-error-even: toast-error-even 0.28s
-    cubic-bezier(0.5, 1, 0.89, 1);
+  --animate-toast-error-even: toast-error-even 0.28s cubic-bezier(0.5, 1, 0.89, 1);
   --font-heading: var(--font-heading);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
@@ -182,11 +179,7 @@
   --foreground: var(--color-neutral-800);
   --input: --alpha(var(--color-black) / 10%);
   --muted: --alpha(var(--color-black) / 4%);
-  --muted-foreground: color-mix(
-    in srgb,
-    var(--color-neutral-500) 90%,
-    var(--color-black)
-  );
+  --muted-foreground: color-mix(in srgb, var(--color-neutral-500) 90%, var(--color-black));
   --popover: var(--color-white);
   --popover-foreground: var(--color-neutral-800);
   --primary: var(--color-neutral-800);
@@ -207,11 +200,7 @@
   --sidebar-accent: --alpha(var(--color-black) / 4%);
   --sidebar-accent-foreground: var(--color-neutral-800);
   --sidebar-border: --alpha(var(--color-black) / 6%);
-  --sidebar-foreground: color-mix(
-    in srgb,
-    var(--color-neutral-800) 64%,
-    var(--sidebar)
-  );
+  --sidebar-foreground: color-mix(in srgb, var(--color-neutral-800) 64%, var(--sidebar));
   --sidebar-primary: var(--color-neutral-800);
   --sidebar-primary-foreground: var(--color-neutral-50);
   --sidebar-ring: var(--color-neutral-400);
@@ -238,27 +227,15 @@
   --warning-foreground: var(--color-amber-400);
   --accent: --alpha(var(--color-white) / 4%);
   --accent-foreground: var(--color-neutral-100);
-  --background: color-mix(
-    in srgb,
-    var(--color-neutral-950) 95%,
-    var(--color-white)
-  );
+  --background: color-mix(in srgb, var(--color-neutral-950) 95%, var(--color-white));
   --border: --alpha(var(--color-white) / 6%);
   --card: color-mix(in srgb, var(--background) 98%, var(--color-white));
   --card-foreground: var(--color-neutral-100);
-  --destructive: color-mix(
-    in srgb,
-    var(--color-red-500) 90%,
-    var(--color-white)
-  );
+  --destructive: color-mix(in srgb, var(--color-red-500) 90%, var(--color-white));
   --foreground: var(--color-neutral-100);
   --input: --alpha(var(--color-white) / 8%);
   --muted: --alpha(var(--color-white) / 4%);
-  --muted-foreground: color-mix(
-    in srgb,
-    var(--color-neutral-500) 90%,
-    var(--color-white)
-  );
+  --muted-foreground: color-mix(in srgb, var(--color-neutral-500) 90%, var(--color-white));
   --popover: color-mix(in srgb, var(--background) 98%, var(--color-white));
   --popover-foreground: var(--color-neutral-100);
   --primary: var(--color-neutral-100);
@@ -274,19 +251,11 @@
   --code: color-mix(in srgb, var(--background) 98%, var(--color-white));
   --code-foreground: var(--foreground);
   --code-highlight: --alpha(var(--color-white) / 4%);
-  --sidebar: color-mix(
-    in srgb,
-    var(--color-neutral-950) 97%,
-    var(--color-white)
-  );
+  --sidebar: color-mix(in srgb, var(--color-neutral-950) 97%, var(--color-white));
   --sidebar-accent: --alpha(var(--color-white) / 4%);
   --sidebar-accent-foreground: var(--color-neutral-100);
   --sidebar-border: --alpha(var(--color-white) / 5%);
-  --sidebar-foreground: color-mix(
-    in srgb,
-    var(--color-neutral-100) 64%,
-    var(--sidebar)
-  );
+  --sidebar-foreground: color-mix(in srgb, var(--color-neutral-100) 64%, var(--sidebar));
   --sidebar-primary: var(--color-neutral-100);
   --sidebar-primary-foreground: var(--color-neutral-800);
   --sidebar-ring: var(--color-neutral-400);
@@ -380,12 +349,10 @@
   @keyframes mm-pulse {
     0%,
     100% {
-      box-shadow: 0 0 0 0
-        color-mix(in srgb, var(--accent-warm) 35%, transparent);
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-warm) 35%, transparent);
     }
     50% {
-      box-shadow: 0 0 0 10px
-        color-mix(in srgb, var(--accent-warm) 0%, transparent);
+      box-shadow: 0 0 0 10px color-mix(in srgb, var(--accent-warm) 0%, transparent);
     }
   }
   .mm-pulse {
@@ -405,5 +372,22 @@
   .mm-bar {
     transform-origin: center;
     animation: mm-bar 1s ease-in-out infinite;
+  }
+
+  .landing-sketch-frame {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--paper-bg) 90%, white) 0%,
+      color-mix(in srgb, var(--paper-bg-2) 72%, white) 100%
+    );
+    border: 1px solid color-mix(in srgb, var(--rule) 82%, transparent);
+    box-shadow: 0 18px 40px -26px color-mix(in srgb, var(--ink) 22%, transparent), 0 2px 0 0
+      color-mix(in srgb, var(--paper-bg) 65%, white) inset;
+    border-radius: 1.6rem;
+  }
+
+  .landing-sketch-image {
+    display: block;
+    filter: saturate(0.88) contrast(1.02);
   }
 }
