@@ -21,7 +21,7 @@
 - [ ] night / mono 主题 + Tweaks 面板
 - [ ] check 动画 fade / fly 变体
 - [ ] XP / 等级 / 连击游戏化
-- [ ] `@cloudflare/workers-types` 正式接入（阻塞原因见 DEV_NOTE.md）
+- [x] ~~`@cloudflare/workers-types` 正式接入~~ → 改用 wrangler 自带 `wrangler types`（`pnpm cf-typegen`），见 DEV_NOTE.md
 - [ ] 音频归档 R2：完整测试 binding + 管理界面
 - [ ] 任务手动编辑底部抽屉（TaskSheet）
 

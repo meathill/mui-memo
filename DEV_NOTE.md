@@ -69,12 +69,12 @@ embedding VECTOR(1024)
 - 约定：所有 put/delete/fetch 都加 `muimemo/` 前缀。写入端在 `apps/web/src/lib/audio.ts` / `attachments.ts` 统一拼装
 - 资源公开回放靠 `NEXT_PUBLIC_ASSETS_URL` 环境变量，格式 `https://<host>/<path>`，前端拼 `${ASSETS_URL}/${key}`
 
-## `@cloudflare/workers-types` 暂不接入
+## Cloudflare 类型：用 `wrangler types`，不装 `@cloudflare/workers-types`
 
-- 2026-04 尝试把官方 types 当 devDep 装进 `apps/web`（顺带搬到 `packages/shared`），想替换 `cloudflare-env.d.ts` 里手写的 R2Bucket 接口
-- pnpm 按 peer-dep 上下文给 drizzle-orm 另起一份实例 (`drizzle-orm_@cloudflare+workers-types_..._hash`)，和 `packages/shared` 里 drizzle 实例分裂，schema 定义的表在 `apps/web` 侧变成「不兼容」，所有 `eq(tasksTable.userId, ...)` 全报 TS 错
-- 试过 pnpm `overrides` 锁版本、`public-hoist-pattern=drizzle-orm`、给 shared 也补 workers-types——都因为 peer 上下文 hash 不同没解决
-- 结论：继续手写最小 R2Bucket / R2ObjectBody 接口。OpenNext 运行时不依赖这些 types；少量手写 < pnpm/drizzle 生态债
+- 2026-04 曾试过把 `@cloudflare/workers-types` 当 devDep 装进 `apps/web`，pnpm 按 peer-dep 上下文给 drizzle-orm 另起一份实例（`drizzle-orm_@cloudflare+workers-types_..._hash`），和 `packages/shared` 的 drizzle 实例分裂，所有 `eq(tasksTable.userId, ...)` 报 TS 错。`overrides` / `public-hoist-pattern` / shared 也装一份——都因 peer hash 不同无效
+- 结论：**改用 wrangler 自带的类型生成能力**（wrangler 4 起内置 runtime types，不依赖 `@cloudflare/workers-types` npm 包）
+- 脚本 `pnpm cf-typegen`（= `wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts`）：根据 `wrangler.toml` 里的 bindings 自动生成 `CloudflareEnv`，同时带上 R2Bucket / Fetcher 等 runtime 类型
+- 加/改 binding → 跑 `pnpm cf-typegen` → 提交生成文件。不要手动编辑 `cloudflare-env.d.ts` 里由 wrangler 生成的段落
 
 ## Gemini：走 AI Gateway
 
