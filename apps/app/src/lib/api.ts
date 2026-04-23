@@ -133,6 +133,49 @@ export const api = {
         await useSession.getState().clearSession();
       }
     },
+    /**
+     * Sign in with Apple（原生）：iOS 拿到 identityToken 后直接 POST。
+     * Better-Auth 的 /sign-in/social 会验签并建/登 session，返回 token+user。
+     * `fullName` 只在第一次授权时有值，要的话得赶紧存下来。
+     */
+    async signInWithApple(params: {
+      identityToken: string;
+      nonce?: string;
+      fullName?: { givenName?: string | null; familyName?: string | null } | null;
+    }) {
+      const displayName = [params.fullName?.givenName, params.fullName?.familyName]
+        .filter((x): x is string => Boolean(x))
+        .join(' ')
+        .trim();
+      const res = await fetch(`${API_BASE}/api/auth/sign-in/social`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          provider: 'apple',
+          idToken: {
+            token: params.identityToken,
+            nonce: params.nonce,
+            user: displayName ? { name: displayName } : undefined,
+          },
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.text();
+        throw new ApiError(err || 'Apple 登录失败', res.status);
+      }
+      const headerToken =
+        res.headers.get('set-auth-token') ?? res.headers.get('Set-Auth-Token');
+      const data = (await res.json()) as {
+        token?: string;
+        user?: SessionUser;
+      };
+      const finalToken = headerToken ?? data.token;
+      if (!finalToken || !data.user) {
+        throw new ApiError('Apple 登录响应缺少 token 或 user', 500, data);
+      }
+      await useSession.getState().setSession(finalToken, data.user);
+      return data.user;
+    },
     /** 启动时带 token 去刷一份用户信息。失败就当 token 过期，clear 掉 */
     async getSession(): Promise<SessionUser | null> {
       try {

@@ -11,6 +11,13 @@ export interface CreateAuthOptions {
   secret: string;
   /** 部署域名（含 https://）。没设 Better-Auth 会走 host header 猜，cookie 可能种错。 */
   baseURL?: string;
+  /**
+   * iOS 原生 Sign in with Apple：我们只用 identityToken 验证流。
+   * - `appBundleIdentifier` 是 Xcode 里那个 bundle id，Better-Auth 会拿它做 `aud` 校验
+   * - `clientId` 对 Web OAuth 回调是 Services ID；本项目只走原生，传同一个 bundle id 即可
+   * - 不配 clientSecret，因为不走服务端 JWT 换 token 那条路径
+   */
+  appleBundleIdentifier?: string;
 }
 
 /**
@@ -35,6 +42,16 @@ export function createAuth(opts: CreateAuthOptions) {
     emailAndPassword: {
       enabled: true,
     },
+    socialProviders: opts.appleBundleIdentifier
+      ? {
+          apple: {
+            // 原生流：clientId + appBundleIdentifier 都用 bundle id。Better-Auth
+            // 会自动拉 https://appleid.apple.com/auth/keys 验签 + 校 aud
+            clientId: opts.appleBundleIdentifier,
+            appBundleIdentifier: opts.appleBundleIdentifier,
+          },
+        }
+      : undefined,
     // RN 客户端没有 cookie 语境，带 Authorization: Bearer <session-token> 走这个 plugin
     plugins: [bearer()],
   });
@@ -57,6 +74,10 @@ export async function getServerAuth() {
     databaseUrl: env.TIDB_DATABASE_URL,
     secret: env.BETTER_AUTH_SECRET,
     baseURL,
+    appleBundleIdentifier:
+      process.env.APPLE_BUNDLE_IDENTIFIER ??
+      (env as unknown as { APPLE_BUNDLE_IDENTIFIER?: string }).APPLE_BUNDLE_IDENTIFIER ??
+      'com.meathill.muimemo',
   });
 }
 

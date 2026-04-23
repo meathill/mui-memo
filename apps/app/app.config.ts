@@ -25,6 +25,7 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
   ios: {
     supportsTablet: false,
     bundleIdentifier: 'com.meathill.muimemo',
+    usesAppleSignIn: true,
     infoPlist: {
       NSMicrophoneUsageDescription: 'MuiMemo 需要使用麦克风来录制你的语音备忘。',
     },
@@ -40,6 +41,7 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
     'expo-secure-store',
     // iOS 不需要 google-services，只用 local notifications，配置最简
     'expo-notifications',
+    'expo-apple-authentication',
   ],
   experiments: {
     typedRoutes: false,

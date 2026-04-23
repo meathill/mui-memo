@@ -114,6 +114,13 @@ embedding VECTOR(1024)
 
 **鉴权 · Bearer**：Better-Auth 在 [apps/web/src/lib/auth.ts](apps/web/src/lib/auth.ts) 开了 `bearer()` plugin。RN 端登录后拿到 `Authorization: Bearer <token>` 存进 `expo-secure-store`，之后所有请求带这个 header。Web 仍走 cookie，两条路并存。
 
+**Sign in with Apple · 纯原生流**：iOS 端用 `expo-apple-authentication` 走系统 UI，拿到 `identityToken` 直接打 Better-Auth 的 `POST /api/auth/sign-in/social`（`provider: 'apple', idToken: { token, nonce, user }`）。Better-Auth 内部拉 `https://appleid.apple.com/auth/keys` 验签 + 校 `aud`，通过就创 / 登 user 并返回 bearer token。
+- nonce 本地生成明文，SHA-256 后交给 Apple，原文一起发给后端比对，防 replay
+- Better-Auth 的 apple provider `clientId` 和 `appBundleIdentifier` 都传 `com.meathill.muimemo`（Xcode bundle id）
+- 不走 Web OAuth 回调 → 不需要 `clientSecret`、不需要 .p8 / teamId / keyId
+- `fullName` 只在首次授权时有值，Apple 不会再给第二次（想恢复 → 系统设置 Apple ID → Apps Using Apple ID → MuiMemo → 停止使用）
+- App Store 上架硬性要求：只要接了其它第三方登录就得同时接 Apple（4.8 条款）
+
 **Metro + pnpm monorepo**：[apps/app/metro.config.js](apps/app/metro.config.js) 里 `watchFolders` 指向 repo 根，`nodeModulesPaths` 同时加 `apps/app/node_modules` 和根 `node_modules`，`disableHierarchicalLookup: true`。少一项都会 bundle 挂。
 
 **⚠️ 根 `.npmrc` 必须设 `node-linker=hoisted`**：Expo / RN 生态大量 peer dep（`react-native-web` / `react-native-css-interop` / `whatwg-fetch` / `@expo/metro-runtime` …）在 pnpm 默认隔离下 Metro 穿透 `.pnpm` 路径后找不到兄弟依赖，`expo-router` 的 entry 一进来就 resolve 失败。hoisted linker 把整个 workspace 扁平化为 npm 布局，一劳永逸。对 apps/web (Next.js) 和 packages/shared (tsup) 无副作用。实测已 iOS bundle 通过（3.8MB hbc）。

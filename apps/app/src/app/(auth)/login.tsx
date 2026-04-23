@@ -1,3 +1,4 @@
+import { AppleSignInButton } from '@/components/apple-sign-in-button';
 import { ApiError, api } from '@/lib/api';
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
@@ -87,6 +88,17 @@ export default function LoginScreen() {
                 <Text className="font-medium text-paper text-base">登录</Text>
               )}
             </Pressable>
+          </View>
+
+          <View className="mt-6 flex-row items-center gap-3">
+            <View className="h-px flex-1 bg-rule/60" />
+            <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">
+              或
+            </Text>
+            <View className="h-px flex-1 bg-rule/60" />
+          </View>
+          <View className="mt-4">
+            <AppleSignInButton />
           </View>
 
           <Text className="mt-8 text-center text-ink-soft text-sm">
