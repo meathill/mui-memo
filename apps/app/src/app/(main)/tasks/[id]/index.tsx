@@ -1,5 +1,7 @@
+import { AudioPlayButton, AudioUrlPlayButton, isAudioMime } from '@/components/audio-play-button';
 import { ErrorBanner } from '@/components/error-banner';
 import { type Attachment, api } from '@/lib/api';
+import Constants from 'expo-constants';
 import type { TaskView } from '@mui-memo/shared/logic';
 import { Stack, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { CheckIcon, ChevronLeftIcon, PencilIcon, Trash2Icon } from 'lucide-react-native';
@@ -140,6 +142,12 @@ export default function TaskDetailScreen() {
             <Text className="mt-2 text-ink-soft text-base">原话：「{task.rawText}」</Text>
           ) : null}
 
+          {task.audioKey ? (
+            <View className="mt-3">
+              <AudioPlayButton audioKey={task.audioKey} label="播放原声" />
+            </View>
+          ) : null}
+
           <View className="mt-6 gap-2 rounded-2xl border border-rule/60 bg-paper-2/40 p-4">
             <Row label="地点" value={PLACE_LABEL[task.place] ?? task.place} />
             <Row label="时段" value={WINDOW_LABEL[task.window] ?? task.window} />
@@ -169,20 +177,32 @@ export default function TaskDetailScreen() {
                 附件 · {attachments.length}
               </Text>
               <View className="gap-2">
-                {attachments.map((a) => (
-                  <View
-                    key={a.id}
-                    className="rounded-xl border border-rule/60 bg-paper-2/40 px-3 py-2"
-                  >
-                    <Text className="text-ink text-sm" numberOfLines={1}>
-                      {a.originalName ?? a.key}
-                    </Text>
-                    <Text className="font-mono text-ink-mute text-xs">
-                      {a.mime ?? '?'}
-                      {a.size ? ` · ${(a.size / 1024).toFixed(1)} KB` : ''}
-                    </Text>
-                  </View>
-                ))}
+                {attachments.map((a) => {
+                  const apiBase = (
+                    (Constants.expoConfig?.extra as { apiBase?: string } | undefined)?.apiBase ??
+                    ''
+                  ).replace(/\/$/, '');
+                  const url = `${apiBase}/api/attachments/${a.id}`;
+                  return (
+                    <View
+                      key={a.id}
+                      className="rounded-xl border border-rule/60 bg-paper-2/40 px-3 py-2"
+                    >
+                      <View className="flex-row items-center gap-2">
+                        <View className="flex-1">
+                          <Text className="text-ink text-sm" numberOfLines={1}>
+                            {a.originalName ?? a.key}
+                          </Text>
+                          <Text className="font-mono text-ink-mute text-xs">
+                            {a.mime ?? '?'}
+                            {a.size ? ` · ${(a.size / 1024).toFixed(1)} KB` : ''}
+                          </Text>
+                        </View>
+                        {isAudioMime(a.mime) ? <AudioUrlPlayButton url={url} /> : null}
+                      </View>
+                    </View>
+                  );
+                })}
               </View>
             </View>
           ) : null}
