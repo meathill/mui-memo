@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import {
   boolean,
   customType,
@@ -14,28 +15,20 @@ import {
 // ──────────────────────────────────────────────
 
 /**
- * TiDB Vector 类型（768 维，匹配 Gemini text-embedding-004）
- * TiDB 接受 '[1.0,2.0,…]' 格式的字符串；读出时也是字符串，需要解析。
+ * TiDB 自动嵌入用到的模型。`tidbcloud_free/...` 前缀是 TiDB 自己托管的 free tier
+ * 入口，不需要任何外部 API key；维度 1024。详见 TiDB Auto-Embedding 文档。
  */
-export const EMBEDDING_DIM = 768;
+export const TIDB_EMBED_MODEL = 'tidbcloud_free/amazon/titan-embed-text-v2';
+export const EMBEDDING_DIM = 1024;
 
-const vector = customType<{ data: number[]; driverData: string }>({
+/**
+ * TiDB Vector 类型。值直接用字符串 '[f,f,...]' 和 DB 交换；
+ * 我们不再手动写 embedding，列是 GENERATED ALWAYS AS (EMBED_TEXT(...)) STORED
+ * 由 TiDB 自己填。
+ */
+const vector1024 = customType<{ data: string }>({
   dataType() {
-    return `VECTOR(${EMBEDDING_DIM})`;
-  },
-  toDriver(value: number[]): string {
-    return `[${value.join(',')}]`;
-  },
-  fromDriver(value: unknown): number[] {
-    if (Array.isArray(value)) return value as number[];
-    if (typeof value === 'string') {
-      try {
-        return JSON.parse(value);
-      } catch {
-        return [];
-      }
-    }
-    return [];
+    return `vector(${EMBEDDING_DIM})`;
   },
 });
 
@@ -141,7 +134,15 @@ export const tasks = mysqlTable('tasks', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   completedAt: timestamp('completed_at'),
-  embedding: vector('embedding'),
+  /**
+   * TiDB 自动生成的语义向量（基于 `text` 列）。写入时不要手动赋值。
+   * 读出来的值我们用不到；声明它只是为了 schema 一致 + 让 drizzle
+   * 能识别该列。
+   */
+  embedding: vector1024('embedding').generatedAlwaysAs(
+    sql.raw(`EMBED_TEXT("${TIDB_EMBED_MODEL}", \`text\`)`),
+    { mode: 'stored' },
+  ),
   /** 创建这条任务的原始语音 R2 key（仅 ADD / DONE-backfill 会填）。 */
   audioKey: varchar('audio_key', { length: 512 }),
 });

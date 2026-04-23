@@ -1,4 +1,5 @@
-import { and, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
+import type { IntentEffect, TaskView } from "@mui-memo/shared/logic";
 import {
   tasks as tasksTable,
   utterances as utterancesTable,
@@ -6,14 +7,11 @@ import {
   type NewUtteranceRow,
   type TaskRow,
 } from "@mui-memo/shared/schema";
-import type { IntentEffect } from "@mui-memo/shared/logic";
-import type { Utterance } from "@mui-memo/shared/validators";
-import type { Embedder } from "./embedding";
-import type { TaskView } from "@mui-memo/shared/logic";
 import type {
   TaskPlace,
   TaskStatus,
   TaskWindow,
+  Utterance,
 } from "@mui-memo/shared/validators";
 import type { Database } from "./db";
 
@@ -65,14 +63,34 @@ export async function listTasksForUser(
   userId: string,
 ): Promise<TaskView[]> {
   const rows = await db
-    .select()
+    .select({
+      id: tasksTable.id,
+      userId: tasksTable.userId,
+      rawText: tasksTable.rawText,
+      text: tasksTable.text,
+      place: tasksTable.place,
+      taskWindow: tasksTable.taskWindow,
+      energy: tasksTable.energy,
+      priority: tasksTable.priority,
+      tag: tasksTable.tag,
+      deadline: tasksTable.deadline,
+      expectAt: tasksTable.expectAt,
+      dueAt: tasksTable.dueAt,
+      aiReason: tasksTable.aiReason,
+      actionType: tasksTable.actionType,
+      entities: tasksTable.entities,
+      status: tasksTable.status,
+      linkedTo: tasksTable.linkedTo,
+      createdAt: tasksTable.createdAt,
+      updatedAt: tasksTable.updatedAt,
+      completedAt: tasksTable.completedAt,
+      audioKey: tasksTable.audioKey,
+    })
     .from(tasksTable)
     .where(eq(tasksTable.userId, userId))
     .orderBy(desc(tasksTable.createdAt));
 
-  const byId = new Map<string, TaskRow>();
   const linkedMap = new Map<string, Array<{ id: string; text: string }>>();
-  for (const r of rows) byId.set(r.id, r);
   for (const r of rows) {
     if (r.status === "linked" && r.linkedTo) {
       const arr = linkedMap.get(r.linkedTo) ?? [];
@@ -80,7 +98,7 @@ export async function listTasksForUser(
       linkedMap.set(r.linkedTo, arr);
     }
   }
-  return rows.map((r) => rowToView(r, linkedMap.get(r.id) ?? []));
+  return rows.map((r) => rowToView(r as TaskRow, linkedMap.get(r.id) ?? []));
 }
 
 interface ViewPatch {
@@ -127,18 +145,16 @@ function viewPatchToRow(patch: ViewPatch): Partial<NewTaskRow> {
 }
 
 /**
- * 将 applyIntent 后的内存视图 diff 回数据库。
- * 没有复杂的 diff 算法——只做四种事：新建、status/completed 变化、link/unlink、字段 patch。
+ * 将 applyIntent 后的内存视图 diff 回数据库。embedding 是 TiDB 生成列，
+ * INSERT / UPDATE 不要手动赋值。
  */
 export async function persistIntentResult(
   db: Database,
   userId: string,
   before: TaskView[],
   after: TaskView[],
-  embedder?: Embedder,
 ): Promise<void> {
   const beforeMap = new Map(before.map((t) => [t.id, t]));
-  const afterMap = new Map(after.map((t) => [t.id, t]));
 
   const inserts: NewTaskRow[] = [];
   const updates: Array<{ id: string; patch: Partial<NewTaskRow> }> = [];
@@ -146,14 +162,6 @@ export async function persistIntentResult(
   for (const a of after) {
     const b = beforeMap.get(a.id);
     if (!b) {
-      let embedding: number[] | null = null;
-      if (embedder) {
-        try {
-          embedding = await embedder(a.text);
-        } catch {
-          embedding = null;
-        }
-      }
       inserts.push({
         id: a.id,
         userId,
@@ -171,7 +179,6 @@ export async function persistIntentResult(
         status: a.status,
         linkedTo: a.linkedTo ?? null,
         completedAt: a.completedAt ? new Date(a.completedAt) : null,
-        embedding,
       });
       continue;
     }
@@ -199,14 +206,7 @@ export async function persistIntentResult(
       diff.completedAt = a.completedAt ? new Date(a.completedAt) : null;
     }
     if (Object.keys(diff).length > 0) {
-      const patchRow = viewPatchToRow(diff);
-      // text 变了，重算 embedding
-      if (diff.text && embedder) {
-        try {
-          patchRow.embedding = await embedder(a.text);
-        } catch {}
-      }
-      updates.push({ id: a.id, patch: patchRow });
+      updates.push({ id: a.id, patch: viewPatchToRow(diff) });
     }
   }
 
@@ -222,41 +222,7 @@ export async function persistIntentResult(
 }
 
 /**
- * 机会性补齐：取最多 N 条 embedding 为 NULL 的任务，并行生成并写入。
- * 调用方会把它挂在 ctx.waitUntil 里；Worker 对 waitUntil 时间有上限，
- * 串行跑 8 次 Gemini 容易被砍，所以限制到 4 条 + Promise.allSettled。
- */
-export async function backfillEmbeddings(
-  db: Database,
-  userId: string,
-  embedder: Embedder,
-  limit = 4,
-): Promise<void> {
-  const rows = await db
-    .select({ id: tasksTable.id, text: tasksTable.text })
-    .from(tasksTable)
-    .where(and(eq(tasksTable.userId, userId), isNull(tasksTable.embedding)))
-    .limit(limit);
-
-  await Promise.allSettled(
-    rows.map(async (r) => {
-      try {
-        const emb = await embedder(r.text);
-        await db
-          .update(tasksTable)
-          .set({ embedding: emb, updatedAt: new Date() })
-          .where(and(eq(tasksTable.id, r.id), eq(tasksTable.userId, userId)));
-      } catch {
-        // swallow
-      }
-    }),
-  );
-}
-
-/**
  * 写一条 utterance 记录，供「我的 · 输入记录」页回看。
- * effect 里能拿到的 task id / verb / reason 都摊平进去；
- * dims 直接塞 JSON 保全调试信息。
  */
 export async function logUtterance(
   db: Database,

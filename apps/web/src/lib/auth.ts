@@ -46,9 +46,11 @@ export type Auth = ReturnType<typeof createAuth>;
  */
 export async function getServerAuth() {
   const { env } = await getCloudflareContext({ async: true });
+  // process.env 优先：Playwright webServer 会注入 localhost URL，拿它来跑 e2e；
+  // 生产环境 Worker 里 process.env 是空的，自动回退到 CF env.BETTER_AUTH_URL。
   const baseURL =
-    (env as unknown as { BETTER_AUTH_URL?: string }).BETTER_AUTH_URL ??
-    process.env.BETTER_AUTH_URL;
+    process.env.BETTER_AUTH_URL ??
+    (env as unknown as { BETTER_AUTH_URL?: string }).BETTER_AUTH_URL;
   return createAuth({
     databaseUrl: env.TIDB_DATABASE_URL,
     secret: env.BETTER_AUTH_SECRET,

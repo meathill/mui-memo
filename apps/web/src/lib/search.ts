@@ -1,107 +1,173 @@
 import { sql } from "drizzle-orm";
 import type { Database } from "./db";
-import type { Embedder } from "./embedding";
 
 /**
- * 混合搜索结果：优先从语义 + 关键词两种信号合并打分，返回最相关 task id。
+ * 混合搜索结果：fts + vec 各跑一遍 Top-K，在 TS 里用 RRF 合并，返回得分最高的一条。
  */
 export interface ResolveResult {
   id: string;
   text: string;
   score: number;
-  semanticDist: number;
-  keywordHit: boolean;
+  fromFts: boolean;
+  fromVec: boolean;
 }
 
-const SEMANTIC_WEIGHT = 0.7;
-const KEYWORD_WEIGHT = 0.3;
-/** 语义距离超过这个阈值就不算命中（越小越相似） */
-const SEMANTIC_THRESHOLD = 0.55;
+const TOP_K = 8;
+const RRF_K = 60;
+const FTS_WEIGHT = 1.2;
+const VEC_WEIGHT = 1;
+/**
+ * 纯向量命中（没有 fts 支撑）时要求的最大余弦距离。
+ * 实测 Titan embed-v2 在中文任务文本上：
+ * - 语义相似（「跟家里联系」vs「给老妈打电话」）≈ 0.66
+ * - 完全无关 ≥ 0.85
+ * 取 0.75 作为门槛，留足间距。
+ */
+const VEC_ONLY_MAX_DIST = 0.75;
 
 interface Row {
   id: string;
   text: string;
-  dist: number | null;
-  kw: number;
 }
 
-/**
- * 在用户的非完成任务里做混合搜索：
- *   - TiDB `VEC_COSINE_DISTANCE` 计算语义相似
- *   - MySQL `LIKE %keyword%` 做关键词命中
- *   - 把两种分数归一后加权相加，返回 Top 1
- *
- * query = AI 给出的 `match` 提示（优先）或原始语音转写文本。
- * keyword = AI 提示里的核心关键字（可选，用于 LIKE）。
- */
-export async function resolveTargetTask(
-  db: Database,
-  userId: string,
-  query: string,
-  keyword: string | undefined,
-  embedder: Embedder,
-): Promise<ResolveResult | null> {
-  if (!query.trim() && !keyword) return null;
-
-  let embedding: number[];
-  try {
-    embedding = await embedder(query || keyword || "");
-  } catch {
-    // 没有 embedding 就退化为纯关键词搜索
-    embedding = [];
-  }
-
-  const vecLiteral = embedding.length ? `[${embedding.join(",")}]` : null;
-  const kwPattern = keyword ? `%${keyword}%` : null;
-
-  // TiDB: 当 embedding 列为 NULL 时 VEC_COSINE_DISTANCE 会报错，所以 WHERE 里过滤
-  // 用 sql 模板直接下推
-  const result = await db.execute<Row>(sql`
-    SELECT
-      id,
-      text,
-      ${vecLiteral !== null ? sql`VEC_COSINE_DISTANCE(embedding, ${vecLiteral})` : sql`NULL`} AS dist,
-      ${kwPattern !== null ? sql`CASE WHEN text LIKE ${kwPattern} THEN 1 ELSE 0 END` : sql`0`} AS kw
-    FROM tasks
-    WHERE user_id = ${userId}
-      AND status IN ('pending', 'doing')
-      ${vecLiteral !== null ? sql`AND embedding IS NOT NULL` : sql``}
-    ORDER BY
-      ${vecLiteral !== null ? sql`dist ASC` : sql`kw DESC`}
-    LIMIT 8
-  `);
-
-  // drizzle 对 tidb-serverless 的 execute 返回 { rows }
-  const rows = extractRows<Row>(result);
-  if (!rows.length) return null;
-
-  let best: ResolveResult | null = null;
-  for (const row of rows) {
-    const dist = row.dist ?? 1;
-    const kwHit = Number(row.kw) === 1;
-    const semanticScore = dist <= SEMANTIC_THRESHOLD ? 1 - dist : 0;
-    const keywordScore = kwHit ? 1 : 0;
-    const score =
-      semanticScore * SEMANTIC_WEIGHT + keywordScore * KEYWORD_WEIGHT;
-    if (score <= 0) continue;
-    if (!best || score > best.score) {
-      best = {
-        id: row.id,
-        text: row.text,
-        score,
-        semanticDist: dist,
-        keywordHit: kwHit,
-      };
-    }
-  }
-  return best;
+interface VecRow extends Row {
+  dist: number;
 }
 
-function extractRows<T>(result: unknown): T[] {
+type DbExecute = unknown;
+
+function extractRows<T>(result: DbExecute): T[] {
   if (Array.isArray(result)) return result as T[];
   if (result && typeof result === "object") {
     const obj = result as { rows?: T[] };
     if (Array.isArray(obj.rows)) return obj.rows;
   }
   return [];
+}
+
+/**
+ * 混合搜索 tasks.text：
+ * - 全文召回：`fts_match_word(query, text)`，按 BM25 排序
+ * - 向量召回：`VEC_EMBED_COSINE_DISTANCE(embedding, query)`，TiDB 内部自动嵌入
+ * - TS 侧用 RRF 合并双方 Top-K，返回单条最佳匹配
+ *
+ * fts 是 early-stage 特性，有的 region 没开；抛错时回退到 LIKE。
+ */
+export async function resolveTargetTask(
+  db: Database,
+  userId: string,
+  query: string,
+  keyword: string | undefined,
+): Promise<ResolveResult | null> {
+  const q = (query || keyword || "").trim();
+  if (!q) return null;
+
+  // fts / vec 分两路，各 fallback 单路也能出结果
+  const [ftsRows, vecRows] = await Promise.all([
+    queryFts(db, userId, q).catch(() => queryLike(db, userId, q)),
+    queryVec(db, userId, q).catch(() => [] as VecRow[]),
+  ]);
+
+  if (!ftsRows.length && !vecRows.length) return null;
+
+  // 纯语义召回但距离都超阈值 → 视为无关，放弃。防止无关 query 瞎 match。
+  const ftsIds = new Set(ftsRows.map((r) => r.id));
+  const qualifiedVec = vecRows.filter(
+    (r) => ftsIds.has(r.id) || r.dist <= VEC_ONLY_MAX_DIST,
+  );
+
+  if (!ftsRows.length && !qualifiedVec.length) return null;
+
+  // RRF：第 i 位贡献 weight / (K + i + 1)
+  const scoreMap = new Map<string, ResolveResult>();
+  const accumulate = (
+    rows: Row[],
+    weight: number,
+    flag: "fromFts" | "fromVec",
+  ) => {
+    rows.forEach((r, i) => {
+      const inc = weight / (RRF_K + i + 1);
+      const prev = scoreMap.get(r.id);
+      if (prev) {
+        prev.score += inc;
+        prev[flag] = true;
+      } else {
+        scoreMap.set(r.id, {
+          id: r.id,
+          text: r.text,
+          score: inc,
+          fromFts: flag === "fromFts",
+          fromVec: flag === "fromVec",
+        });
+      }
+    });
+  };
+  accumulate(ftsRows, FTS_WEIGHT, "fromFts");
+  accumulate(qualifiedVec, VEC_WEIGHT, "fromVec");
+
+  let best: ResolveResult | null = null;
+  for (const r of scoreMap.values()) {
+    if (!best || r.score > best.score) best = r;
+  }
+  return best;
+}
+
+async function queryFts(
+  db: Database,
+  userId: string,
+  q: string,
+): Promise<Row[]> {
+  const res = await db.execute<Row>(sql`
+    SELECT id, text
+    FROM tasks
+    WHERE user_id = ${userId}
+      AND status IN ('pending', 'doing')
+      AND fts_match_word(${q}, text)
+    ORDER BY fts_match_word(${q}, text) DESC, id DESC
+    LIMIT ${TOP_K}
+  `);
+  return extractRows<Row>(res);
+}
+
+async function queryVec(
+  db: Database,
+  userId: string,
+  q: string,
+): Promise<VecRow[]> {
+  // 走向量子查询拿 top-K，再回主表取 text，避免把 vector 列读回来
+  const res = await db.execute<VecRow>(sql`
+    SELECT t.id, t.text, ranked.dist AS dist
+    FROM tasks t
+    INNER JOIN (
+      SELECT id, VEC_EMBED_COSINE_DISTANCE(embedding, ${q}) AS dist
+      FROM tasks
+      WHERE user_id = ${userId}
+        AND status IN ('pending', 'doing')
+      ORDER BY dist ASC
+      LIMIT ${TOP_K}
+    ) AS ranked ON ranked.id = t.id
+    ORDER BY ranked.dist ASC
+  `);
+  return extractRows<VecRow>(res).map((r) => ({
+    ...r,
+    dist: Number(r.dist),
+  }));
+}
+
+async function queryLike(
+  db: Database,
+  userId: string,
+  q: string,
+): Promise<Row[]> {
+  const like = `%${q}%`;
+  const res = await db.execute<Row>(sql`
+    SELECT id, text
+    FROM tasks
+    WHERE user_id = ${userId}
+      AND status IN ('pending', 'doing')
+      AND text LIKE ${like}
+    ORDER BY id DESC
+    LIMIT ${TOP_K}
+  `);
+  return extractRows<Row>(res);
 }

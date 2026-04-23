@@ -27,8 +27,10 @@ export const test = base.extend<Fixtures>({
   // storageState 里的 Better-Auth cookie，任务归属到当前 e2e 用户。
   inject: async ({ page }, use) => {
     await use(async (utterance, place = "home") => {
+      // skipResolve=true：inject 只创建任务，不触发 hybrid 搜索（测试里 task
+      // 刚写入，embedding 可能还在生成），意图匹配走 applyIntent 的正则兜底。
       const res = await page.request.post("/api/test-e2e/intent", {
-        data: { utterance, place, skipEmbedding: true },
+        data: { utterance, place, skipResolve: true },
       });
       expect(res.status(), await res.text().catch(() => "")).toBe(200);
       return (await res.json()) as InjectResult;

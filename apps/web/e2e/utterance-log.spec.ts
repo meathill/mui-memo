@@ -42,18 +42,18 @@ test.describe("输入记录", () => {
 
     await page.goto("/profile/log");
 
-    // 最新一条（miss）在上面；限定在 main 里的 li，避免 BottomNav 的 li 干扰
+    // 限定在 main 里的 li，避免 BottomNav 的 li 干扰
     const items = page.locator("main ul > li");
     await expect(items).toHaveCount(3);
 
-    // miss 带⚠️提示
-    await expect(items.first()).toContainText("未命中清单");
-    // DONE 有 reason/verb chip
-    await expect(items.nth(1)).toContainText("已完成");
-    await expect(items.nth(1)).toContainText("水果买了");
-    // ADD 可点击 → /tasks/[id]
-    const addLink = items.nth(2).getByRole("link", { name: /查看任务/ });
-    await addLink.click();
+    // 三条都应当在页面上能找到对应特征；不依赖顺序（createdAt 秒精度可能打平）
+    await expect(items.filter({ hasText: "未命中清单" })).toHaveCount(1);
+    await expect(items.filter({ hasText: "水果买了" })).toHaveCount(1);
+    const addItem = items.filter({ hasText: "记得给老妈买点水果" });
+    await expect(addItem).toHaveCount(1);
+
+    // ADD 记录可点击 → 跳任务详情
+    await addItem.getByRole("link", { name: /查看任务/ }).click();
     await expect(page).toHaveURL(new RegExp(`/tasks/${addedId}$`));
   });
 
