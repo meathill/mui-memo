@@ -1,8 +1,14 @@
 import '../global.css';
 
 import { api } from '@/lib/api';
+import {
+  Notifications,
+  reconcileTaskReminders,
+  type TaskNotificationData,
+} from '@/lib/notifications';
 import { useSession } from '@/lib/session';
-import { Stack } from 'expo-router';
+import { useAppStore } from '@/store';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -29,6 +35,26 @@ export default function RootLayout() {
       }
     });
   }, [hydrate]);
+
+  // 订阅 tasks 变更 → 增量 reconcile 本地通知
+  useEffect(() => {
+    const unsub = useAppStore.subscribe((state, prev) => {
+      if (state.tasks === prev.tasks) return;
+      reconcileTaskReminders(state.tasks).catch(() => undefined);
+    });
+    return unsub;
+  }, []);
+
+  // 通知点击 → 跳详情
+  useEffect(() => {
+    const sub = Notifications.addNotificationResponseReceivedListener((res) => {
+      const data = res.notification.request.content.data as
+        | TaskNotificationData
+        | undefined;
+      if (data?.taskId) router.push(`/tasks/${data.taskId}`);
+    });
+    return () => sub.remove();
+  }, []);
 
   return (
     <SafeAreaProvider>

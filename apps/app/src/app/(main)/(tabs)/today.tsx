@@ -1,5 +1,6 @@
 import { ErrorBanner } from '@/components/error-banner';
 import { ContextStrip } from '@/components/memo/context-strip';
+import { cancelTaskReminder } from '@/lib/notifications';
 import { DoingCard } from '@/components/memo/doing-card';
 import { EffectToast } from '@/components/memo/effect-toast';
 import { MicButton } from '@/components/memo/mic-button';
@@ -118,6 +119,8 @@ export default function TodayScreen() {
         ),
         ranked: [],
       });
+      // 标完立即撤掉本地提醒；reconciler 也会撤，但这里更即时
+      cancelTaskReminder(id).catch(() => undefined);
       try {
         await api.tasks.done(id);
       } catch (err) {

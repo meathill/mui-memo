@@ -1,5 +1,12 @@
 import { ErrorBanner } from '@/components/error-banner';
 import { type ProfileStats, api } from '@/lib/api';
+import {
+  type PermStatus,
+  getPermissionStatus,
+  requestPermission,
+} from '@/lib/notifications';
+import * as Linking from 'expo-linking';
+import { BellIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { LogOutIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
@@ -19,6 +26,24 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [notifPerm, setNotifPerm] = useState<PermStatus>('prompt');
+
+  useEffect(() => {
+    getPermissionStatus().then(setNotifPerm).catch(() => undefined);
+  }, []);
+
+  const handleNotifTap = useCallback(async () => {
+    if (notifPerm === 'granted') return;
+    if (notifPerm === 'blocked') {
+      Linking.openSettings();
+      return;
+    }
+    const next = await requestPermission();
+    setNotifPerm(next);
+    if (next === 'blocked') {
+      Alert.alert('已被拒绝', '到「设置 → MuiMemo → 通知」手动打开。');
+    }
+  }, [notifPerm]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -104,6 +129,31 @@ export default function ProfileScreen() {
           <StatCard label="清单待办" value={data?.stats.pending ?? 0} />
           <StatCard label="正在做" value={data?.stats.doing ?? 0} />
         </View>
+
+        <Pressable
+          onPress={handleNotifTap}
+          disabled={notifPerm === 'granted'}
+          className="mt-5 flex-row items-center gap-3 rounded-2xl border border-rule/60 bg-paper-2/50 p-4 active:opacity-80"
+        >
+          <View className="h-10 w-10 items-center justify-center rounded-full bg-accent-warm/15">
+            <BellIcon size={18} color="#c17a3a" />
+          </View>
+          <View className="flex-1">
+            <Text className="font-serif text-base text-ink">到点提醒</Text>
+            <Text className="mt-0.5 text-ink-soft text-xs">
+              {notifPerm === 'granted'
+                ? '已打开 · 有预期时间的任务到点会弹通知'
+                : notifPerm === 'blocked'
+                  ? '被系统禁用 · 点这里去设置里打开'
+                  : '点一下开启，让到点的任务主动提醒你'}
+            </Text>
+          </View>
+          {notifPerm !== 'granted' ? (
+            <Text className="font-mono text-accent-warm text-xs">
+              {notifPerm === 'blocked' ? '去设置' : '开启'}
+            </Text>
+          ) : null}
+        </Pressable>
 
         {loading ? (
           <View className="mt-4 items-center">
