@@ -9,17 +9,28 @@ import {
 import { useSession } from '@/lib/session';
 import { useAppStore } from '@/store';
 import { Stack, router } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+// 阻止系统自动隐藏 splash：我们想等 session hydrate 完再撤图，避免
+// 一瞬「未登录界面 → redirect /today」的抖动。
+SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 export default function RootLayout() {
   const hydrate = useSession((s) => s.hydrate);
 
   useEffect(() => {
-    // 启动：先从 SecureStore 捞 token + 缓存的 user（断网也能正常进主屏），
-    // 再尝试异步刷一份最新 user。
-    hydrate().then(async () => {
+    // 启动分两步：
+    //  1. hydrate 本地 SecureStore（毫秒级）→ 立刻隐 splash，进 /today 或 /login
+    //  2. 异步 getSession 刷一份最新 user，不阻塞 UI；网络错就保持缓存态
+    (async () => {
+      try {
+        await hydrate();
+      } finally {
+        SplashScreen.hideAsync().catch(() => undefined);
+      }
       const token = useSession.getState().token;
       if (!token) return;
       try {
@@ -27,13 +38,12 @@ export default function RootLayout() {
         if (user) {
           await useSession.getState().setSession(token, user);
         } else {
-          // 200 但 user 为空（bearer token 已失效）：清掉，跳登录
           await useSession.getState().clearSession();
         }
       } catch {
-        // 网络错误：token + 缓存 user 仍在内存，保持登录态，后续请求自己会重试
+        // 网络错误不清 session，后续请求会自己重试
       }
-    });
+    })();
   }, [hydrate]);
 
   // 订阅 tasks 变更 → 增量 reconcile 本地通知

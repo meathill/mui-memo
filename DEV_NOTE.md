@@ -145,6 +145,11 @@ embedding VECTOR(1024)
 ```
 入口 `index.tsx` 纯 gate：hydrating 时 spinner，token 有/无分别 replace 去 /today 或 /login。
 
+**启动与缓存**：
+- `app.config.ts` 的 `splash.backgroundColor: '#f4ede0'`，避免默认白底 → paper 色跳色；没放 logo 图，等 [assets/README.md](apps/app/assets/README.md) 补
+- `_layout.tsx` 手动 `SplashScreen.preventAutoHideAsync()`，等 `useSession.hydrate()`（读 SecureStore 毫秒级）完成后再 `hideAsync`，避免闪登录屏再跳 /today
+- `useAppStore` 走 `zustand/persist` + AsyncStorage：持久化 `tasks` + `place`（不含 ranked / recording 等瞬时态），杀 app 重开就立即看到上次列表，随后后台刷新
+
 **Siri 入口 · 轻量派**：没做原生 App Intents（要 eject Expo managed workflow）。改走 URL scheme 让用户到 iOS「快捷指令」app 里自己建一个「打开 URL: muimemo://」的指令，然后说「嘿 Siri，记一下」触发。Profile 页的「Siri 快捷指令」卡片能一键跳到 Shortcuts app，并 Alert 里写清楚三步。expo-router 自动把 `muimemo://tasks/<id>` 深链到对应页面。真要做「一句话自动录完入库」，得 eject 写 Swift 实现 `AppIntent` 协议。
 
 **录音权限 UX**：

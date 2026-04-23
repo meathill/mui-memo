@@ -20,8 +20,13 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
   scheme: 'muimemo',
   version: '0.0.1',
   orientation: 'portrait',
-  userInterfaceStyle: 'automatic',
+  userInterfaceStyle: 'light',
   newArchEnabled: true,
+  // 启动图：纯 paper 色，避免默认白底 → 米黄 跳色。有 logo 素材后再加 image 字段
+  splash: {
+    backgroundColor: '#f4ede0',
+    resizeMode: 'contain',
+  },
   ios: {
     supportsTablet: false,
     bundleIdentifier: 'com.meathill.muimemo',
