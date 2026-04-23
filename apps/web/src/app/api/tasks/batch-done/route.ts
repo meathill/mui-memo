@@ -9,10 +9,7 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const parsed = batchCompleteSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'invalid input', issues: parsed.error.issues },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: 'invalid input', issues: parsed.error.issues }, { status: 400 });
   }
   await markBatchDone(ctx.db, ctx.session.user.id, parsed.data.taskIds);
   return NextResponse.json({ ok: true });

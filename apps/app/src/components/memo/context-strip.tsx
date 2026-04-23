@@ -22,9 +22,7 @@ export function ContextStrip({ value, onChange }: Props) {
           <Pressable
             key={p.value}
             onPress={() => onChange(p.value)}
-            className={`rounded-full px-4 py-2 ${
-              active ? 'bg-ink' : 'border border-rule bg-paper-2/50'
-            }`}
+            className={`rounded-full px-4 py-2 ${active ? 'bg-ink' : 'border border-rule bg-paper-2/50'}`}
           >
             <Text className={`text-sm ${active ? 'text-paper' : 'text-ink-soft'}`}>{p.label}</Text>
           </Pressable>

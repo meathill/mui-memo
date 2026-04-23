@@ -51,10 +51,7 @@ export const BUCKET_LABEL: Record<Bucket, string> = {
  * 把任务按场景分桶并排序，端口自设计稿 data.jsx。
  * linked 状态的子任务不会出现在主列表（由父任务的 linked[] 展示）。
  */
-export function rerank(
-  tasks: TaskView[],
-  ctxPlace: TaskPlace,
-): Array<TaskView & { bucket: Bucket }> {
+export function rerank(tasks: TaskView[], ctxPlace: TaskPlace): Array<TaskView & { bucket: Bucket }> {
   const list = tasks.filter((t) => !t.done && t.status !== 'linked');
   const canDoHere = (t: TaskView) => t.place === 'any' || t.place === ctxPlace;
 

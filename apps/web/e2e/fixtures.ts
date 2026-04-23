@@ -51,9 +51,7 @@ export { expect } from '@playwright/test';
 /**
  * 快速构造一条 Utterance。
  */
-export function buildUtterance(
-  override: Partial<Utterance> & Pick<Utterance, 'intent'>,
-): Utterance {
+export function buildUtterance(override: Partial<Utterance> & Pick<Utterance, 'intent'>): Utterance {
   return {
     raw: '',
     aiReason: '',
@@ -63,10 +61,6 @@ export function buildUtterance(
   };
 }
 
-export async function callCleanup(
-  request: APIRequestContext,
-  email: string,
-  mode: 'tasks' | 'user' = 'user',
-) {
+export async function callCleanup(request: APIRequestContext, email: string, mode: 'tasks' | 'user' = 'user') {
   await request.post('/api/test-e2e/cleanup', { data: { email, mode } });
 }

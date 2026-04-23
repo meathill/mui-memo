@@ -10,10 +10,7 @@ export function Breadcrumb({ ...props }: React.ComponentProps<'nav'>): React.Rea
   return <nav aria-label="breadcrumb" data-slot="breadcrumb" {...props} />;
 }
 
-export function BreadcrumbList({
-  className,
-  ...props
-}: React.ComponentProps<'ol'>): React.ReactElement {
+export function BreadcrumbList({ className, ...props }: React.ComponentProps<'ol'>): React.ReactElement {
   return (
     <ol
       className={cn(
@@ -26,24 +23,11 @@ export function BreadcrumbList({
   );
 }
 
-export function BreadcrumbItem({
-  className,
-  ...props
-}: React.ComponentProps<'li'>): React.ReactElement {
-  return (
-    <li
-      className={cn('inline-flex items-center gap-1.5', className)}
-      data-slot="breadcrumb-item"
-      {...props}
-    />
-  );
+export function BreadcrumbItem({ className, ...props }: React.ComponentProps<'li'>): React.ReactElement {
+  return <li className={cn('inline-flex items-center gap-1.5', className)} data-slot="breadcrumb-item" {...props} />;
 }
 
-export function BreadcrumbLink({
-  className,
-  render,
-  ...props
-}: useRender.ComponentProps<'a'>): React.ReactElement {
+export function BreadcrumbLink({ className, render, ...props }: useRender.ComponentProps<'a'>): React.ReactElement {
   const defaultProps = {
     className: cn('transition-colors hover:text-foreground', className),
     'data-slot': 'breadcrumb-link',
@@ -56,10 +40,7 @@ export function BreadcrumbLink({
   });
 }
 
-export function BreadcrumbPage({
-  className,
-  ...props
-}: React.ComponentProps<'span'>): React.ReactElement {
+export function BreadcrumbPage({ className, ...props }: React.ComponentProps<'span'>): React.ReactElement {
   return (
     <span
       aria-current="page"
@@ -70,11 +51,7 @@ export function BreadcrumbPage({
   );
 }
 
-export function BreadcrumbSeparator({
-  children,
-  className,
-  ...props
-}: React.ComponentProps<'li'>): React.ReactElement {
+export function BreadcrumbSeparator({ children, className, ...props }: React.ComponentProps<'li'>): React.ReactElement {
   return (
     <li
       aria-hidden="true"
@@ -88,18 +65,9 @@ export function BreadcrumbSeparator({
   );
 }
 
-export function BreadcrumbEllipsis({
-  className,
-  ...props
-}: React.ComponentProps<'span'>): React.ReactElement {
+export function BreadcrumbEllipsis({ className, ...props }: React.ComponentProps<'span'>): React.ReactElement {
   return (
-    <span
-      aria-hidden="true"
-      className={className}
-      data-slot="breadcrumb-ellipsis"
-      role="presentation"
-      {...props}
-    >
+    <span aria-hidden="true" className={className} data-slot="breadcrumb-ellipsis" role="presentation" {...props}>
       <MoreHorizontal className="size-4" />
       <span className="sr-only">More</span>
     </span>

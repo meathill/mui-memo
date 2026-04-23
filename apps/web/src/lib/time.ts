@@ -35,14 +35,7 @@ export function tzOffset(date: Date, tz: string): string {
   }).formatToParts(date);
   const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
   // Date.UTC 把那个时区本地时间当 UTC 构造，减去原始毫秒 = 时区偏移
-  const asUTC = Date.UTC(
-    get('year'),
-    get('month') - 1,
-    get('day'),
-    get('hour') % 24,
-    get('minute'),
-    get('second'),
-  );
+  const asUTC = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour') % 24, get('minute'), get('second'));
   const offsetMin = Math.round((asUTC - date.getTime()) / 60000);
   const sign = offsetMin >= 0 ? '+' : '-';
   const abs = Math.abs(offsetMin);

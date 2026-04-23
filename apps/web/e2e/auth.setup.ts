@@ -25,10 +25,7 @@ setup('register e2e user and save storage', async ({ page, request }) => {
   );
   await page.getByRole('button', { name: '注册' }).click();
   const signUpRes = await signUpPromise;
-  expect(
-    signUpRes.status(),
-    `sign-up failed: ${await signUpRes.text().catch(() => '')}`,
-  ).toBeLessThan(400);
+  expect(signUpRes.status(), `sign-up failed: ${await signUpRes.text().catch(() => '')}`).toBeLessThan(400);
 
   // 注册成功后会跳 /，Today 首次加载触发 onboarding 跳转
   await page.waitForURL(/\/(onboarding)?$/, { timeout: 30_000 });

@@ -151,9 +151,7 @@ export default function TaskDetailScreen() {
           <View className="mt-6 gap-2 rounded-2xl border border-rule/60 bg-paper-2/40 p-4">
             <Row label="地点" value={PLACE_LABEL[task.place] ?? task.place} />
             <Row label="时段" value={WINDOW_LABEL[task.window] ?? task.window} />
-            {task.expectAt ? (
-              <Row label="预计" value={formatDateTime(task.expectAt)} />
-            ) : null}
+            {task.expectAt ? <Row label="预计" value={formatDateTime(task.expectAt)} /> : null}
             {task.dueAt ? <Row label="截止" value={formatDateTime(task.dueAt)} /> : null}
             {task.deadline ? <Row label="Deadline" value={task.deadline} /> : null}
             <Row label="优先级" value={String(task.priority ?? 0)} />
@@ -162,12 +160,8 @@ export default function TaskDetailScreen() {
 
           {task.aiReason ? (
             <View className="mt-4 rounded-2xl border border-accent-warm/30 bg-accent-warm/10 p-4">
-              <Text className="font-mono text-sm text-ink-mute uppercase tracking-[2px]">
-                AI · 理由
-              </Text>
-              <Text className="mt-1.5 text-ink text-base leading-relaxed">
-                {task.aiReason}
-              </Text>
+              <Text className="font-mono text-sm text-ink-mute uppercase tracking-[2px]">AI · 理由</Text>
+              <Text className="mt-1.5 text-ink text-base leading-relaxed">{task.aiReason}</Text>
             </View>
           ) : null}
 
@@ -179,15 +173,11 @@ export default function TaskDetailScreen() {
               <View className="gap-2">
                 {attachments.map((a) => {
                   const apiBase = (
-                    (Constants.expoConfig?.extra as { apiBase?: string } | undefined)?.apiBase ??
-                    ''
+                    (Constants.expoConfig?.extra as { apiBase?: string } | undefined)?.apiBase ?? ''
                   ).replace(/\/$/, '');
                   const url = `${apiBase}/api/attachments/${a.id}`;
                   return (
-                    <View
-                      key={a.id}
-                      className="rounded-xl border border-rule/60 bg-paper-2/40 px-3 py-2"
-                    >
+                    <View key={a.id} className="rounded-xl border border-rule/60 bg-paper-2/40 px-3 py-2">
                       <View className="flex-row items-center gap-2">
                         <View className="flex-1">
                           <Text className="text-ink text-sm" numberOfLines={1}>

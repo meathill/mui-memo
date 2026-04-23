@@ -19,9 +19,7 @@ export async function POST(req: Request) {
   const form = await req.formData();
   const audio = form.get('audio');
   const placeStr = String(form.get('place') ?? 'any');
-  const tz = normalizeTz(
-    typeof form.get('tz') === 'string' ? (form.get('tz') as string) : undefined,
-  );
+  const tz = normalizeTz(typeof form.get('tz') === 'string' ? (form.get('tz') as string) : undefined);
   if (!(audio instanceof Blob)) {
     return NextResponse.json({ error: 'missing audio' }, { status: 400 });
   }
@@ -85,9 +83,7 @@ export async function POST(req: Request) {
     const audioKey = `${R2_PREFIX}/audio/${userId}/${Date.now()}.${ext}`;
     audioKeyForLog = audioKey;
     execCtx.waitUntil(
-      bucket
-        .put(audioKey, audioBuffer, { httpMetadata: { contentType: mimeType } })
-        .catch(() => undefined),
+      bucket.put(audioKey, audioBuffer, { httpMetadata: { contentType: mimeType } }).catch(() => undefined),
     );
     if (shouldLinkAudio) {
       execCtx.waitUntil(linkAudioKey(db, userId, effect.id, audioKey).catch(() => undefined));
@@ -96,9 +92,7 @@ export async function POST(req: Request) {
 
   // 写输入记录（所有意图都记，包括 miss）
   if (execCtx) {
-    execCtx.waitUntil(
-      logUtterance(db, userId, utterance, effect, audioKeyForLog).catch(() => undefined),
-    );
+    execCtx.waitUntil(logUtterance(db, userId, utterance, effect, audioKeyForLog).catch(() => undefined));
   }
 
   const ranked = rerank(tasksAfter, ctxPlace);

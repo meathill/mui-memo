@@ -23,10 +23,7 @@ export function DialogClose(props: DialogPrimitive.Close.Props): React.ReactElem
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
 }
 
-export function DialogBackdrop({
-  className,
-  ...props
-}: DialogPrimitive.Backdrop.Props): React.ReactElement {
+export function DialogBackdrop({ className, ...props }: DialogPrimitive.Backdrop.Props): React.ReactElement {
   return (
     <DialogPrimitive.Backdrop
       className={cn(
@@ -39,16 +36,10 @@ export function DialogBackdrop({
   );
 }
 
-export function DialogViewport({
-  className,
-  ...props
-}: DialogPrimitive.Viewport.Props): React.ReactElement {
+export function DialogViewport({ className, ...props }: DialogPrimitive.Viewport.Props): React.ReactElement {
   return (
     <DialogPrimitive.Viewport
-      className={cn(
-        'fixed inset-0 z-50 grid grid-rows-[1fr_auto_3fr] justify-items-center p-4',
-        className,
-      )}
+      className={cn('fixed inset-0 z-50 grid grid-rows-[1fr_auto_3fr] justify-items-center p-4', className)}
       data-slot="dialog-viewport"
       {...props}
     />
@@ -72,9 +63,7 @@ export function DialogPopup({
   return (
     <DialogPortal {...portalProps}>
       <DialogBackdrop />
-      <DialogViewport
-        className={cn(bottomStickOnMobile && 'max-sm:grid-rows-[1fr_auto] max-sm:p-0 max-sm:pt-12')}
-      >
+      <DialogViewport className={cn(bottomStickOnMobile && 'max-sm:grid-rows-[1fr_auto] max-sm:p-0 max-sm:pt-12')}>
         <DialogPrimitive.Popup
           className={cn(
             'relative row-start-2 flex max-h-full min-h-0 w-full min-w-0 max-w-lg origin-center flex-col rounded-2xl border bg-popover not-dark:bg-clip-padding text-popover-foreground opacity-[calc(1-var(--nested-dialogs))] shadow-lg/5 outline-none transition-[scale,opacity,translate] duration-200 ease-in-out will-change-transform before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-2xl)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] data-ending-style:opacity-0 data-starting-style:opacity-0 sm:scale-[calc(1-0.1*var(--nested-dialogs))] sm:data-ending-style:scale-98 sm:data-starting-style:scale-98 dark:before:shadow-[0_-1px_--theme(--color-white/6%)]',
@@ -102,11 +91,7 @@ export function DialogPopup({
   );
 }
 
-export function DialogHeader({
-  className,
-  render,
-  ...props
-}: useRender.ComponentProps<'div'>): React.ReactElement {
+export function DialogHeader({ className, render, ...props }: useRender.ComponentProps<'div'>): React.ReactElement {
   const defaultProps = {
     className: cn(
       'flex flex-col gap-2 p-6 in-[[data-slot=dialog-popup]:has([data-slot=dialog-panel])]:pb-3 max-sm:pb-4',
@@ -134,8 +119,7 @@ export function DialogFooter({
     className: cn(
       'flex flex-col-reverse gap-2 px-6 sm:flex-row sm:justify-end sm:rounded-b-[calc(var(--radius-2xl)-1px)]',
       variant === 'default' && 'border-t bg-muted/72 py-4',
-      variant === 'bare' &&
-        'in-[[data-slot=dialog-popup]:has([data-slot=dialog-panel])]:pt-3 pt-4 pb-6',
+      variant === 'bare' && 'in-[[data-slot=dialog-popup]:has([data-slot=dialog-panel])]:pt-3 pt-4 pb-6',
       className,
     ),
     'data-slot': 'dialog-footer',
@@ -148,10 +132,7 @@ export function DialogFooter({
   });
 }
 
-export function DialogTitle({
-  className,
-  ...props
-}: DialogPrimitive.Title.Props): React.ReactElement {
+export function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props): React.ReactElement {
   return (
     <DialogPrimitive.Title
       className={cn('font-heading font-semibold text-xl leading-none', className)}
@@ -161,10 +142,7 @@ export function DialogTitle({
   );
 }
 
-export function DialogDescription({
-  className,
-  ...props
-}: DialogPrimitive.Description.Props): React.ReactElement {
+export function DialogDescription({ className, ...props }: DialogPrimitive.Description.Props): React.ReactElement {
   return (
     <DialogPrimitive.Description
       className={cn('text-muted-foreground text-sm', className)}

@@ -30,10 +30,7 @@ export async function POST(req: Request) {
 
   const utteranceParsed = utteranceSchema.safeParse(body.utterance);
   if (!utteranceParsed.success) {
-    return NextResponse.json(
-      { error: 'invalid utterance', issues: utteranceParsed.error.issues },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: 'invalid utterance', issues: utteranceParsed.error.issues }, { status: 400 });
   }
   const placeParsed = taskPlaceEnum.safeParse(body.place ?? 'any');
   const ctxPlace = placeParsed.success ? placeParsed.data : 'any';

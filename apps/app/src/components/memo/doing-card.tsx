@@ -3,13 +3,7 @@ import { router } from 'expo-router';
 import { CheckIcon } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 
 interface Props {
   task: TaskView;
@@ -27,11 +21,7 @@ export function DoingCard({ task, onDone }: Props) {
   const progress = useSharedValue(0);
 
   useEffect(() => {
-    progress.value = withRepeat(
-      withTiming(1, { duration: 2400, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      false,
-    );
+    progress.value = withRepeat(withTiming(1, { duration: 2400, easing: Easing.inOut(Easing.ease) }), -1, false);
   }, [progress]);
 
   const ringStyle = useAnimatedStyle(() => ({
@@ -57,13 +47,8 @@ export function DoingCard({ task, onDone }: Props) {
         className="rounded-2xl border border-accent-warm/40 bg-accent-warm/10 p-4 active:opacity-80"
       >
         <View className="flex-row items-center gap-1.5">
-          <Animated.View
-            style={dotStyle}
-            className="h-1.5 w-1.5 rounded-full bg-accent-warm"
-          />
-          <Text className="font-mono text-xs text-accent-warm uppercase tracking-[2px]">
-            正在做
-          </Text>
+          <Animated.View style={dotStyle} className="h-1.5 w-1.5 rounded-full bg-accent-warm" />
+          <Text className="font-mono text-xs text-accent-warm uppercase tracking-[2px]">正在做</Text>
         </View>
         <Text className="mt-1 font-serif text-ink text-2xl leading-snug">{task.text}</Text>
         <View className="mt-2 flex-row flex-wrap gap-x-2">

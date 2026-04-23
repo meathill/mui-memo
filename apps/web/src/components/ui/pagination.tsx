@@ -7,10 +7,7 @@ import { useRender } from '@base-ui/react/use-render';
 import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from 'lucide-react';
 import type * as React from 'react';
 
-export function Pagination({
-  className,
-  ...props
-}: React.ComponentProps<'nav'>): React.ReactElement {
+export function Pagination({ className, ...props }: React.ComponentProps<'nav'>): React.ReactElement {
   return (
     <nav
       aria-label="pagination"
@@ -21,17 +18,8 @@ export function Pagination({
   );
 }
 
-export function PaginationContent({
-  className,
-  ...props
-}: React.ComponentProps<'ul'>): React.ReactElement {
-  return (
-    <ul
-      className={cn('flex flex-row items-center gap-1', className)}
-      data-slot="pagination-content"
-      {...props}
-    />
-  );
+export function PaginationContent({ className, ...props }: React.ComponentProps<'ul'>): React.ReactElement {
+  return <ul className={cn('flex flex-row items-center gap-1', className)} data-slot="pagination-content" {...props} />;
 }
 
 export function PaginationItem({ ...props }: React.ComponentProps<'li'>): React.ReactElement {
@@ -106,10 +94,7 @@ export function PaginationNext({
   );
 }
 
-export function PaginationEllipsis({
-  className,
-  ...props
-}: React.ComponentProps<'span'>): React.ReactElement {
+export function PaginationEllipsis({ className, ...props }: React.ComponentProps<'span'>): React.ReactElement {
   return (
     <span
       aria-hidden

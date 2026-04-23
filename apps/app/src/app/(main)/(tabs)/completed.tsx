@@ -2,15 +2,7 @@ import { ErrorBanner } from '@/components/error-banner';
 import { type CompletedTask, api } from '@/lib/api';
 import { CheckIcon, Trash2Icon } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 function formatDay(iso: string | null): string {
@@ -18,17 +10,11 @@ function formatDay(iso: string | null): string {
   const d = new Date(iso);
   const now = new Date();
   const sameDay =
-    d.getFullYear() === now.getFullYear() &&
-    d.getMonth() === now.getMonth() &&
-    d.getDate() === now.getDate();
+    d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
   if (sameDay) return '今天';
   const y = new Date(now);
   y.setDate(now.getDate() - 1);
-  if (
-    d.getFullYear() === y.getFullYear() &&
-    d.getMonth() === y.getMonth() &&
-    d.getDate() === y.getDate()
-  ) {
+  if (d.getFullYear() === y.getFullYear() && d.getMonth() === y.getMonth() && d.getDate() === y.getDate()) {
     return '昨天';
   }
   return `${d.getMonth() + 1}月${d.getDate()}日`;
@@ -122,13 +108,9 @@ export default function CompletedScreen() {
     <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
       <ScrollView
         contentContainerClassName="px-5 pt-4 pb-10"
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1d1a12" />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1d1a12" />}
       >
-        <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">
-          MuiMemo · 已完成
-        </Text>
+        <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">MuiMemo · 已完成</Text>
         <Text className="mt-1 font-serif text-2xl text-ink">你搞定的那些事</Text>
         <Text className="mt-1 text-ink-soft text-sm">
           已加载 {tasks.length} 件{hasMore ? '（还可加载更多）' : ''}
@@ -172,11 +154,7 @@ export default function CompletedScreen() {
                           {formatTime(t.completedAt)}
                         </Text>
                       </View>
-                      <Pressable
-                        onPress={() => handleDelete(t)}
-                        hitSlop={8}
-                        className="p-1.5 active:opacity-60"
-                      >
+                      <Pressable onPress={() => handleDelete(t)} hitSlop={8} className="p-1.5 active:opacity-60">
                         <Trash2Icon size={16} color="#7a7266" />
                       </Pressable>
                     </View>
@@ -200,9 +178,7 @@ export default function CompletedScreen() {
                 </Pressable>
               </View>
             ) : (
-              <Text className="mt-6 text-center font-mono text-xs text-ink-mute">
-                · 到底了 ·
-              </Text>
+              <Text className="mt-6 text-center font-mono text-xs text-ink-mute">· 到底了 ·</Text>
             )}
           </>
         )}

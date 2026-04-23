@@ -55,11 +55,7 @@ export function ConfirmDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogClose render={<Button variant="outline">{cancelText}</Button>} />
-          <Button
-            variant={destructive ? 'destructive' : 'default'}
-            loading={busy}
-            onClick={handleConfirm}
-          >
+          <Button variant={destructive ? 'destructive' : 'default'} loading={busy} onClick={handleConfirm}>
             {confirmText}
           </Button>
         </AlertDialogFooter>

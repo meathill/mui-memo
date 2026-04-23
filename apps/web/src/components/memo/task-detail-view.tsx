@@ -181,9 +181,7 @@ export function TaskDetailView({ id }: { id: string }) {
         </Button>
         <div className="min-w-0 flex-1">
           <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">任务详情</p>
-          <p className="truncate text-xs text-ink-mute font-mono">
-            {new Date(task.createdAt).toLocaleString('zh-CN')}
-          </p>
+          <p className="truncate text-xs text-ink-mute font-mono">{new Date(task.createdAt).toLocaleString('zh-CN')}</p>
         </div>
         {saving ? <span className="font-mono text-[10px] text-ink-mute">保存中…</span> : null}
         <Button
@@ -316,9 +314,7 @@ export function TaskDetailView({ id }: { id: string }) {
 
         {task.audioKey ? (
           <div className="space-y-1.5">
-            <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">
-              原始语音
-            </p>
+            <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">原始语音</p>
             {/* biome-ignore lint/a11y/useMediaCaption: 用户录的语音备忘，没有字幕源 */}
             <audio
               controls

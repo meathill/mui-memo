@@ -12,10 +12,7 @@ export async function GET(req: Request) {
 
   const url = new URL(req.url);
   const before = url.searchParams.get('before');
-  const limit = Math.min(
-    Number(url.searchParams.get('limit') ?? DEFAULT_LIMIT) || DEFAULT_LIMIT,
-    MAX_LIMIT,
-  );
+  const limit = Math.min(Number(url.searchParams.get('limit') ?? DEFAULT_LIMIT) || DEFAULT_LIMIT, MAX_LIMIT);
 
   const conds = [eq(utterancesTable.userId, ctx.session.user.id)];
   if (before) {

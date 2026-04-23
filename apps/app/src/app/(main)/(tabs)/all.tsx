@@ -84,13 +84,9 @@ export default function AllScreen() {
     <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
       <ScrollView
         contentContainerClassName="px-5 pt-4 pb-10"
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1d1a12" />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1d1a12" />}
       >
-        <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">
-          MuiMemo · 全部
-        </Text>
+        <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">MuiMemo · 全部</Text>
         <Text className="mt-1 font-serif text-2xl text-ink">清单全景</Text>
         <Text className="mt-1 text-ink-soft text-sm">共 {pending.length} 件待办，按标签分组</Text>
 

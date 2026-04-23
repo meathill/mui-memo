@@ -67,15 +67,9 @@ export function AllView() {
 
   return (
     <main className="relative mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-6 pb-24 sm:pt-10">
-      <PullIndicator
-        pullOffset={pullOffset}
-        refreshing={refreshing}
-        onManualRefresh={() => trigger()}
-      />
+      <PullIndicator pullOffset={pullOffset} refreshing={refreshing} onManualRefresh={() => trigger()} />
       <header>
-        <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">
-          MuiMemo · 全部
-        </p>
+        <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">MuiMemo · 全部</p>
         <h1 className="font-serif text-2xl text-ink">清单全景</h1>
         <p className="mt-1 text-sm text-ink-soft">共 {pending.length} 件待办，按标签分组</p>
       </header>

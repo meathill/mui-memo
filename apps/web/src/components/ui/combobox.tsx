@@ -192,11 +192,7 @@ export function ComboboxPopup({
   );
 }
 
-export function ComboboxItem({
-  className,
-  children,
-  ...props
-}: ComboboxPrimitive.Item.Props): React.ReactElement {
+export function ComboboxItem({ className, children, ...props }: ComboboxPrimitive.Item.Props): React.ReactElement {
   return (
     <ComboboxPrimitive.Item
       className={cn(
@@ -227,10 +223,7 @@ export function ComboboxItem({
   );
 }
 
-export function ComboboxSeparator({
-  className,
-  ...props
-}: ComboboxPrimitive.Separator.Props): React.ReactElement {
+export function ComboboxSeparator({ className, ...props }: ComboboxPrimitive.Separator.Props): React.ReactElement {
   return (
     <ComboboxPrimitive.Separator
       className={cn('mx-2 my-1 h-px bg-border last:hidden', className)}
@@ -240,10 +233,7 @@ export function ComboboxSeparator({
   );
 }
 
-export function ComboboxGroup({
-  className,
-  ...props
-}: ComboboxPrimitive.Group.Props): React.ReactElement {
+export function ComboboxGroup({ className, ...props }: ComboboxPrimitive.Group.Props): React.ReactElement {
   return (
     <ComboboxPrimitive.Group
       className={cn('[[role=group]+&]:mt-1.5', className)}
@@ -253,10 +243,7 @@ export function ComboboxGroup({
   );
 }
 
-export function ComboboxGroupLabel({
-  className,
-  ...props
-}: ComboboxPrimitive.GroupLabel.Props): React.ReactElement {
+export function ComboboxGroupLabel({ className, ...props }: ComboboxPrimitive.GroupLabel.Props): React.ReactElement {
   return (
     <ComboboxPrimitive.GroupLabel
       className={cn('px-2 py-1.5 font-medium text-muted-foreground text-xs', className)}
@@ -266,26 +253,17 @@ export function ComboboxGroupLabel({
   );
 }
 
-export function ComboboxEmpty({
-  className,
-  ...props
-}: ComboboxPrimitive.Empty.Props): React.ReactElement {
+export function ComboboxEmpty({ className, ...props }: ComboboxPrimitive.Empty.Props): React.ReactElement {
   return (
     <ComboboxPrimitive.Empty
-      className={cn(
-        'not-empty:p-2 text-center text-base text-muted-foreground sm:text-sm',
-        className,
-      )}
+      className={cn('not-empty:p-2 text-center text-base text-muted-foreground sm:text-sm', className)}
       data-slot="combobox-empty"
       {...props}
     />
   );
 }
 
-export function ComboboxRow({
-  className,
-  ...props
-}: ComboboxPrimitive.Row.Props): React.ReactElement {
+export function ComboboxRow({ className, ...props }: ComboboxPrimitive.Row.Props): React.ReactElement {
   return <ComboboxPrimitive.Row className={className} data-slot="combobox-row" {...props} />;
 }
 
@@ -293,17 +271,11 @@ export function ComboboxValue({ ...props }: ComboboxPrimitive.Value.Props): Reac
   return <ComboboxPrimitive.Value data-slot="combobox-value" {...props} />;
 }
 
-export function ComboboxList({
-  className,
-  ...props
-}: ComboboxPrimitive.List.Props): React.ReactElement {
+export function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props): React.ReactElement {
   return (
     <ScrollArea scrollbarGutter scrollFade>
       <ComboboxPrimitive.List
-        className={cn(
-          'not-empty:scroll-py-1 not-empty:px-1 not-empty:py-1 in-data-has-overflow-y:pe-3',
-          className,
-        )}
+        className={cn('not-empty:scroll-py-1 not-empty:px-1 not-empty:py-1 in-data-has-overflow-y:pe-3', className)}
         data-slot="combobox-list"
         {...props}
       />
@@ -311,23 +283,14 @@ export function ComboboxList({
   );
 }
 
-export function ComboboxClear({
-  className,
-  ...props
-}: ComboboxPrimitive.Clear.Props): React.ReactElement {
+export function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props): React.ReactElement {
   return <ComboboxPrimitive.Clear className={className} data-slot="combobox-clear" {...props} />;
 }
 
-export function ComboboxStatus({
-  className,
-  ...props
-}: ComboboxPrimitive.Status.Props): React.ReactElement {
+export function ComboboxStatus({ className, ...props }: ComboboxPrimitive.Status.Props): React.ReactElement {
   return (
     <ComboboxPrimitive.Status
-      className={cn(
-        'px-3 py-2 font-medium text-muted-foreground text-xs empty:m-0 empty:p-0',
-        className,
-      )}
+      className={cn('px-3 py-2 font-medium text-muted-foreground text-xs empty:m-0 empty:p-0', className)}
       data-slot="combobox-status"
       {...props}
     />

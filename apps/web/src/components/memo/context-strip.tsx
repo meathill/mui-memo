@@ -17,9 +17,7 @@ export function ContextStrip({ value, onChange, nowCount }: Props) {
     <div className="rounded-2xl border border-rule/60 bg-paper-2/70 px-4 py-3 shadow-xs/5">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="font-mono text-[10px] tracking-[0.15em] text-ink-mute uppercase">
-            当前场景
-          </p>
+          <p className="font-mono text-[10px] tracking-[0.15em] text-ink-mute uppercase">当前场景</p>
           <p className="mt-0.5 font-serif text-lg text-ink">
             {PLACE_LABEL[value].icon} {PLACE_LABEL[value].label}
             <span className="ml-2 text-sm text-ink-soft">

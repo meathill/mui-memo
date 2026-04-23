@@ -49,9 +49,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
   if (!row) return NextResponse.json({ ok: true }); // 幂等
 
-  await ctx.db
-    .delete(attachmentsTable)
-    .where(and(eq(attachmentsTable.id, id), eq(attachmentsTable.userId, userId)));
+  await ctx.db.delete(attachmentsTable).where(and(eq(attachmentsTable.id, id), eq(attachmentsTable.userId, userId)));
 
   const bucket = ctx.env.AUDIO_BUCKET;
   if (bucket) {

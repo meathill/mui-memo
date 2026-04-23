@@ -41,10 +41,7 @@ async function main() {
   for (const target of rasterTargets) {
     const svg = await readFile(target.sourcePath);
 
-    await sharp(svg, { density: 384 })
-      .resize(target.size, target.size)
-      .png()
-      .toFile(target.outputPath);
+    await sharp(svg, { density: 384 }).resize(target.size, target.size).png().toFile(target.outputPath);
 
     console.log(`generated ${path.relative(APP_DIR, target.outputPath)}`);
   }

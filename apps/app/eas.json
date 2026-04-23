@@ -36,9 +36,9 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "meathill@gmail.com",
-        "ascAppId": "TODO-替换成-App-Store-Connect-里-MuiMemo-的-Apple-ID-数字串",
-        "appleTeamId": "TODO-替换成-Apple-Developer-Team-ID"
+        "appleId": "redodicer@outlook.com",
+        "ascAppId": "6763317433",
+        "appleTeamId": "FNXZ69UX8K"
       }
     }
   }

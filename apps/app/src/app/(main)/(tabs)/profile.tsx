@@ -1,24 +1,12 @@
 import { ErrorBanner } from '@/components/error-banner';
 import { type ProfileStats, api } from '@/lib/api';
-import {
-  type PermStatus,
-  getPermissionStatus,
-  requestPermission,
-} from '@/lib/notifications';
+import { type PermStatus, getPermissionStatus, requestPermission } from '@/lib/notifications';
 import * as Linking from 'expo-linking';
 import { BellIcon, ZapIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { LogOutIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
@@ -29,7 +17,9 @@ export default function ProfileScreen() {
   const [notifPerm, setNotifPerm] = useState<PermStatus>('prompt');
 
   useEffect(() => {
-    getPermissionStatus().then(setNotifPerm).catch(() => undefined);
+    getPermissionStatus()
+      .then(setNotifPerm)
+      .catch(() => undefined);
   }, []);
 
   const handleNotifTap = useCallback(async () => {
@@ -94,13 +84,9 @@ export default function ProfileScreen() {
     <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
       <ScrollView
         contentContainerClassName="px-5 pt-4 pb-10"
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1d1a12" />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1d1a12" />}
       >
-        <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">
-          MuiMemo · 我的
-        </Text>
+        <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">MuiMemo · 我的</Text>
         <Text className="mt-1 font-serif text-2xl text-ink">账号与数据</Text>
 
         {loadError ? (
@@ -149,9 +135,7 @@ export default function ProfileScreen() {
             </Text>
           </View>
           {notifPerm !== 'granted' ? (
-            <Text className="font-mono text-accent-warm text-sm">
-              {notifPerm === 'blocked' ? '去设置' : '开启'}
-            </Text>
+            <Text className="font-mono text-accent-warm text-sm">{notifPerm === 'blocked' ? '去设置' : '开启'}</Text>
           ) : null}
         </Pressable>
 
@@ -173,9 +157,7 @@ export default function ProfileScreen() {
                 {
                   text: '打开快捷指令',
                   onPress: () =>
-                    Linking.openURL('shortcuts://').catch(() =>
-                      Alert.alert('打不开', '请到主屏找「快捷指令」app'),
-                    ),
+                    Linking.openURL('shortcuts://').catch(() => Alert.alert('打不开', '请到主屏找「快捷指令」app')),
                 },
               ],
             );
@@ -187,9 +169,7 @@ export default function ProfileScreen() {
           </View>
           <View className="flex-1">
             <Text className="font-serif text-base text-ink">Siri 快捷指令</Text>
-            <Text className="mt-0.5 text-ink-soft text-sm">
-              「嘿 Siri, 记一下」一秒打开 MuiMemo
-            </Text>
+            <Text className="mt-0.5 text-ink-soft text-sm">「嘿 Siri, 记一下」一秒打开 MuiMemo</Text>
           </View>
           <Text className="font-mono text-accent-good text-sm">怎么配</Text>
         </Pressable>
@@ -212,15 +192,7 @@ export default function ProfileScreen() {
   );
 }
 
-function StatCard({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: number;
-  accent?: boolean;
-}) {
+function StatCard({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
   return (
     <View
       className={`flex-1 basis-[45%] rounded-2xl border p-4 ${

@@ -1,9 +1,7 @@
 import { buildUtterance, expect, test } from './fixtures';
 
 async function addTaskAndGetId(
-  inject: (
-    utterance: ReturnType<typeof buildUtterance>,
-  ) => Promise<{ effect: { kind: string; id?: string } }>,
+  inject: (utterance: ReturnType<typeof buildUtterance>) => Promise<{ effect: { kind: string; id?: string } }>,
   text: string,
   extra: Record<string, unknown> = {},
 ): Promise<string> {

@@ -58,10 +58,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="zh-CN"
-      className={cn('h-full antialiased', inter.variable, serifSC.variable, mono.variable)}
-    >
+    <html lang="zh-CN" className={cn('h-full antialiased', inter.variable, serifSC.variable, mono.variable)}>
       <body className="bg-paper text-ink min-h-full flex flex-col font-sans">
         <script
           // biome-ignore lint/security/noDangerouslySetInnerHtml: 主题早注入脚本，读 localStorage 防 FOUC

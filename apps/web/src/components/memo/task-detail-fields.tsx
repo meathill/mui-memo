@@ -1,13 +1,7 @@
 'use client';
 
 import { useNowTick } from '@/hooks/use-now-tick';
-import {
-  formatDueAt,
-  isOverdue,
-  isoToLocalInput,
-  localInputToISO,
-  relativeTimeLabel,
-} from '@/lib/time';
+import { formatDueAt, isOverdue, isoToLocalInput, localInputToISO, relativeTimeLabel } from '@/lib/time';
 import { cn } from '@/lib/utils';
 import type { TaskPlace, TaskStatus, TaskWindow } from '@mui-memo/shared/validators';
 import { useState } from 'react';
@@ -34,18 +28,10 @@ export const PRIORITY_LABEL: Record<number, string> = {
   3: '高',
 };
 
-export function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block space-y-1.5">
-      <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">
-        {label}
-      </span>
+      <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">{label}</span>
       {children}
     </label>
   );

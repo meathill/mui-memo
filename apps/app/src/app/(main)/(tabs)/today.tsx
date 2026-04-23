@@ -21,17 +21,8 @@ const SECTION_ORDER: Bucket[] = ['now', 'today_here', 'today_else', 'blocked', '
 export default function TodayScreen() {
   const user = useSession((s) => s.user);
 
-  const {
-    place,
-    tasks,
-    hydrate,
-    setPlace,
-    isProcessing,
-    setProcessing,
-    lastEffect,
-    lastUtterance,
-    setLastEffect,
-  } = useAppStore();
+  const { place, tasks, hydrate, setPlace, isProcessing, setProcessing, lastEffect, lastUtterance, setLastEffect } =
+    useAppStore();
 
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -136,17 +127,11 @@ export default function TodayScreen() {
       <ScrollView
         contentContainerClassName="px-5 pt-4 pb-40"
         keyboardShouldPersistTaps="handled"
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1d1a12" />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1d1a12" />}
       >
         <View>
-          <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">
-            MuiMemo · 今天
-          </Text>
-          <Text className="mt-1 font-serif text-2xl text-ink">
-            你好，{user?.name ?? user?.email ?? '朋友'}
-          </Text>
+          <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">MuiMemo · 今天</Text>
+          <Text className="mt-1 font-serif text-2xl text-ink">你好，{user?.name ?? user?.email ?? '朋友'}</Text>
         </View>
 
         <View className="mt-5">

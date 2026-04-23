@@ -21,17 +21,11 @@ function formatDay(iso: string | null): string {
   const d = new Date(iso);
   const now = new Date();
   const sameDay =
-    d.getFullYear() === now.getFullYear() &&
-    d.getMonth() === now.getMonth() &&
-    d.getDate() === now.getDate();
+    d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
   if (sameDay) return '今天';
   const y = new Date(now);
   y.setDate(now.getDate() - 1);
-  if (
-    d.getFullYear() === y.getFullYear() &&
-    d.getMonth() === y.getMonth() &&
-    d.getDate() === y.getDate()
-  ) {
+  if (d.getFullYear() === y.getFullYear() && d.getMonth() === y.getMonth() && d.getDate() === y.getDate()) {
     return '昨天';
   }
   return `${d.getMonth() + 1}月${d.getDate()}日`;
@@ -60,9 +54,7 @@ export function CompletedView() {
   }, []);
 
   const fetchPage = useCallback(async (before?: string | null) => {
-    const url = before
-      ? `/api/tasks/completed?before=${encodeURIComponent(before)}`
-      : '/api/tasks/completed';
+    const url = before ? `/api/tasks/completed?before=${encodeURIComponent(before)}` : '/api/tasks/completed';
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) return null;
     return (await res.json()) as {
@@ -128,15 +120,9 @@ export function CompletedView() {
 
   return (
     <main className="relative mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-6 pb-24 sm:pt-10">
-      <PullIndicator
-        pullOffset={pullOffset}
-        refreshing={refreshing}
-        onManualRefresh={() => trigger()}
-      />
+      <PullIndicator pullOffset={pullOffset} refreshing={refreshing} onManualRefresh={() => trigger()} />
       <header>
-        <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">
-          MuiMemo · 已完成
-        </p>
+        <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">MuiMemo · 已完成</p>
         <h1 className="font-serif text-2xl text-ink">你搞定的那些事</h1>
         <p className="mt-1 text-sm text-ink-soft">
           已加载 {tasks.length} 件{hasMore ? '（还可下拉/滚到底部看更多）' : ''}
@@ -157,10 +143,7 @@ export function CompletedView() {
               <SectionHeader title={day} count={list.length} />
               <ul className="rounded-2xl border border-rule/60 bg-paper-2/40 px-3">
                 {list.map((t) => (
-                  <li
-                    key={t.id}
-                    className="flex items-start gap-3 border-b border-rule/50 px-1 py-3 last:border-b-0"
-                  >
+                  <li key={t.id} className="flex items-start gap-3 border-b border-rule/50 px-1 py-3 last:border-b-0">
                     <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-good text-paper">
                       <CheckIcon className="h-3 w-3" />
                     </span>
@@ -203,11 +186,7 @@ export function CompletedView() {
         open={pendingDelete !== null}
         onOpenChange={(v) => !v && setPendingDelete(null)}
         title="删除这条完成记录？"
-        description={
-          pendingDelete
-            ? `「${pendingDelete.text}」将被彻底删除，附件与原始语音也一并清除。`
-            : undefined
-        }
+        description={pendingDelete ? `「${pendingDelete.text}」将被彻底删除，附件与原始语音也一并清除。` : undefined}
         confirmText="删除"
         destructive
         onConfirm={async () => {

@@ -4,8 +4,7 @@ import { cn } from '@/lib/utils';
 import { Tooltip as TooltipPrimitive } from '@base-ui/react/tooltip';
 import type React from 'react';
 
-export const TooltipCreateHandle: typeof TooltipPrimitive.createHandle =
-  TooltipPrimitive.createHandle;
+export const TooltipCreateHandle: typeof TooltipPrimitive.createHandle = TooltipPrimitive.createHandle;
 
 export const TooltipProvider: typeof TooltipPrimitive.Provider = TooltipPrimitive.Provider;
 

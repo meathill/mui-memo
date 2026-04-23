@@ -58,9 +58,8 @@ async function request<T>(path: string, init: JsonInit = {}): Promise<T> {
   const data = text ? safeJson(text) : undefined;
   if (!res.ok) {
     const msg =
-      (data && typeof data === 'object' && 'error' in data
-        ? String((data as { error?: unknown }).error)
-        : text) || res.statusText;
+      (data && typeof data === 'object' && 'error' in data ? String((data as { error?: unknown }).error) : text) ||
+      res.statusText;
     throw new ApiError(msg, res.status, data);
   }
   return data as T;
@@ -163,8 +162,7 @@ export const api = {
         const err = await res.text();
         throw new ApiError(err || 'Apple 登录失败', res.status);
       }
-      const headerToken =
-        res.headers.get('set-auth-token') ?? res.headers.get('Set-Auth-Token');
+      const headerToken = res.headers.get('set-auth-token') ?? res.headers.get('Set-Auth-Token');
       const data = (await res.json()) as {
         token?: string;
         user?: SessionUser;
@@ -232,20 +230,11 @@ export const api = {
      * 提交录音走 multipart。RN 的 FormData 对 `{ uri, name, type }` 三元组
      * 有特殊处理（原生层直接把本地文件流上传），不需要先 readAsBlob。
      */
-    async submit(opts: {
-      audioUri: string;
-      mimeType: string;
-      place: TaskPlace;
-      tz: string;
-    }) {
+    async submit(opts: { audioUri: string; mimeType: string; place: TaskPlace; tz: string }) {
       const fd = new FormData();
       // RN FormData 的 file 字段类型比标准 DOM 多一层 uri，官方 TS 声明里没带，
       // 但运行时必须按这个形状传
-      const ext = opts.mimeType.includes('wav')
-        ? 'wav'
-        : opts.mimeType.includes('webm')
-          ? 'webm'
-          : 'm4a';
+      const ext = opts.mimeType.includes('wav') ? 'wav' : opts.mimeType.includes('webm') ? 'webm' : 'm4a';
       fd.append('audio', {
         uri: opts.audioUri,
         name: `utterance.${ext}`,

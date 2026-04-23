@@ -29,9 +29,7 @@ export function TweaksPanel() {
     <section className="mt-6 rounded-2xl border border-rule/60 bg-paper-2/50 p-5">
       <header className="mb-3 flex items-center justify-between">
         <h2 className="font-serif text-sm text-ink">Tweaks</h2>
-        <span className="font-mono text-[10px] tracking-[0.15em] text-ink-mute uppercase">
-          偏好
-        </span>
+        <span className="font-mono text-[10px] tracking-[0.15em] text-ink-mute uppercase">偏好</span>
       </header>
 
       <Group label="主题">
@@ -63,18 +61,10 @@ export function TweaksPanel() {
   );
 }
 
-function Group({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Group({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="mb-2 font-mono text-[10px] tracking-[0.15em] text-ink-mute uppercase">
-        {label}
-      </p>
+      <p className="mb-2 font-mono text-[10px] tracking-[0.15em] text-ink-mute uppercase">{label}</p>
       <div className="grid grid-cols-3 gap-2">{children}</div>
     </div>
   );
@@ -98,9 +88,7 @@ function OptionCard({
       aria-pressed={active}
       className={
         'rounded-xl border px-3 py-2 text-left transition ' +
-        (active
-          ? 'border-accent-warm/60 bg-accent-warm/10'
-          : 'border-rule/60 bg-paper hover:bg-paper-2')
+        (active ? 'border-accent-warm/60 bg-accent-warm/10' : 'border-rule/60 bg-paper hover:bg-paper-2')
       }
     >
       <p className="font-serif text-sm text-ink">{label}</p>

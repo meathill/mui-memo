@@ -32,8 +32,7 @@ export function Calendar({
       'w-full flex items-center text-base sm:text-sm justify-center h-(--cell-size) gap-1.5 *:[span]:font-medium',
     hidden: 'invisible',
     month: 'w-full',
-    month_caption:
-      'relative mx-(--cell-size) px-1 mb-1 flex h-(--cell-size) items-center justify-center z-2',
+    month_caption: 'relative mx-(--cell-size) px-1 mb-1 flex h-(--cell-size) items-center justify-center z-2',
     months: 'relative flex flex-col sm:flex-row gap-2',
     nav: 'absolute top-0 flex w-full justify-between z-1',
     outside: 'text-muted-foreground data-selected:bg-accent/50 data-selected:text-muted-foreground',
@@ -67,23 +66,11 @@ export function Calendar({
       orientation?: 'left' | 'right' | 'up' | 'down';
     }): React.ReactElement => {
       if (orientation === 'left') {
-        return (
-          <ChevronLeftIcon
-            className={cn(className, 'rtl:rotate-180')}
-            {...props}
-            aria-hidden="true"
-          />
-        );
+        return <ChevronLeftIcon className={cn(className, 'rtl:rotate-180')} {...props} aria-hidden="true" />;
       }
 
       if (orientation === 'right') {
-        return (
-          <ChevronRightIcon
-            className={cn(className, 'rtl:rotate-180')}
-            {...props}
-            aria-hidden="true"
-          />
-        );
+        return <ChevronRightIcon className={cn(className, 'rtl:rotate-180')} {...props} aria-hidden="true" />;
       }
 
       return <ChevronsUpDownIcon className={className} {...props} aria-hidden="true" />;

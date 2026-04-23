@@ -74,10 +74,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const body = await req.json().catch(() => null);
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'invalid_input', issues: parsed.error.issues },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: 'invalid_input', issues: parsed.error.issues }, { status: 400 });
   }
 
   const p = parsed.data;

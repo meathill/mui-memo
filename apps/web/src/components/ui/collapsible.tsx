@@ -8,10 +8,7 @@ export function Collapsible({ ...props }: CollapsiblePrimitive.Root.Props): Reac
   return <CollapsiblePrimitive.Root data-slot="collapsible" {...props} />;
 }
 
-export function CollapsibleTrigger({
-  className,
-  ...props
-}: CollapsiblePrimitive.Trigger.Props): React.ReactElement {
+export function CollapsibleTrigger({ className, ...props }: CollapsiblePrimitive.Trigger.Props): React.ReactElement {
   return (
     <CollapsiblePrimitive.Trigger
       className={cn('cursor-pointer', className)}
@@ -21,10 +18,7 @@ export function CollapsibleTrigger({
   );
 }
 
-export function CollapsiblePanel({
-  className,
-  ...props
-}: CollapsiblePrimitive.Panel.Props): React.ReactElement {
+export function CollapsiblePanel({ className, ...props }: CollapsiblePrimitive.Panel.Props): React.ReactElement {
   return (
     <CollapsiblePrimitive.Panel
       className={cn(

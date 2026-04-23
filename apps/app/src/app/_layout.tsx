@@ -1,11 +1,7 @@
 import '../global.css';
 
 import { api } from '@/lib/api';
-import {
-  Notifications,
-  reconcileTaskReminders,
-  type TaskNotificationData,
-} from '@/lib/notifications';
+import { Notifications, reconcileTaskReminders, type TaskNotificationData } from '@/lib/notifications';
 import { useSession } from '@/lib/session';
 import { useAppStore } from '@/store';
 import { Stack, router } from 'expo-router';
@@ -58,9 +54,7 @@ export default function RootLayout() {
   // 通知点击 → 跳详情
   useEffect(() => {
     const sub = Notifications.addNotificationResponseReceivedListener((res) => {
-      const data = res.notification.request.content.data as
-        | TaskNotificationData
-        | undefined;
+      const data = res.notification.request.content.data as TaskNotificationData | undefined;
       if (data?.taskId) router.push(`/tasks/${data.taskId}`);
     });
     return () => sub.remove();

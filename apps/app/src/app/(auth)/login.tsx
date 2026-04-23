@@ -2,15 +2,7 @@ import { AppleSignInButton } from '@/components/apple-sign-in-button';
 import { ApiError, api } from '@/lib/api';
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LoginScreen() {
@@ -41,15 +33,10 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-paper">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1"
-      >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <View className="flex-1 justify-center px-6">
           <View className="items-center">
-            <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">
-              MuiMemo
-            </Text>
+            <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">MuiMemo</Text>
             <Text className="mt-2 font-serif text-3xl text-ink">欢迎回来</Text>
             <Text className="mt-1 text-ink-soft text-sm">说一句话，把琐事记下来。</Text>
           </View>
@@ -92,9 +79,7 @@ export default function LoginScreen() {
 
           <View className="mt-6 flex-row items-center gap-3">
             <View className="h-px flex-1 bg-rule/60" />
-            <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">
-              或
-            </Text>
+            <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">或</Text>
             <View className="h-px flex-1 bg-rule/60" />
           </View>
           <View className="mt-4">
@@ -113,13 +98,7 @@ export default function LoginScreen() {
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View className="space-y-1.5">
       <Text className="text-ink-soft text-sm">{label}</Text>

@@ -12,10 +12,7 @@ import type { Database } from './db';
 
 type NullableField<T> = T | null | undefined;
 
-function rowToView(
-  row: TaskRow,
-  linkedChildren: Array<{ id: string; text: string }> = [],
-): TaskView {
+function rowToView(row: TaskRow, linkedChildren: Array<{ id: string; text: string }> = []): TaskView {
   return {
     id: row.id,
     text: row.text,
@@ -41,12 +38,7 @@ function rowToView(
 /**
  * 把一个已经写入 R2 的音频 key 关联到任务行（ADD / DONE-backfill 路径用）。
  */
-export async function linkAudioKey(
-  db: Database,
-  userId: string,
-  taskId: string,
-  audioKey: string,
-): Promise<void> {
+export async function linkAudioKey(db: Database, userId: string, taskId: string, audioKey: string): Promise<void> {
   await db
     .update(tasksTable)
     .set({ audioKey, updatedAt: new Date() })

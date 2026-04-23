@@ -38,9 +38,7 @@ export function DoingCard({ task, onDone }: Props) {
           {PLACE_LABEL[task.place].icon} {PLACE_LABEL[task.place].label}
         </span>
         {displayLabel ? (
-          <span
-            className={cn(overdue && 'text-red-600 font-semibold', !overdue && 'text-ink-mute')}
-          >
+          <span className={cn(overdue && 'text-red-600 font-semibold', !overdue && 'text-ink-mute')}>
             · ⏱ {displayLabel}
           </span>
         ) : null}

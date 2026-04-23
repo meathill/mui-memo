@@ -25,13 +25,7 @@ function formatSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function AttachmentItem({
-  att,
-  onDelete,
-}: {
-  att: Attachment;
-  onDelete: () => void;
-}) {
+function AttachmentItem({ att, onDelete }: { att: Attachment; onDelete: () => void }) {
   const url = `${ASSETS_URL}/${att.key}`;
   const name = att.originalName ?? '附件';
   return (
@@ -129,9 +123,7 @@ export function AttachmentsSection({
       }}
     >
       <div className="flex items-center justify-between">
-        <h2 className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink-mute">
-          附件 · {attachments.length}
-        </h2>
+        <h2 className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink-mute">附件 · {attachments.length}</h2>
         <Button variant="outline" size="sm" onClick={onPickFile} loading={uploading}>
           <PaperclipIcon />
           上传
@@ -153,9 +145,7 @@ export function AttachmentsSection({
         </ul>
       )}
 
-      {dragOver ? (
-        <p className="font-mono text-[11px] text-accent-warm text-center">松开上传到此任务</p>
-      ) : null}
+      {dragOver ? <p className="font-mono text-[11px] text-accent-warm text-center">松开上传到此任务</p> : null}
     </section>
   );
 }

@@ -45,9 +45,7 @@ export async function requireAuthDb(): Promise<[NextResponse, null] | [null, Aut
 /**
  * 只要 session（不建 db）。audio 回放等纯 R2 路由用。
  */
-export async function requireAuth(): Promise<
-  [NextResponse, null] | [null, { session: Session; env: CfEnv }]
-> {
+export async function requireAuth(): Promise<[NextResponse, null] | [null, { session: Session; env: CfEnv }]> {
   const session = await getServerSession();
   if (!session) {
     return [NextResponse.json({ error: 'unauthorized' }, { status: 401 }), null];

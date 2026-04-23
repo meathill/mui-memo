@@ -54,14 +54,7 @@ export default function RegisterPage() {
         </label>
         <label className="block space-y-1.5">
           <span className="text-xs font-medium text-ink-soft">密码（≥ 8 位）</span>
-          <Input
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            minLength={8}
-            required
-            size="lg"
-          />
+          <Input name="password" type="password" autoComplete="new-password" minLength={8} required size="lg" />
         </label>
         {error ? <p className="text-xs text-red-600">{error}</p> : null}
         <Button type="submit" size="lg" className="w-full" loading={loading}>

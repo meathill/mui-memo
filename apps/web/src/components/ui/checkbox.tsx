@@ -4,10 +4,7 @@ import { cn } from '@/lib/utils';
 import { Checkbox as CheckboxPrimitive } from '@base-ui/react/checkbox';
 import type React from 'react';
 
-export function Checkbox({
-  className,
-  ...props
-}: CheckboxPrimitive.Root.Props): React.ReactElement {
+export function Checkbox({ className, ...props }: CheckboxPrimitive.Root.Props): React.ReactElement {
   return (
     <CheckboxPrimitive.Root
       className={cn(

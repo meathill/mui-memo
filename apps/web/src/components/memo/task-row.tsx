@@ -49,11 +49,7 @@ export function TaskRow({ task, onDone }: Props) {
   }
 
   const priorityDot =
-    task.priority === 3
-      ? 'bg-accent-warm'
-      : task.priority === 2
-        ? 'bg-accent-warn'
-        : 'bg-ink-mute/40';
+    task.priority === 3 ? 'bg-accent-warm' : task.priority === 2 ? 'bg-accent-warn' : 'bg-ink-mute/40';
 
   // 优先看 expectAt；没有就看 dueAt；两者都没就退回静态 deadline label
   const anchor = task.expectAt ?? task.dueAt ?? null;
@@ -61,8 +57,7 @@ export function TaskRow({ task, onDone }: Props) {
   const overdue = !task.done && isOverdue(anchor, now);
   const displayLabel = dynamicLabel || task.deadline || '';
 
-  const exitClass =
-    checked && anim === 'fade' ? 'mm-fade' : checked && anim === 'fly' ? 'mm-fly' : '';
+  const exitClass = checked && anim === 'fade' ? 'mm-fade' : checked && anim === 'fly' ? 'mm-fly' : '';
 
   return (
     <li className={exitClass}>
@@ -85,12 +80,7 @@ export function TaskRow({ task, onDone }: Props) {
           <CheckIcon className="h-3 w-3" />
         </button>
         <div className="min-w-0 flex-1">
-          <p
-            className={cn(
-              'font-serif text-base leading-snug text-ink',
-              checked && 'mm-strike text-ink-soft',
-            )}
-          >
+          <p className={cn('font-serif text-base leading-snug text-ink', checked && 'mm-strike text-ink-soft')}>
             {task.text}
           </p>
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[11px] text-ink-mute">
@@ -99,15 +89,11 @@ export function TaskRow({ task, onDone }: Props) {
             </span>
             {task.tag ? <span>· 🏷 {task.tag}</span> : null}
             {displayLabel ? (
-              <span
-                className={cn(overdue && 'text-red-600 font-semibold', !overdue && 'text-ink-mute')}
-              >
+              <span className={cn(overdue && 'text-red-600 font-semibold', !overdue && 'text-ink-mute')}>
                 · ⏱ {displayLabel}
               </span>
             ) : null}
-            {task.aiReason ? (
-              <span className="not-italic text-ink-soft">· {task.aiReason}</span>
-            ) : null}
+            {task.aiReason ? <span className="not-italic text-ink-soft">· {task.aiReason}</span> : null}
           </div>
         </div>
         <span className={cn('mt-2 h-2 w-2 shrink-0 rounded-full', priorityDot)} aria-hidden />

@@ -34,10 +34,7 @@ export const useSession = create<SessionState>((set) => ({
     set({ token, user, hydrating: false });
   },
   async clearSession() {
-    await Promise.all([
-      SecureStore.deleteItemAsync(TOKEN_KEY),
-      SecureStore.deleteItemAsync(USER_KEY),
-    ]);
+    await Promise.all([SecureStore.deleteItemAsync(TOKEN_KEY), SecureStore.deleteItemAsync(USER_KEY)]);
     set({ token: null, user: null, hydrating: false });
   },
   async hydrate() {

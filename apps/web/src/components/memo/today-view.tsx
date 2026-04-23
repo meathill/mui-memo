@@ -31,17 +31,8 @@ export function TodayView({ userName }: Props) {
     } catch {}
   }, [router]);
 
-  const {
-    place,
-    setPlace,
-    tasks,
-    hydrate,
-    setProcessing,
-    isProcessing,
-    lastEffect,
-    lastUtterance,
-    setLastEffect,
-  } = useAppStore();
+  const { place, setPlace, tasks, hydrate, setProcessing, isProcessing, lastEffect, lastUtterance, setLastEffect } =
+    useAppStore();
 
   // 单次拉取：只拉全量 tasks，不带 place；筛选和 rerank 都在前端。
   const fetchAll = useCallback(async () => {
@@ -132,16 +123,10 @@ export function TodayView({ userName }: Props) {
   return (
     <main className="relative mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-6 pb-48 sm:pt-10">
       <EffectToast effect={lastEffect} utterance={lastUtterance} />
-      <PullIndicator
-        pullOffset={pullOffset}
-        refreshing={refreshing}
-        onManualRefresh={() => trigger()}
-      />
+      <PullIndicator pullOffset={pullOffset} refreshing={refreshing} onManualRefresh={() => trigger()} />
 
       <header>
-        <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">
-          MuiMemo · 今天
-        </p>
+        <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">MuiMemo · 今天</p>
         <h1 className="font-serif text-2xl text-ink">你好，{userName}</h1>
       </header>
 

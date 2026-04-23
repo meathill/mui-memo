@@ -41,14 +41,8 @@ export function AudioPlayButton({ audioKey, label = '播放原声' }: Props) {
       onPress={toggle}
       className="flex-row items-center gap-2 self-start rounded-full border border-accent-warm/40 bg-accent-warm/10 px-4 py-2 active:opacity-70"
     >
-      {playing ? (
-        <PauseIcon size={16} color="#c17a3a" />
-      ) : (
-        <PlayIcon size={16} color="#c17a3a" />
-      )}
-      <Text className="font-mono text-accent-warm text-sm">
-        {playing ? '暂停' : label}
-      </Text>
+      {playing ? <PauseIcon size={16} color="#c17a3a" /> : <PlayIcon size={16} color="#c17a3a" />}
+      <Text className="font-mono text-accent-warm text-sm">{playing ? '暂停' : label}</Text>
       {status.duration > 0 ? (
         <Text className="font-mono text-accent-warm/70 text-xs">
           {formatTime(status.currentTime)} / {formatTime(status.duration)}
@@ -89,11 +83,7 @@ export function AudioUrlPlayButton({ url }: { url: string }) {
         hitSlop={8}
         className="h-8 w-8 items-center justify-center rounded-full bg-accent-warm/15 active:opacity-70"
       >
-        {status.playing ? (
-          <PauseIcon size={14} color="#c17a3a" />
-        ) : (
-          <PlayIcon size={14} color="#c17a3a" />
-        )}
+        {status.playing ? <PauseIcon size={14} color="#c17a3a" /> : <PlayIcon size={14} color="#c17a3a" />}
       </Pressable>
       {status.duration > 0 ? (
         <Text className="font-mono text-ink-mute text-xs">

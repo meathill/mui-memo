@@ -1,14 +1,5 @@
 import { sql } from 'drizzle-orm';
-import {
-  boolean,
-  customType,
-  int,
-  json,
-  mysqlTable,
-  text,
-  timestamp,
-  varchar,
-} from 'drizzle-orm/mysql-core';
+import { boolean, customType, int, json, mysqlTable, text, timestamp, varchar } from 'drizzle-orm/mysql-core';
 
 // ──────────────────────────────────────────────
 // Custom Types (TiDB-specific)
@@ -139,10 +130,9 @@ export const tasks = mysqlTable('tasks', {
    * 读出来的值我们用不到；声明它只是为了 schema 一致 + 让 drizzle
    * 能识别该列。
    */
-  embedding: vector1024('embedding').generatedAlwaysAs(
-    sql.raw(`EMBED_TEXT("${TIDB_EMBED_MODEL}", \`text\`)`),
-    { mode: 'stored' },
-  ),
+  embedding: vector1024('embedding').generatedAlwaysAs(sql.raw(`EMBED_TEXT("${TIDB_EMBED_MODEL}", \`text\`)`), {
+    mode: 'stored',
+  }),
   /** 创建这条任务的原始语音 R2 key（仅 ADD / DONE-backfill 会填）。 */
   audioKey: varchar('audio_key', { length: 512 }),
 });

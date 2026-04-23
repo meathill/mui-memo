@@ -112,9 +112,7 @@ export function UtteranceLogView() {
           <ArrowLeftIcon />
         </Button>
         <div>
-          <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">
-            MuiMemo · 输入记录
-          </p>
+          <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">MuiMemo · 输入记录</p>
           <h1 className="font-serif text-2xl text-ink">你说过的每一句</h1>
         </div>
       </header>
@@ -131,12 +129,7 @@ export function UtteranceLogView() {
           {items.map((u) => (
             <li key={u.id} className="rounded-2xl border border-rule/60 bg-paper-2/40 p-3">
               <div className="flex items-center gap-2 font-mono text-[10px] text-ink-mute">
-                <span
-                  className={cn(
-                    'rounded-full border px-2 py-0.5',
-                    EFFECT_TONE[u.effectKind] ?? EFFECT_TONE.miss,
-                  )}
-                >
+                <span className={cn('rounded-full border px-2 py-0.5', EFFECT_TONE[u.effectKind] ?? EFFECT_TONE.miss)}>
                   {INTENT_LABEL[u.intent] ?? u.intent}
                   {u.verb ? ` · ${u.verb}` : ''}
                 </span>
@@ -146,10 +139,7 @@ export function UtteranceLogView() {
               {u.reason ? <p className="mt-1 text-xs text-ink-soft">{u.reason}</p> : null}
               <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] font-mono text-ink-mute">
                 {u.taskId ? (
-                  <Link
-                    href={`/app/tasks/${u.taskId}`}
-                    className="text-accent-warm hover:underline"
-                  >
+                  <Link href={`/app/tasks/${u.taskId}`} className="text-accent-warm hover:underline">
                     → 查看任务
                   </Link>
                 ) : null}

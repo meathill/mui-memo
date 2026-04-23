@@ -8,11 +8,12 @@ import { ToggleGroup as ToggleGroupPrimitive } from '@base-ui/react/toggle-group
 import type { VariantProps } from 'class-variance-authority';
 import * as React from 'react';
 
-export const ToggleGroupContext: React.Context<VariantProps<typeof toggleVariants>> =
-  React.createContext<VariantProps<typeof toggleVariants>>({
-    size: 'default',
-    variant: 'default',
-  });
+export const ToggleGroupContext: React.Context<VariantProps<typeof toggleVariants>> = React.createContext<
+  VariantProps<typeof toggleVariants>
+>({
+  size: 'default',
+  variant: 'default',
+});
 
 export function ToggleGroup({
   className,
@@ -26,9 +27,7 @@ export function ToggleGroup({
     <ToggleGroupPrimitive
       className={cn(
         'flex w-fit *:focus-visible:z-10 dark:*:[[data-slot=separator]:has(+[data-slot=toggle]:hover)]:before:bg-input/64 dark:*:[[data-slot=separator]:has(+[data-slot=toggle][data-pressed])]:before:bg-input dark:*:[[data-slot=toggle]:hover+[data-slot=separator]]:before:bg-input/64 dark:*:[[data-slot=toggle][data-pressed]+[data-slot=separator]]:before:bg-input',
-        orientation === 'horizontal'
-          ? '*:pointer-coarse:after:min-w-auto'
-          : '*:pointer-coarse:after:min-h-auto',
+        orientation === 'horizontal' ? '*:pointer-coarse:after:min-w-auto' : '*:pointer-coarse:after:min-h-auto',
         variant === 'default'
           ? 'gap-0.5'
           : orientation === 'horizontal'
@@ -42,9 +41,7 @@ export function ToggleGroup({
       orientation={orientation}
       {...props}
     >
-      <ToggleGroupContext.Provider value={{ size, variant }}>
-        {children}
-      </ToggleGroupContext.Provider>
+      <ToggleGroupContext.Provider value={{ size, variant }}>{children}</ToggleGroupContext.Provider>
     </ToggleGroupPrimitive>
   );
 }

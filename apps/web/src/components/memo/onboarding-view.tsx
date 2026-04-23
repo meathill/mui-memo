@@ -98,10 +98,7 @@ export function OnboardingView() {
             {SLIDES.map((_, i) => (
               <span
                 key={i}
-                className={cn(
-                  'h-1.5 rounded-full transition-all',
-                  i === idx ? 'w-6 bg-ink' : 'w-1.5 bg-ink-mute/30',
-                )}
+                className={cn('h-1.5 rounded-full transition-all', i === idx ? 'w-6 bg-ink' : 'w-1.5 bg-ink-mute/30')}
               />
             ))}
           </div>
@@ -175,9 +172,7 @@ function DemoMic() {
           <MicIcon className="h-7 w-7" />
         )}
       </button>
-      <p className="h-4 font-mono text-[11px] text-ink-mute">
-        {active ? '松开就结束（演示）' : '试试按住 →'}
-      </p>
+      <p className="h-4 font-mono text-[11px] text-ink-mute">{active ? '松开就结束（演示）' : '试试按住 →'}</p>
     </div>
   );
 }
@@ -243,9 +238,7 @@ function DemoCheck() {
       >
         {checked ? '✓' : null}
       </span>
-      <span className={cn('font-serif text-base text-ink', checked && 'mm-strike text-ink-soft')}>
-        带水
-      </span>
+      <span className={cn('font-serif text-base text-ink', checked && 'mm-strike text-ink-soft')}>带水</span>
     </button>
   );
 }

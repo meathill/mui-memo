@@ -3,13 +3,7 @@
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Toast } from '@base-ui/react/toast';
-import {
-  CircleAlertIcon,
-  CircleCheckIcon,
-  InfoIcon,
-  LoaderCircleIcon,
-  TriangleAlertIcon,
-} from 'lucide-react';
+import { CircleAlertIcon, CircleCheckIcon, InfoIcon, LoaderCircleIcon, TriangleAlertIcon } from 'lucide-react';
 import type React from 'react';
 
 const TOAST_ICONS = {
@@ -36,10 +30,7 @@ function getSwipeDirection(position: ToastPosition): SwipeDirection[] {
   return ['right', verticalDirection];
 }
 
-function upsertReplayClassName(toast: {
-  type?: string;
-  updateKey?: number;
-}): string | undefined {
+function upsertReplayClassName(toast: { type?: string; updateKey?: number }): string | undefined {
   const k = toast.updateKey ?? 0;
   if (k <= 0) return undefined;
   const isEven = k % 2 === 0;
@@ -134,10 +125,7 @@ function Toasts({ position }: { position: ToastPosition }): React.ReactElement {
 
                   <div className="flex flex-col gap-0.5">
                     <Toast.Title className="font-medium" data-slot="toast-title" />
-                    <Toast.Description
-                      className="text-muted-foreground"
-                      data-slot="toast-description"
-                    />
+                    <Toast.Description className="text-muted-foreground" data-slot="toast-description" />
                   </div>
                 </div>
                 {toast.actionProps && (
@@ -206,17 +194,11 @@ function AnchoredToasts(): React.ReactElement {
 
                       <div className="flex flex-col gap-0.5">
                         <Toast.Title className="font-medium" data-slot="toast-title" />
-                        <Toast.Description
-                          className="text-muted-foreground"
-                          data-slot="toast-description"
-                        />
+                        <Toast.Description className="text-muted-foreground" data-slot="toast-description" />
                       </div>
                     </div>
                     {toast.actionProps && (
-                      <Toast.Action
-                        className={buttonVariants({ size: 'xs' })}
-                        data-slot="toast-action"
-                      >
+                      <Toast.Action className={buttonVariants({ size: 'xs' })} data-slot="toast-action">
                         {toast.actionProps.children}
                       </Toast.Action>
                     )}
@@ -233,16 +215,9 @@ function AnchoredToasts(): React.ReactElement {
 
 export const toastManager: ReturnType<typeof Toast.createToastManager> = Toast.createToastManager();
 
-export const anchoredToastManager: ReturnType<typeof Toast.createToastManager> =
-  Toast.createToastManager();
+export const anchoredToastManager: ReturnType<typeof Toast.createToastManager> = Toast.createToastManager();
 
-export type ToastPosition =
-  | 'top-left'
-  | 'top-center'
-  | 'top-right'
-  | 'bottom-left'
-  | 'bottom-center'
-  | 'bottom-right';
+export type ToastPosition = 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
 
 export interface ToastProviderProps extends Toast.Provider.Props {
   position?: ToastPosition;
@@ -261,10 +236,7 @@ export function ToastProvider({
   );
 }
 
-export function AnchoredToastProvider({
-  children,
-  ...props
-}: Toast.Provider.Props): React.ReactElement {
+export function AnchoredToastProvider({ children, ...props }: Toast.Provider.Props): React.ReactElement {
   return (
     <Toast.Provider toastManager={anchoredToastManager} {...props}>
       {children}

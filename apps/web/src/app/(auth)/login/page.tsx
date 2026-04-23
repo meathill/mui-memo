@@ -48,13 +48,7 @@ export default function LoginPage() {
         </label>
         <label className="block space-y-1.5">
           <span className="text-xs font-medium text-ink-soft">密码</span>
-          <Input
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            size="lg"
-          />
+          <Input name="password" type="password" autoComplete="current-password" required size="lg" />
         </label>
         {error ? <p className="text-xs text-red-600">{error}</p> : null}
         <Button type="submit" size="lg" className="w-full" loading={loading}>

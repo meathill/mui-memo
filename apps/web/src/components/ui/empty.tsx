@@ -30,10 +30,7 @@ export function Empty({ className, ...props }: React.ComponentProps<'div'>): Rea
   );
 }
 
-export function EmptyHeader({
-  className,
-  ...props
-}: React.ComponentProps<'div'>): React.ReactElement {
+export function EmptyHeader({ className, ...props }: React.ComponentProps<'div'>): React.ReactElement {
   return (
     <div
       className={cn('flex max-w-sm flex-col items-center text-center', className)}
@@ -49,12 +46,7 @@ export function EmptyMedia({
   ...props
 }: React.ComponentProps<'div'> & VariantProps<typeof emptyMediaVariants>): React.ReactElement {
   return (
-    <div
-      className={cn('relative mb-6', className)}
-      data-slot="empty-media"
-      data-variant={variant}
-      {...props}
-    >
+    <div className={cn('relative mb-6', className)} data-slot="empty-media" data-variant={variant} {...props}>
       {variant === 'icon' && (
         <>
           <div
@@ -78,23 +70,11 @@ export function EmptyMedia({
   );
 }
 
-export function EmptyTitle({
-  className,
-  ...props
-}: React.ComponentProps<'div'>): React.ReactElement {
-  return (
-    <div
-      className={cn('font-heading font-semibold text-xl', className)}
-      data-slot="empty-title"
-      {...props}
-    />
-  );
+export function EmptyTitle({ className, ...props }: React.ComponentProps<'div'>): React.ReactElement {
+  return <div className={cn('font-heading font-semibold text-xl', className)} data-slot="empty-title" {...props} />;
 }
 
-export function EmptyDescription({
-  className,
-  ...props
-}: React.ComponentProps<'p'>): React.ReactElement {
+export function EmptyDescription({ className, ...props }: React.ComponentProps<'p'>): React.ReactElement {
   return (
     <div
       className={cn(
@@ -107,16 +87,10 @@ export function EmptyDescription({
   );
 }
 
-export function EmptyContent({
-  className,
-  ...props
-}: React.ComponentProps<'div'>): React.ReactElement {
+export function EmptyContent({ className, ...props }: React.ComponentProps<'div'>): React.ReactElement {
   return (
     <div
-      className={cn(
-        'flex w-full min-w-0 max-w-sm flex-col items-center gap-4 text-balance text-sm',
-        className,
-      )}
+      className={cn('flex w-full min-w-0 max-w-sm flex-col items-center gap-4 text-balance text-sm', className)}
       data-slot="empty-content"
       {...props}
     />

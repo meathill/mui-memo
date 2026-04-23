@@ -97,9 +97,7 @@ test.describe('Completed · 分页', () => {
     expect(p1.nextCursor).not.toBeNull();
 
     // 第二页拿下一页
-    const page2 = await page.request.get(
-      `/api/tasks/completed?limit=2&before=${encodeURIComponent(p1.nextCursor!)}`,
-    );
+    const page2 = await page.request.get(`/api/tasks/completed?limit=2&before=${encodeURIComponent(p1.nextCursor!)}`);
     const p2 = (await page2.json()) as {
       tasks: Array<{ id: string }>;
       hasMore: boolean;

@@ -80,10 +80,7 @@ export function DrawerSwipeArea({
   );
 }
 
-export function DrawerBackdrop({
-  className,
-  ...props
-}: DrawerPrimitive.Backdrop.Props): React.ReactElement {
+export function DrawerBackdrop({ className, ...props }: DrawerPrimitive.Backdrop.Props): React.ReactElement {
   return (
     <DrawerPrimitive.Backdrop
       className={cn(
@@ -250,8 +247,7 @@ export function DrawerFooter({
     className: cn(
       'flex flex-col-reverse gap-2 px-6 pb-(--safe-area-inset-bottom,0px) sm:flex-row sm:justify-end',
       !allowSelection && 'cursor-default',
-      variant === 'default' &&
-        'border-t bg-muted/72 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+--spacing(4))]',
+      variant === 'default' && 'border-t bg-muted/72 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+--spacing(4))]',
       variant === 'bare' &&
         'in-[[data-slot=drawer-popup]:has([data-slot=drawer-panel])]:pt-3 pt-4 pb-[calc(env(safe-area-inset-bottom,0px)+--spacing(6))]',
       className,
@@ -266,10 +262,7 @@ export function DrawerFooter({
   });
 }
 
-export function DrawerTitle({
-  className,
-  ...props
-}: DrawerPrimitive.Title.Props): React.ReactElement {
+export function DrawerTitle({ className, ...props }: DrawerPrimitive.Title.Props): React.ReactElement {
   return (
     <DrawerPrimitive.Title
       className={cn('font-heading font-semibold text-xl leading-none', className)}
@@ -279,10 +272,7 @@ export function DrawerTitle({
   );
 }
 
-export function DrawerDescription({
-  className,
-  ...props
-}: DrawerPrimitive.Description.Props): React.ReactElement {
+export function DrawerDescription({ className, ...props }: DrawerPrimitive.Description.Props): React.ReactElement {
   return (
     <DrawerPrimitive.Description
       className={cn('text-muted-foreground text-sm', className)}
@@ -364,11 +354,7 @@ export function DrawerBar({
 
 export const DrawerContent: typeof DrawerPrimitive.Content = DrawerPrimitive.Content;
 
-export function DrawerMenu({
-  className,
-  render,
-  ...props
-}: useRender.ComponentProps<'nav'>): React.ReactElement {
+export function DrawerMenu({ className, render, ...props }: useRender.ComponentProps<'nav'>): React.ReactElement {
   const defaultProps = {
     className: cn('-m-2 flex flex-col', className),
     'data-slot': 'drawer-menu',
@@ -425,11 +411,7 @@ export function DrawerMenuSeparator({
   });
 }
 
-export function DrawerMenuGroup({
-  className,
-  render,
-  ...props
-}: useRender.ComponentProps<'div'>): React.ReactElement {
+export function DrawerMenuGroup({ className, render, ...props }: useRender.ComponentProps<'div'>): React.ReactElement {
   const defaultProps = {
     className: cn('flex flex-col', className),
     'data-slot': 'drawer-menu-group',
@@ -542,16 +524,9 @@ export function DrawerMenuCheckboxItem({
   );
 }
 
-export function DrawerMenuRadioGroup({
-  className,
-  ...props
-}: RadioGroupPrimitive.Props): React.ReactElement {
+export function DrawerMenuRadioGroup({ className, ...props }: RadioGroupPrimitive.Props): React.ReactElement {
   return (
-    <RadioGroupPrimitive
-      className={cn('flex flex-col', className)}
-      data-slot="drawer-menu-radio-group"
-      {...props}
-    />
+    <RadioGroupPrimitive className={cn('flex flex-col', className)} data-slot="drawer-menu-radio-group" {...props} />
   );
 }
 

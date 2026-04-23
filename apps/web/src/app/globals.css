@@ -381,8 +381,9 @@
       color-mix(in srgb, var(--paper-bg-2) 72%, white) 100%
     );
     border: 1px solid color-mix(in srgb, var(--rule) 82%, transparent);
-    box-shadow: 0 18px 40px -26px color-mix(in srgb, var(--ink) 22%, transparent), 0 2px 0 0
-      color-mix(in srgb, var(--paper-bg) 65%, white) inset;
+    box-shadow:
+      0 18px 40px -26px color-mix(in srgb, var(--ink) 22%, transparent),
+      0 2px 0 0 color-mix(in srgb, var(--paper-bg) 65%, white) inset;
     border-radius: 1.6rem;
   }
 

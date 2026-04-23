@@ -16,17 +16,7 @@ export type TaskStatus = z.infer<typeof taskStatusEnum>;
 export const intentKindEnum = z.enum(['ADD', 'STATUS', 'DONE', 'MODIFY', 'LINK']);
 export type IntentKind = z.infer<typeof intentKindEnum>;
 
-export const dimKindEnum = z.enum([
-  'intent',
-  'match',
-  'time',
-  'place',
-  'people',
-  'tag',
-  'note',
-  'energy',
-  'link',
-]);
+export const dimKindEnum = z.enum(['intent', 'match', 'time', 'place', 'people', 'tag', 'note', 'energy', 'link']);
 
 export const dimToneEnum = z.enum(['accent', 'good', 'warn', 'mute']);
 
@@ -68,9 +58,7 @@ export const taskCoreSchema = z.object({
 });
 export type TaskCore = z.infer<typeof taskCoreSchema>;
 
-export const taskEntitiesSchema = z
-  .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-  .optional();
+export const taskEntitiesSchema = z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional();
 
 /**
  * 创建任务（含 AI 原始输入）

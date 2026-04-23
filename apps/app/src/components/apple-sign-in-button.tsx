@@ -32,10 +32,7 @@ export function AppleSignInButton() {
     setBusy(true);
     try {
       const rawNonce = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-      const hashedNonce = await Crypto.digestStringAsync(
-        Crypto.CryptoDigestAlgorithm.SHA256,
-        rawNonce,
-      );
+      const hashedNonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, rawNonce);
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,

@@ -34,8 +34,7 @@ export function EffectToast({ effect, utterance }: Props) {
 
   const title = effect.kind === 'miss' ? '没找到匹配任务' : effect.verb;
 
-  const body =
-    effect.kind === 'miss' ? (utterance?.raw ?? '') : 'text' in effect ? effect.text : '';
+  const body = effect.kind === 'miss' ? (utterance?.raw ?? '') : 'text' in effect ? effect.text : '';
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-4 z-40 flex justify-center px-4">

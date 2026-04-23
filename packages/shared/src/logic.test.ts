@@ -64,20 +64,8 @@ describe('rerank', () => {
       task({ id: 'now', text: 'v', window: 'now', place: 'home' }),
     ];
     const ranked = rerank(tasks, 'home');
-    expect(ranked.map((t) => t.id)).toEqual([
-      'now',
-      'today_here',
-      'today_else',
-      'blocked',
-      'later',
-    ]);
-    expect(ranked.map((t) => t.bucket)).toEqual([
-      'now',
-      'today_here',
-      'today_else',
-      'blocked',
-      'later',
-    ]);
+    expect(ranked.map((t) => t.id)).toEqual(['now', 'today_here', 'today_else', 'blocked', 'later']);
+    expect(ranked.map((t) => t.bucket)).toEqual(['now', 'today_here', 'today_else', 'blocked', 'later']);
   });
 
   it('同一桶内按 priority 降序', () => {
@@ -351,10 +339,7 @@ describe('applyIntent · LINK', () => {
       task({ id: 'c2', text: '事 B' }),
     ];
     const step1 = applyIntent(before, utter({ intent: 'LINK', matchId: 'c1', aiVerb: '顺手做' }));
-    const step2 = applyIntent(
-      step1.tasks,
-      utter({ intent: 'LINK', matchId: 'c2', aiVerb: '顺手做' }),
-    );
+    const step2 = applyIntent(step1.tasks, utter({ intent: 'LINK', matchId: 'c2', aiVerb: '顺手做' }));
     const parent = step2.tasks.find((t) => t.id === 'doing')!;
     expect(parent.linked).toEqual([
       { id: 'c1', text: '事 A' },

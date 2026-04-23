@@ -49,11 +49,8 @@ function expectPresets(): { label: string; iso: string | null }[] {
   weekend.setDate(weekend.getDate() + daysToSat);
   weekend.setHours(10, 0, 0, 0);
   // 今晚 / 明早 / 周末 是否已经过了「现在」，过了就不出，免得点完还是过期
-  const presets: { label: string; iso: string | null }[] = [
-    { label: '1 小时后', iso: inAnHour.toISOString() },
-  ];
-  if (tonight.getTime() > now.getTime())
-    presets.push({ label: '今晚', iso: tonight.toISOString() });
+  const presets: { label: string; iso: string | null }[] = [{ label: '1 小时后', iso: inAnHour.toISOString() }];
+  if (tonight.getTime() > now.getTime()) presets.push({ label: '今晚', iso: tonight.toISOString() });
   presets.push(
     { label: '明早', iso: tomorrow.toISOString() },
     { label: '周末', iso: weekend.toISOString() },
@@ -155,11 +152,7 @@ export default function TaskEditScreen() {
           hitSlop={8}
           className="h-9 w-9 items-center justify-center rounded-full active:bg-ink/10"
         >
-          {saving ? (
-            <ActivityIndicator color="#1d1a12" />
-          ) : (
-            <CheckIcon size={22} color="#1d1a12" />
-          )}
+          {saving ? <ActivityIndicator color="#1d1a12" /> : <CheckIcon size={22} color="#1d1a12" />}
         </Pressable>
       </View>
 
@@ -168,14 +161,8 @@ export default function TaskEditScreen() {
           <ActivityIndicator color="#1d1a12" />
         </View>
       ) : (
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          className="flex-1"
-        >
-          <ScrollView
-            contentContainerClassName="px-5 pt-5 pb-10"
-            keyboardShouldPersistTaps="handled"
-          >
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+          <ScrollView contentContainerClassName="px-5 pt-5 pb-10" keyboardShouldPersistTaps="handled">
             <Section label="内容">
               <TextInput
                 value={text}
@@ -189,19 +176,11 @@ export default function TaskEditScreen() {
             </Section>
 
             <Section label="在哪做">
-              <ChipRow
-                options={PLACES}
-                value={place}
-                onChange={setPlace}
-              />
+              <ChipRow options={PLACES} value={place} onChange={setPlace} />
             </Section>
 
             <Section label="什么时候">
-              <ChipRow
-                options={WINDOWS}
-                value={taskWindow}
-                onChange={setTaskWindow}
-              />
+              <ChipRow options={WINDOWS} value={taskWindow} onChange={setTaskWindow} />
             </Section>
 
             <Section label="预期时间">
@@ -212,23 +191,15 @@ export default function TaskEditScreen() {
                     <Pressable
                       key={preset.label}
                       onPress={() => setExpectAt(preset.iso)}
-                      className={`rounded-full px-4 py-2 ${
-                        active ? 'bg-ink' : 'border border-rule bg-paper-2/50'
-                      }`}
+                      className={`rounded-full px-4 py-2 ${active ? 'bg-ink' : 'border border-rule bg-paper-2/50'}`}
                     >
-                      <Text
-                        className={`text-sm ${active ? 'text-paper' : 'text-ink-soft'}`}
-                      >
-                        {preset.label}
-                      </Text>
+                      <Text className={`text-sm ${active ? 'text-paper' : 'text-ink-soft'}`}>{preset.label}</Text>
                     </Pressable>
                   );
                 })}
               </View>
               {expectAt ? (
-                <Text className="mt-2 font-mono text-ink-mute text-xs">
-                  {new Date(expectAt).toLocaleString()}
-                </Text>
+                <Text className="mt-2 font-mono text-ink-mute text-xs">{new Date(expectAt).toLocaleString()}</Text>
               ) : null}
             </Section>
 
@@ -252,9 +223,7 @@ export default function TaskEditScreen() {
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View className="mb-6">
-      <Text className="mb-2 font-mono text-ink-mute text-xs uppercase tracking-[2px]">
-        {label}
-      </Text>
+      <Text className="mb-2 font-mono text-ink-mute text-xs uppercase tracking-[2px]">{label}</Text>
       {children}
     </View>
   );
@@ -277,13 +246,9 @@ function ChipRow<T extends string>({
           <Pressable
             key={o.value}
             onPress={() => onChange(o.value)}
-            className={`rounded-full px-4 py-2 ${
-              active ? 'bg-ink' : 'border border-rule bg-paper-2/50'
-            }`}
+            className={`rounded-full px-4 py-2 ${active ? 'bg-ink' : 'border border-rule bg-paper-2/50'}`}
           >
-            <Text className={`text-sm ${active ? 'text-paper' : 'text-ink-soft'}`}>
-              {o.label}
-            </Text>
+            <Text className={`text-sm ${active ? 'text-paper' : 'text-ink-soft'}`}>{o.label}</Text>
           </Pressable>
         );
       })}

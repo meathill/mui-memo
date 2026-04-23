@@ -1,10 +1,4 @@
-import {
-  AudioModule,
-  RecordingPresets,
-  setAudioModeAsync,
-  useAudioRecorder,
-  useAudioRecorderState,
-} from 'expo-audio';
+import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioRecorder, useAudioRecorderState } from 'expo-audio';
 import * as Linking from 'expo-linking';
 import { MicIcon, SendIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -43,14 +37,10 @@ export function MicButton({ onAudio, disabled, processing }: Props) {
 
     // 已被系统级拒绝（canAskAgain=false）：点也没用，引导去设置
     if (perm === 'blocked') {
-      Alert.alert(
-        '麦克风被禁用',
-        '你之前拒绝过麦克风权限，系统不会再弹提示。需要到「设置 → MuiMemo」手动打开。',
-        [
-          { text: '取消', style: 'cancel' },
-          { text: '去设置', onPress: () => Linking.openSettings() },
-        ],
-      );
+      Alert.alert('麦克风被禁用', '你之前拒绝过麦克风权限，系统不会再弹提示。需要到「设置 → MuiMemo」手动打开。', [
+        { text: '取消', style: 'cancel' },
+        { text: '去设置', onPress: () => Linking.openSettings() },
+      ]);
       return;
     }
 
@@ -59,9 +49,7 @@ export function MicButton({ onAudio, disabled, processing }: Props) {
       const res = await AudioModule.requestRecordingPermissionsAsync();
       if (!res.granted) {
         setPerm(res.canAskAgain ? 'prompt' : 'blocked');
-        setHint(
-          res.canAskAgain ? '没给麦克风权限，点一下再试' : '已被系统拒绝，去设置里打开麦克风',
-        );
+        setHint(res.canAskAgain ? '没给麦克风权限，点一下再试' : '已被系统拒绝，去设置里打开麦克风');
         return;
       }
       setPerm('granted');
@@ -94,9 +82,7 @@ export function MicButton({ onAudio, disabled, processing }: Props) {
     onAudio({ uri, mimeType: 'audio/m4a' });
   }, [onAudio, recorder, state.isRecording]);
 
-  const durationLabel = state.isRecording
-    ? `${Math.floor(state.durationMillis / 1000)}s`
-    : '按住说话';
+  const durationLabel = state.isRecording ? `${Math.floor(state.durationMillis / 1000)}s` : '按住说话';
 
   return (
     <View className="items-center">
@@ -116,9 +102,7 @@ export function MicButton({ onAudio, disabled, processing }: Props) {
           <MicIcon size={28} color="#f4ede0" />
         )}
       </Pressable>
-      <Text className="mt-2 font-mono text-ink-mute text-sm">
-        {processing ? '解析中…' : durationLabel}
-      </Text>
+      <Text className="mt-2 font-mono text-ink-mute text-sm">{processing ? '解析中…' : durationLabel}</Text>
       {hint ? <Text className="mt-1 text-accent-warn text-sm">{hint}</Text> : null}
     </View>
   );

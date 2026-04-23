@@ -16,11 +16,7 @@ interface AppState {
   isRecording: boolean;
 
   setPlace: (p: TaskPlace) => void;
-  hydrate: (payload: {
-    tasks: TaskView[];
-    ranked: RankedTask[];
-    place?: TaskPlace;
-  }) => void;
+  hydrate: (payload: { tasks: TaskView[]; ranked: RankedTask[]; place?: TaskPlace }) => void;
   setRecording: (v: boolean) => void;
   setProcessing: (v: boolean) => void;
   setLastEffect: (e: IntentEffect | null, u?: Utterance | null) => void;
@@ -48,8 +44,7 @@ export const useAppStore = create<AppState>()(
       isRecording: false,
 
       setPlace: (p) => set({ place: p }),
-      hydrate: ({ tasks, ranked, place }) =>
-        set((s) => ({ tasks, ranked, place: place ?? s.place })),
+      hydrate: ({ tasks, ranked, place }) => set((s) => ({ tasks, ranked, place: place ?? s.place })),
       setRecording: (v) => set({ isRecording: v }),
       setProcessing: (v) => set({ isProcessing: v }),
       setLastEffect: (e, u) => set({ lastEffect: e, lastUtterance: u ?? null }),

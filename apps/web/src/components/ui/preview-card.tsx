@@ -6,9 +6,7 @@ import type React from 'react';
 
 export const PreviewCard: typeof PreviewCardPrimitive.Root = PreviewCardPrimitive.Root;
 
-export function PreviewCardTrigger({
-  ...props
-}: PreviewCardPrimitive.Trigger.Props): React.ReactElement {
+export function PreviewCardTrigger({ ...props }: PreviewCardPrimitive.Trigger.Props): React.ReactElement {
   return <PreviewCardPrimitive.Trigger data-slot="preview-card-trigger" {...props} />;
 }
 
