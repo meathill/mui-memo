@@ -6,7 +6,7 @@ import {
   requestPermission,
 } from '@/lib/notifications';
 import * as Linking from 'expo-linking';
-import { BellIcon } from 'lucide-react-native';
+import { BellIcon, ZapIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { LogOutIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
@@ -153,6 +153,45 @@ export default function ProfileScreen() {
               {notifPerm === 'blocked' ? '去设置' : '开启'}
             </Text>
           ) : null}
+        </Pressable>
+
+        <Pressable
+          onPress={() => {
+            Alert.alert(
+              'Siri 快捷指令',
+              [
+                '在 iOS「快捷指令」app 里加一个新指令：',
+                '',
+                '1. 动作选「打开 URL」',
+                '2. URL 填：muimemo://',
+                '3. 指令名改成「记一下」之类',
+                '',
+                '然后对 Siri 说「嘿 Siri, 记一下」就会打开 MuiMemo。',
+              ].join('\n'),
+              [
+                { text: '知道了', style: 'cancel' },
+                {
+                  text: '打开快捷指令',
+                  onPress: () =>
+                    Linking.openURL('shortcuts://').catch(() =>
+                      Alert.alert('打不开', '请到主屏找「快捷指令」app'),
+                    ),
+                },
+              ],
+            );
+          }}
+          className="mt-3 flex-row items-center gap-3 rounded-2xl border border-rule/60 bg-paper-2/50 p-4 active:opacity-80"
+        >
+          <View className="h-10 w-10 items-center justify-center rounded-full bg-accent-good/15">
+            <ZapIcon size={18} color="#4a9670" />
+          </View>
+          <View className="flex-1">
+            <Text className="font-serif text-base text-ink">Siri 快捷指令</Text>
+            <Text className="mt-0.5 text-ink-soft text-sm">
+              「嘿 Siri, 记一下」一秒打开 MuiMemo
+            </Text>
+          </View>
+          <Text className="font-mono text-accent-good text-sm">怎么配</Text>
         </Pressable>
 
         {loading ? (
