@@ -93,21 +93,21 @@ export function HeroDemo() {
       onMouseLeave={() => setPaused(false)}
     >
       <div className="relative overflow-hidden rounded-sm border border-rule/70 bg-paper-2/40">
-        <div className="flex items-center justify-between border-b border-rule/50 px-6 py-3">
-          <p className="font-mono text-[10px] tracking-[0.22em] text-ink-mute uppercase">
+        <div className="flex items-center justify-between border-b border-rule/50 px-5 py-3 sm:px-6">
+          <p className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.8rem]">
             {FRAMES[idx].step} · {FRAMES[idx].stage}
           </p>
-          <p className="font-mono text-[10px] tracking-[0.22em] text-ink-mute uppercase">
+          <p className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.8rem]">
             {String(idx + 1).padStart(2, '0')} / {FRAMES.length.toString().padStart(2, '0')}
           </p>
         </div>
 
-        <div className="relative min-h-[18rem] px-6 py-7">
+        <div className="relative min-h-[17rem] px-5 py-6 sm:min-h-[18rem] sm:px-6 sm:py-7">
           {FRAMES.map((f, i) => (
             <div
               key={f.stage}
               aria-hidden={i !== idx}
-              className={`absolute inset-0 px-6 py-7 transition-[opacity,transform] duration-[520ms] ease-[cubic-bezier(.22,.61,.36,1)] ${
+              className={`absolute inset-0 px-5 py-6 transition-[opacity,transform] duration-[520ms] ease-[cubic-bezier(.22,.61,.36,1)] sm:px-6 sm:py-7 ${
                 i === idx
                   ? 'opacity-100 translate-y-0'
                   : i < idx
@@ -115,21 +115,21 @@ export function HeroDemo() {
                     : 'translate-y-3 opacity-0'
               }`}
             >
-              <p className="font-serif text-xl leading-snug text-ink sm:text-[1.4rem]">
+              <p className="font-serif text-[1.45rem] leading-[1.4] text-ink sm:text-[1.62rem]">
                 <span className="select-none text-accent-warm/70">「</span>
                 {f.quote}
                 <span className="select-none text-accent-warm/70">」</span>
               </p>
-              <p className="mt-1 font-mono text-[10px] tracking-[0.22em] text-ink-mute uppercase">
+              <p className="mt-1 font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.8rem]">
                 ↓ {f.label}
               </p>
-              <p className="mt-4 max-w-[26ch] text-[14px] leading-relaxed text-ink-soft">
+              <p className="mt-4 max-w-[30ch] text-[0.98rem] leading-[1.7] text-ink-soft sm:text-[1.02rem]">
                 {f.summary}
               </p>
-              <div className="mt-5 space-y-1.5 font-mono text-[11px] text-ink-soft">
+              <div className="mt-5 space-y-1.5 font-mono text-[0.8rem] text-ink-soft sm:text-[0.86rem]">
                 {f.lines.map((l) => (
                   <div key={`${l.k}-${l.v}`} className="flex items-baseline gap-3">
-                    <span className="w-16 text-ink-mute">{l.k}</span>
+                    <span className="w-16 text-ink-mute sm:w-[4.5rem]">{l.k}</span>
                     <span className="text-ink">{l.v}</span>
                   </div>
                 ))}
@@ -138,7 +138,7 @@ export function HeroDemo() {
           ))}
         </div>
 
-        <div className="flex items-center gap-1.5 border-t border-rule/50 px-6 py-3">
+        <div className="flex items-center gap-1.5 border-t border-rule/50 px-5 py-3 sm:px-6">
           {FRAMES.map((f, i) => (
             <button
               key={f.stage}
@@ -150,13 +150,13 @@ export function HeroDemo() {
               }`}
             />
           ))}
-          <span className="ml-auto font-mono text-[10px] tracking-[0.22em] text-ink-mute uppercase">
+          <span className="ml-auto font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.8rem]">
             {paused ? '已暂停' : '自动演示'}
           </span>
         </div>
       </div>
 
-      <p className="mt-4 text-right font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">
+      <p className="mt-3 text-right font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.8rem]">
         ↑ 从一句话到完成的四步闭环
       </p>
     </div>
