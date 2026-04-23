@@ -26,10 +26,15 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
     supportsTablet: false,
     bundleIdentifier: 'com.meathill.muimemo',
     usesAppleSignIn: true,
+    // EAS Build 每次 autoIncrement 写回；本地跑 0.0.1 也能过
+    buildNumber: '1',
     infoPlist: {
       NSMicrophoneUsageDescription: 'MuiMemo 需要使用麦克风来录制你的语音备忘。',
+      // OTA 更新在同一个 runtimeVersion 内生效；原生 module 变动需要升版 + 重新打包
+      ITSAppUsesNonExemptEncryption: false,
     },
   },
+  runtimeVersion: { policy: 'appVersion' },
   plugins: [
     'expo-router',
     [

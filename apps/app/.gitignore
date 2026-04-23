@@ -15,3 +15,6 @@ dist/
 # iOS / Android 原生（prebuild 后才会产生，我们当前是 managed workflow）
 ios/
 android/
+
+# EAS 本地缓存
+.eas/
