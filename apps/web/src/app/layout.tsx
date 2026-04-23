@@ -1,7 +1,10 @@
+import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Noto_Serif_SC } from "next/font/google";
 import { cn } from "@/lib/utils";
 import "./globals.css";
+
+const GA_ID = "G-JXVMLJYDYZ";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -57,6 +60,9 @@ export default function RootLayout({
       <body className="bg-paper text-ink min-h-full flex flex-col font-sans">
         {children}
       </body>
+      {process.env.NODE_ENV === "production" && (
+        <GoogleAnalytics gaId={GA_ID} />
+      )}
     </html>
   );
 }
