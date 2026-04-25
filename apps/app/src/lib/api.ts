@@ -40,6 +40,7 @@ async function request<T>(path: string, init: JsonInit = {}): Promise<T> {
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
 
+  const method = (init.method ?? 'GET').toUpperCase();
   let body: BodyInit | undefined;
   if (init.body instanceof FormData) {
     body = init.body;
@@ -47,6 +48,11 @@ async function request<T>(path: string, init: JsonInit = {}): Promise<T> {
   } else if (init.body !== undefined) {
     headers['Content-Type'] = 'application/json';
     body = JSON.stringify(init.body);
+  } else if (method !== 'GET' && method !== 'HEAD') {
+    // Better-Auth 的 /sign-out 等无 body POST 也强制要求 Content-Type:
+    // application/json，否则 415 UNSUPPORTED_MEDIA_TYPE。空 body 用 '{}' 兜
+    headers['Content-Type'] = 'application/json';
+    body = '{}';
   }
 
   const res = await fetch(`${API_BASE}${path}`, { ...init, headers, body });
