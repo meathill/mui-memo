@@ -148,10 +148,13 @@ export const api = {
       nonce?: string;
       fullName?: { givenName?: string | null; familyName?: string | null } | null;
     }) {
-      const displayName = [params.fullName?.givenName, params.fullName?.familyName]
-        .filter((x): x is string => Boolean(x))
-        .join(' ')
-        .trim();
+      // Better-Auth 的 idToken.user.name 必须是 { firstName, lastName } 对象，
+      // 不能传普通字符串，否则 415 VALIDATION_ERROR
+      const firstName = params.fullName?.givenName ?? undefined;
+      const lastName = params.fullName?.familyName ?? undefined;
+      const userPayload =
+        firstName || lastName ? { name: { firstName, lastName } } : undefined;
+
       const res = await fetch(`${API_BASE}/api/auth/sign-in/social`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -160,7 +163,7 @@ export const api = {
           idToken: {
             token: params.identityToken,
             nonce: params.nonce,
-            user: displayName ? { name: displayName } : undefined,
+            user: userPayload,
           },
         }),
       });
