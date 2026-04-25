@@ -1,0 +1,10 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>MuiMemo Splash Logo</title>
+  <!-- M 字形，与 app-icon 同一形状，放在透明背景上由 splash backgroundColor 填 paper -->
+  <path
+    d="M163 354V164H197L256 248L315 164H349V354H313V226L256 310L199 226V354H163Z"
+    fill="#1D1A12"
+  />
+  <!-- 折角小细节做品牌一致性 -->
+  <path d="M375 158H420V203L375 158Z" fill="#C7793E" />
+</svg>

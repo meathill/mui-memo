@@ -9,7 +9,8 @@
     "android": "expo start --android",
     "lint": "biome check",
     "format": "biome format --write",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "icons:generate": "node ./scripts/generate-icons.ts"
   },
   "dependencies": {
     "@expo/metro-runtime": "~55.0.10",

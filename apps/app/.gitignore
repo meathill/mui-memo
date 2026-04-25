@@ -18,3 +18,4 @@ android/
 
 # EAS 本地缓存
 .eas/
+*.ipa
