@@ -44,9 +44,13 @@ export function AppleSignInButton() {
         Alert.alert('Apple 登录失败', '没拿到 identityToken');
         return;
       }
+      // Better-Auth 直接 strcmp jwtClaims.nonce vs body 里的 nonce，
+      // 而 Apple 把我们传给 signInAsync 的（已 hash 的）nonce 原样塞进 JWT。
+      // 所以发给后端的 nonce 必须是 hashedNonce，和 JWT 里一致。rawNonce 只是
+      // 客户端本地生成熵的来源，不出本机。
       await api.auth.signInWithApple({
         identityToken: credential.identityToken,
-        nonce: rawNonce,
+        nonce: hashedNonce,
         fullName: credential.fullName,
       });
       router.replace('/today');
