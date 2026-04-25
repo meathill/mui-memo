@@ -51,47 +51,36 @@ export function createAuth(opts: CreateAuthOptions) {
             // 会自动拉 https://appleid.apple.com/auth/keys 验签 + 校 aud
             clientId: opts.appleBundleIdentifier,
             appBundleIdentifier: opts.appleBundleIdentifier,
-            // 自定义 verifyIdToken：默认实现把所有错都 catch 掉只 return false，
-            // 排查时根本看不到原因。这里把抛出来的具体错和关键 claim 都打到 log
+            // dev 用 Expo Go 跑时，JWT 的 aud 是 Expo Go 的 bundle id (host.exp.Exponent)，
+            // 不是我们 app 真实 bundle id；生产必须只认真实 bundle id（不然谁都能用 Expo Go
+            // 签出 token 来登录别的账号）。NODE_ENV !== 'production' 时白名单加上备选 aud。
             verifyIdToken: async (token, nonce) => {
+              const allowedAud =
+                process.env.NODE_ENV === 'production'
+                  ? opts.appleBundleIdentifier
+                  : [opts.appleBundleIdentifier ?? '', 'host.exp.Exponent'];
               try {
                 const { kid, alg } = decodeProtectedHeader(token);
-                const claims = decodeJwt(token);
-                console.log('[apple] inbound idToken', {
-                  kid,
-                  alg,
-                  iss: claims.iss,
-                  aud: claims.aud,
-                  sub: claims.sub,
-                  exp: claims.exp,
-                  nonceClaim: claims.nonce,
-                  nonceFromBody: nonce,
-                  expectedAud: opts.appleBundleIdentifier,
-                });
-                if (!kid || !alg) {
-                  console.error('[apple] missing kid or alg in JWT header');
-                  return false;
-                }
+                if (!kid || !alg) return false;
                 const { payload } = await jwtVerify(token, await getApplePublicKey(kid), {
                   algorithms: [alg],
                   issuer: 'https://appleid.apple.com',
-                  audience: opts.appleBundleIdentifier,
+                  audience: allowedAud,
                   maxTokenAge: '1h',
                 });
-                if (nonce && payload.nonce !== nonce) {
-                  console.error('[apple] nonce mismatch', {
-                    fromBody: nonce,
-                    fromJwt: payload.nonce,
+                if (nonce && payload.nonce !== nonce) return false;
+                if (process.env.NODE_ENV !== 'production') {
+                  const claims = decodeJwt(token);
+                  console.log('[apple] verifyIdToken OK', {
+                    aud: claims.aud,
+                    sub: payload.sub,
                   });
-                  return false;
                 }
-                console.log('[apple] verifyIdToken OK', { sub: payload.sub });
                 return true;
               } catch (err) {
-                console.error(
-                  '[apple] verifyIdToken failed:',
-                  err instanceof Error ? err.message : err,
-                );
+                if (process.env.NODE_ENV !== 'production') {
+                  console.error('[apple] verifyIdToken failed:', err instanceof Error ? err.message : err);
+                }
                 return false;
               }
             },
