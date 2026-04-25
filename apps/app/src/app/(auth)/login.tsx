@@ -41,7 +41,17 @@ export default function LoginScreen() {
             <Text className="mt-1 text-ink-soft text-sm">说一句话，把琐事记下来。</Text>
           </View>
 
-          <View className="mt-10 space-y-4">
+          <View className="mt-10">
+            <AppleSignInButton />
+          </View>
+
+          <View className="mt-6 flex-row items-center gap-3">
+            <View className="h-px flex-1 bg-rule/60" />
+            <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">或用邮箱</Text>
+            <View className="h-px flex-1 bg-rule/60" />
+          </View>
+
+          <View className="mt-4 space-y-4">
             <Field label="邮箱">
               <TextInput
                 value={email}
@@ -75,15 +85,6 @@ export default function LoginScreen() {
                 <Text className="font-medium text-paper text-base">登录</Text>
               )}
             </Pressable>
-          </View>
-
-          <View className="mt-6 flex-row items-center gap-3">
-            <View className="h-px flex-1 bg-rule/60" />
-            <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">或</Text>
-            <View className="h-px flex-1 bg-rule/60" />
-          </View>
-          <View className="mt-4">
-            <AppleSignInButton />
           </View>
 
           <Text className="mt-8 text-center text-ink-soft text-sm">
