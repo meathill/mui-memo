@@ -1,8 +1,10 @@
+import { getApplePublicKey } from '@better-auth/core/social-providers';
 import * as schema from '@mui-memo/shared/schema';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { bearer } from 'better-auth/plugins';
+import { decodeJwt, decodeProtectedHeader, jwtVerify } from 'jose';
 import { headers } from 'next/headers';
 import { createDb } from './db';
 
@@ -49,6 +51,50 @@ export function createAuth(opts: CreateAuthOptions) {
             // 会自动拉 https://appleid.apple.com/auth/keys 验签 + 校 aud
             clientId: opts.appleBundleIdentifier,
             appBundleIdentifier: opts.appleBundleIdentifier,
+            // 自定义 verifyIdToken：默认实现把所有错都 catch 掉只 return false，
+            // 排查时根本看不到原因。这里把抛出来的具体错和关键 claim 都打到 log
+            verifyIdToken: async (token, nonce) => {
+              try {
+                const { kid, alg } = decodeProtectedHeader(token);
+                const claims = decodeJwt(token);
+                console.log('[apple] inbound idToken', {
+                  kid,
+                  alg,
+                  iss: claims.iss,
+                  aud: claims.aud,
+                  sub: claims.sub,
+                  exp: claims.exp,
+                  nonceClaim: claims.nonce,
+                  nonceFromBody: nonce,
+                  expectedAud: opts.appleBundleIdentifier,
+                });
+                if (!kid || !alg) {
+                  console.error('[apple] missing kid or alg in JWT header');
+                  return false;
+                }
+                const { payload } = await jwtVerify(token, await getApplePublicKey(kid), {
+                  algorithms: [alg],
+                  issuer: 'https://appleid.apple.com',
+                  audience: opts.appleBundleIdentifier,
+                  maxTokenAge: '1h',
+                });
+                if (nonce && payload.nonce !== nonce) {
+                  console.error('[apple] nonce mismatch', {
+                    fromBody: nonce,
+                    fromJwt: payload.nonce,
+                  });
+                  return false;
+                }
+                console.log('[apple] verifyIdToken OK', { sub: payload.sub });
+                return true;
+              } catch (err) {
+                console.error(
+                  '[apple] verifyIdToken failed:',
+                  err instanceof Error ? err.message : err,
+                );
+                return false;
+              }
+            },
           },
         }
       : undefined,
