@@ -21,7 +21,7 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
   name: 'MuiMemo',
   slug: 'mui-memo',
   scheme: 'muimemo',
-  version: '0.0.1',
+  version: '0.1.0',
   orientation: 'portrait',
   userInterfaceStyle: 'light',
   newArchEnabled: true,
