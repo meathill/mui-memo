@@ -1,8 +1,6 @@
-import { api, type TaskPatch } from '@/lib/api';
-import { useAppStore } from '@/store';
 import type { TaskView } from '@mui-memo/shared/logic';
 import type { TaskPlace } from '@mui-memo/shared/validators';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { CheckIcon, XIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -17,6 +15,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { api, type TaskPatch } from '@/lib/api';
+import { useAppStore } from '@/store';
 
 const PLACES: { value: TaskPlace; label: string }[] = [
   { value: 'home', label: '在家' },

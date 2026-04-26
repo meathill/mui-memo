@@ -1,8 +1,8 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { MicIcon } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 interface Props {
   disabled?: boolean;
@@ -42,7 +42,9 @@ export function MicButton({ disabled, onAudio }: Props) {
         rec.stop();
       } catch {}
     }
-    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current?.getTracks().forEach((t) => {
+      t.stop();
+    });
     streamRef.current = null;
   }, [stopTick]);
 
@@ -64,7 +66,9 @@ export function MicButton({ disabled, onAudio }: Props) {
         stopTick();
         const blob = new Blob(chunksRef.current, { type: mime });
         chunksRef.current = [];
-        streamRef.current?.getTracks().forEach((t) => t.stop());
+        streamRef.current?.getTracks().forEach((t) => {
+          t.stop();
+        });
         streamRef.current = null;
         const duration = Date.now() - startAtRef.current;
         setElapsedMs(0);
@@ -99,7 +103,7 @@ export function MicButton({ disabled, onAudio }: Props) {
       stopAll();
       setPhase('idle');
     }
-  }, [disabled, phase, onAudio, stopAll]);
+  }, [disabled, phase, onAudio, stopAll, stopTick]);
 
   const stopRecording = useCallback(() => {
     const rec = mediaRef.current;

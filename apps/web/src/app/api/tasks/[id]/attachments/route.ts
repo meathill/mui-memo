@@ -1,8 +1,8 @@
-import { MAX_ATTACHMENT_SIZE, R2_PREFIX } from '@/lib/config';
-import { requireAuthDb } from '@/lib/route';
 import { attachments as attachmentsTable, tasks as tasksTable } from '@mui-memo/shared/schema';
 import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import { MAX_ATTACHMENT_SIZE, R2_PREFIX } from '@/lib/config';
+import { requireAuthDb } from '@/lib/route';
 
 function genId() {
   return crypto.randomUUID();
@@ -45,7 +45,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const attId = genId();
   // 文件名里的特殊字符统一替换成 -，避免 URL 解析麻烦
-  const safeName = originalName.replace(/[^\w.\-]+/g, '-').slice(0, 120);
+  const safeName = originalName.replace(/[^\w.-]+/g, '-').slice(0, 120);
   const key = `${R2_PREFIX}/attachments/${userId}/${taskId}/${attId}-${safeName}`;
 
   const buffer = await file.arrayBuffer();

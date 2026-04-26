@@ -1,7 +1,7 @@
-import { requireAuthDb } from '@/lib/route';
 import { utterances as utterancesTable } from '@mui-memo/shared/schema';
 import { and, desc, eq, lt } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import { requireAuthDb } from '@/lib/route';
 
 const DEFAULT_LIMIT = 30;
 const MAX_LIMIT = 100;

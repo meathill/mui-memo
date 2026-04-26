@@ -1,11 +1,11 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { signIn } from '@/lib/auth-client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { signIn } from '@/lib/auth-client';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,14 +42,25 @@ export default function LoginPage() {
       </header>
 
       <form className="space-y-4" onSubmit={handleSubmit}>
-        <label className="block space-y-1.5">
-          <span className="text-xs font-medium text-ink-soft">邮箱</span>
-          <Input name="email" type="email" autoComplete="email" required size="lg" />
-        </label>
-        <label className="block space-y-1.5">
-          <span className="text-xs font-medium text-ink-soft">密码</span>
-          <Input name="password" type="password" autoComplete="current-password" required size="lg" />
-        </label>
+        <div className="space-y-1.5">
+          <label htmlFor="login-email" className="block text-xs font-medium text-ink-soft">
+            邮箱
+          </label>
+          <Input id="login-email" name="email" type="email" autoComplete="email" required size="lg" />
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="login-password" className="block text-xs font-medium text-ink-soft">
+            密码
+          </label>
+          <Input
+            id="login-password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            size="lg"
+          />
+        </div>
         {error ? <p className="text-xs text-red-600">{error}</p> : null}
         <Button type="submit" size="lg" className="w-full" loading={loading}>
           登录

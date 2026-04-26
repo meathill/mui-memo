@@ -1,9 +1,9 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { Accordion as AccordionPrimitive } from '@base-ui/react/accordion';
 import { ChevronDownIcon } from 'lucide-react';
 import type React from 'react';
+import { cn } from '@/lib/utils';
 
 export function Accordion(props: AccordionPrimitive.Root.Props): React.ReactElement {
   return <AccordionPrimitive.Root data-slot="accordion" {...props} />;
@@ -56,4 +56,4 @@ export function AccordionPanel({ className, children, ...props }: AccordionPrimi
   );
 }
 
-export { AccordionPrimitive, AccordionPanel as AccordionContent };
+export { AccordionPanel as AccordionContent, AccordionPrimitive };

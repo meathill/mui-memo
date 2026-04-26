@@ -1,10 +1,10 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { MicIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface Slide {
   tag: string;
@@ -95,9 +95,9 @@ export function OnboardingView() {
 
         <div className="flex items-center gap-3">
           <div className="flex gap-1.5">
-            {SLIDES.map((_, i) => (
+            {SLIDES.map((s, i) => (
               <span
-                key={i}
+                key={s.demo}
                 className={cn('h-1.5 rounded-full transition-all', i === idx ? 'w-6 bg-ink' : 'w-1.5 bg-ink-mute/30')}
               />
             ))}

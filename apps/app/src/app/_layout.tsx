@@ -1,14 +1,14 @@
 import '../global.css';
 
-import { api } from '@/lib/api';
-import { Notifications, reconcileTaskReminders, type TaskNotificationData } from '@/lib/notifications';
-import { useSession } from '@/lib/session';
-import { useAppStore } from '@/store';
-import { Stack, router } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { api } from '@/lib/api';
+import { Notifications, reconcileTaskReminders, type TaskNotificationData } from '@/lib/notifications';
+import { useSession } from '@/lib/session';
+import { useAppStore } from '@/store';
 
 // 阻止系统自动隐藏 splash：我们想等 session hydrate 完再撤图，避免
 // 一瞬「未登录界面 → redirect /today」的抖动。

@@ -1,9 +1,9 @@
-import { getToken } from '@/lib/session';
-import Constants from 'expo-constants';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import Constants from 'expo-constants';
 import { PauseIcon, PlayIcon } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { getToken } from '@/lib/session';
 
 interface Props {
   /** 私有 R2 key，经 /api/audio/[...key] 代理回放 */

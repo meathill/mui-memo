@@ -1,9 +1,9 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
 import type React from 'react';
+import { cn } from '@/lib/utils';
 
 export function Card({ className, render, ...props }: useRender.ComponentProps<'div'>): React.ReactElement {
   const defaultProps = {

@@ -1,19 +1,19 @@
+import type { Bucket, TaskView } from '@mui-memo/shared/logic';
+import { BUCKET_LABEL, rerank } from '@mui-memo/shared/logic';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { Alert, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ErrorBanner } from '@/components/error-banner';
 import { ContextStrip } from '@/components/memo/context-strip';
-import { cancelTaskReminder } from '@/lib/notifications';
 import { DoingCard } from '@/components/memo/doing-card';
 import { EffectToast } from '@/components/memo/effect-toast';
 import { MicButton } from '@/components/memo/mic-button';
 import { TaskRow } from '@/components/memo/task-row';
 import { api } from '@/lib/api';
+import { cancelTaskReminder } from '@/lib/notifications';
 import { useSession } from '@/lib/session';
 import { useAppStore } from '@/store';
-import { BUCKET_LABEL, rerank } from '@mui-memo/shared/logic';
-import type { Bucket, TaskView } from '@mui-memo/shared/logic';
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 // 非 doing 的分桶顺序（doing 单独走 DoingCard 在顶部）
 const SECTION_ORDER: Bucket[] = ['now', 'today_here', 'today_else', 'blocked', 'later'];

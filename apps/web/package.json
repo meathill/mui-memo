@@ -1,6 +1,6 @@
 {
   "name": "@mui-memo/web",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "private": true,
   "scripts": {
     "dev": "next dev --port ${PORT:-3200}",

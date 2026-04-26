@@ -1,7 +1,7 @@
+import { NextResponse } from 'next/server';
 import { ensureE2EEnabled } from '@/lib/e2e-guard';
 import { requireAuthDb } from '@/lib/route';
 import { resolveTargetTask } from '@/lib/search';
-import { NextResponse } from 'next/server';
 
 /**
  * 测试辅助：直接跑 resolveTargetTask 并返回结果。

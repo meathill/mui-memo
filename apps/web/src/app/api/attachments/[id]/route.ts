@@ -1,7 +1,7 @@
-import { requireAuthDb } from '@/lib/route';
 import { attachments as attachmentsTable } from '@mui-memo/shared/schema';
 import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import { requireAuthDb } from '@/lib/route';
 
 /**
  * 私有附件流式返回。靠 DB 里 userId 做所有权校验。

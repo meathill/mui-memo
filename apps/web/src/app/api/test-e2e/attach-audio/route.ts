@@ -1,9 +1,9 @@
-import { R2_PREFIX } from '@/lib/config';
-import { ensureE2EEnabled } from '@/lib/e2e-guard';
-import { requireAuthDb } from '@/lib/route';
 import { tasks as tasksTable } from '@mui-memo/shared/schema';
 import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import { R2_PREFIX } from '@/lib/config';
+import { ensureE2EEnabled } from '@/lib/e2e-guard';
+import { requireAuthDb } from '@/lib/route';
 
 /**
  * 测试辅助：往 R2 塞一条音频并挂到指定 taskId 上。

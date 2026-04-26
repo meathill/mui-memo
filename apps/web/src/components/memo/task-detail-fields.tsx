@@ -1,10 +1,10 @@
 'use client';
 
+import type { TaskPlace, TaskStatus, TaskWindow } from '@mui-memo/shared/validators';
+import { useEffect, useRef, useState } from 'react';
 import { useNowTick } from '@/hooks/use-now-tick';
 import { formatDueAt, isOverdue, isoToLocalInput, localInputToISO, relativeTimeLabel } from '@/lib/time';
 import { cn } from '@/lib/utils';
-import type { TaskPlace, TaskStatus, TaskWindow } from '@mui-memo/shared/validators';
-import { useState } from 'react';
 
 export const PLACES: TaskPlace[] = ['home', 'work', 'out', 'any'];
 export const WINDOWS: TaskWindow[] = ['now', 'today', 'later'];
@@ -30,10 +30,10 @@ export const PRIORITY_LABEL: Record<number, string> = {
 
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block space-y-1.5">
-      <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">{label}</span>
+    <div className="block space-y-1.5">
+      <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">{label}</div>
       {children}
-    </label>
+    </div>
   );
 }
 
@@ -82,15 +82,20 @@ export function TimeRow({
   onChange: (iso: string | null) => void;
 }) {
   const [editing, setEditing] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const nowMs = useNowTick();
   const now = new Date(nowMs);
+
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+  }, [editing]);
 
   if (editing) {
     return (
       <input
+        ref={inputRef}
         type="datetime-local"
         defaultValue={isoToLocalInput(value)}
-        autoFocus
         className="mt-1 w-full rounded-lg border border-rule/60 bg-paper-2/50 px-2 py-1 font-mono text-xs text-ink outline-none focus:border-ink/60"
         aria-label={`编辑 ${label}`}
         onBlur={(e) => {

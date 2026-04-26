@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { expect, test as setup } from '@playwright/test';
-import { E2E_EMAIL, E2E_EMAIL_PATTERN, E2E_NAME, E2E_PASSWORD, callCleanup } from './fixtures';
+import { callCleanup, E2E_EMAIL, E2E_EMAIL_PATTERN, E2E_NAME, E2E_PASSWORD } from './fixtures';
 
 const AUTH_FILE = path.resolve('./e2e/.auth/user.json');
 

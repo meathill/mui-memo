@@ -1,8 +1,8 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { PLACE_LABEL } from '@mui-memo/shared/logic';
 import type { TaskPlace } from '@mui-memo/shared/validators';
+import { cn } from '@/lib/utils';
 
 const OPTIONS: TaskPlace[] = ['home', 'work', 'out'];
 

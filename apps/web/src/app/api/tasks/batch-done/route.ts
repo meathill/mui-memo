@@ -1,7 +1,7 @@
-import { requireAuthDb } from '@/lib/route';
-import { markBatchDone } from '@/lib/tasks';
 import { batchCompleteSchema } from '@mui-memo/shared/validators';
 import { NextResponse } from 'next/server';
+import { requireAuthDb } from '@/lib/route';
+import { markBatchDone } from '@/lib/tasks';
 
 export async function POST(req: Request) {
   const [resp, ctx] = await requireAuthDb();

@@ -1,12 +1,12 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { Select as SelectPrimitive } from '@base-ui/react/select';
 import { useRender } from '@base-ui/react/use-render';
-import { type VariantProps, cva } from 'class-variance-authority';
-import { ChevronDownIcon, ChevronUpIcon, ChevronsUpDownIcon } from 'lucide-react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { ChevronDownIcon, ChevronsUpDownIcon, ChevronUpIcon } from 'lucide-react';
 import type * as React from 'react';
+import { cn } from '@/lib/utils';
 
 export const Select: typeof SelectPrimitive.Root = SelectPrimitive.Root;
 
@@ -213,4 +213,4 @@ export function SelectGroupLabel(props: SelectPrimitive.GroupLabel.Props): React
   );
 }
 
-export { SelectPrimitive, SelectPopup as SelectContent };
+export { SelectPopup as SelectContent, SelectPrimitive };

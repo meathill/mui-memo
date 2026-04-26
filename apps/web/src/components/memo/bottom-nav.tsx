@@ -1,10 +1,10 @@
 'use client';
 
-import { cn } from '@/lib/utils';
-import { CheckCircle2Icon, HomeIcon, ListIcon, UserIcon } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { CheckCircle2Icon, HomeIcon, ListIcon, UserIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 const ITEMS: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: '/app', label: '今天', icon: HomeIcon },

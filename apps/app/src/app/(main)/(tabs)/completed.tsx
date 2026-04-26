@@ -1,9 +1,9 @@
-import { ErrorBanner } from '@/components/error-banner';
-import { type CompletedTask, api } from '@/lib/api';
 import { CheckIcon, Trash2Icon } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ErrorBanner } from '@/components/error-banner';
+import { api, type CompletedTask } from '@/lib/api';
 
 function formatDay(iso: string | null): string {
   if (!iso) return '更早';

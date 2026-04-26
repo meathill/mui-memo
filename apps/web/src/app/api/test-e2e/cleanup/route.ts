@@ -1,5 +1,3 @@
-import { createDb } from '@/lib/db';
-import { ensureE2EEnabled } from '@/lib/e2e-guard';
 import {
   accounts,
   attachments as attachmentsTable,
@@ -11,6 +9,8 @@ import {
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { eq, inArray, like, or } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import { createDb } from '@/lib/db';
+import { ensureE2EEnabled } from '@/lib/e2e-guard';
 
 /**
  * 测试清理：可选删除当前邮箱的所有 task / session / account / user。

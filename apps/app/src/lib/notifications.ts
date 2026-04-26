@@ -1,5 +1,5 @@
-import * as Notifications from 'expo-notifications';
 import type { TaskView } from '@mui-memo/shared/logic';
+import * as Notifications from 'expo-notifications';
 
 /**
  * 本地定时提醒。核心思路：

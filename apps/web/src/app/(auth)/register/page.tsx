@@ -1,11 +1,11 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { signUp } from '@/lib/auth-client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { signUp } from '@/lib/auth-client';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -44,18 +44,32 @@ export default function RegisterPage() {
       </header>
 
       <form className="space-y-4" onSubmit={handleSubmit}>
-        <label className="block space-y-1.5">
-          <span className="text-xs font-medium text-ink-soft">昵称</span>
-          <Input name="name" type="text" autoComplete="name" required size="lg" />
-        </label>
-        <label className="block space-y-1.5">
-          <span className="text-xs font-medium text-ink-soft">邮箱</span>
-          <Input name="email" type="email" autoComplete="email" required size="lg" />
-        </label>
-        <label className="block space-y-1.5">
-          <span className="text-xs font-medium text-ink-soft">密码（≥ 8 位）</span>
-          <Input name="password" type="password" autoComplete="new-password" minLength={8} required size="lg" />
-        </label>
+        <div className="space-y-1.5">
+          <label htmlFor="register-name" className="block text-xs font-medium text-ink-soft">
+            昵称
+          </label>
+          <Input id="register-name" name="name" type="text" autoComplete="name" required size="lg" />
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="register-email" className="block text-xs font-medium text-ink-soft">
+            邮箱
+          </label>
+          <Input id="register-email" name="email" type="email" autoComplete="email" required size="lg" />
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="register-password" className="block text-xs font-medium text-ink-soft">
+            密码（≥ 8 位）
+          </label>
+          <Input
+            id="register-password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+            required
+            size="lg"
+          />
+        </div>
         {error ? <p className="text-xs text-red-600">{error}</p> : null}
         <Button type="submit" size="lg" className="w-full" loading={loading}>
           注册

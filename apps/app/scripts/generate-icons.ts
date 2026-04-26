@@ -12,10 +12,11 @@
  *
  * sharp 已经在 monorepo 里（web 用），不用单独装。
  */
-import sharp from 'sharp';
+
 import { mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

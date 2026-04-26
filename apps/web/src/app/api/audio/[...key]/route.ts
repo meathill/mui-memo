@@ -1,6 +1,6 @@
+import { NextResponse } from 'next/server';
 import { R2_PREFIX } from '@/lib/config';
 import { requireAuth } from '@/lib/route';
-import { NextResponse } from 'next/server';
 
 /**
  * 私有音频流式返回。

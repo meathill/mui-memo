@@ -1,9 +1,9 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import type { IntentEffect } from '@mui-memo/shared/logic';
 import type { Utterance } from '@mui-memo/shared/validators';
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 const TONE: Record<IntentEffect['kind'], string> = {
   add: 'border-accent-warm/40 bg-accent-warm/10',
@@ -51,9 +51,9 @@ export function EffectToast({ effect, utterance }: Props) {
         ) : null}
         {utterance?.dims?.length ? (
           <div className="mt-2 flex flex-wrap gap-1">
-            {utterance.dims.map((d, i) => (
+            {utterance.dims.map((d) => (
               <span
-                key={`${d.kind}-${i}`}
+                key={`${d.kind}-${d.label}`}
                 className="rounded-full border border-rule/60 bg-paper/80 px-2 py-0.5 text-[10px] text-ink-soft"
               >
                 {d.label}

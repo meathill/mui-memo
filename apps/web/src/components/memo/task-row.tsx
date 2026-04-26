@@ -1,13 +1,13 @@
 'use client';
 
-import { useNowTick } from '@/hooks/use-now-tick';
-import { CHECK_ANIM_DURATION, type CheckAnim, readCheckAnim } from '@/lib/settings';
-import { isOverdue, relativeTimeLabel } from '@/lib/time';
-import { cn } from '@/lib/utils';
 import { PLACE_LABEL, type TaskView } from '@mui-memo/shared/logic';
 import { CheckIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useNowTick } from '@/hooks/use-now-tick';
+import { CHECK_ANIM_DURATION, type CheckAnim, readCheckAnim } from '@/lib/settings';
+import { isOverdue, relativeTimeLabel } from '@/lib/time';
+import { cn } from '@/lib/utils';
 
 interface Props {
   task: TaskView;

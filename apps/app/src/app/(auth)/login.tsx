@@ -1,9 +1,9 @@
-import { AppleSignInButton } from '@/components/apple-sign-in-button';
-import { ApiError, api } from '@/lib/api';
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppleSignInButton } from '@/components/apple-sign-in-button';
+import { ApiError, api } from '@/lib/api';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');

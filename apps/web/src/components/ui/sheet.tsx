@@ -1,13 +1,13 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
 import { Dialog as SheetPrimitive } from '@base-ui/react/dialog';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
 import { XIcon } from 'lucide-react';
 import type React from 'react';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 export const Sheet: typeof SheetPrimitive.Root = SheetPrimitive.Root;
 
@@ -202,4 +202,4 @@ export function SheetPanel({
   );
 }
 
-export { SheetPrimitive, SheetBackdrop as SheetOverlay, SheetPopup as SheetContent };
+export { SheetBackdrop as SheetOverlay, SheetPopup as SheetContent, SheetPrimitive };

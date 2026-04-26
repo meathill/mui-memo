@@ -1,10 +1,10 @@
+import { applyIntent, rerank } from '@mui-memo/shared/logic';
+import { taskPlaceEnum, utteranceSchema } from '@mui-memo/shared/validators';
+import { NextResponse } from 'next/server';
 import { ensureE2EEnabled } from '@/lib/e2e-guard';
 import { requireAuthDb } from '@/lib/route';
 import { resolveTargetTask } from '@/lib/search';
 import { listTasksForUser, logUtterance, persistIntentResult } from '@/lib/tasks';
-import { applyIntent, rerank } from '@mui-memo/shared/logic';
-import { taskPlaceEnum, utteranceSchema } from '@mui-memo/shared/validators';
-import { NextResponse } from 'next/server';
 
 const INTENTS_NEEDING_RESOLVE = new Set(['STATUS', 'DONE', 'MODIFY', 'LINK']);
 

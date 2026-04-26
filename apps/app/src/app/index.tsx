@@ -1,6 +1,6 @@
-import { useSession } from '@/lib/session';
 import { Redirect } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
+import { useSession } from '@/lib/session';
 
 /**
  * 入口 gate：等 SecureStore hydrate 完，按 token 有无转发。

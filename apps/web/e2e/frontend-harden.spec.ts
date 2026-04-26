@@ -95,9 +95,11 @@ test.describe('Completed · 分页', () => {
     expect(p1.tasks.length).toBe(2);
     expect(p1.hasMore).toBe(true);
     expect(p1.nextCursor).not.toBeNull();
+    const cursor = p1.nextCursor;
+    if (!cursor) throw new Error('nextCursor 缺失');
 
     // 第二页拿下一页
-    const page2 = await page.request.get(`/api/tasks/completed?limit=2&before=${encodeURIComponent(p1.nextCursor!)}`);
+    const page2 = await page.request.get(`/api/tasks/completed?limit=2&before=${encodeURIComponent(cursor)}`);
     const p2 = (await page2.json()) as {
       tasks: Array<{ id: string }>;
       hasMore: boolean;

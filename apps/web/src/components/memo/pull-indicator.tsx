@@ -1,7 +1,7 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { RefreshCcwIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 /**
  * 配合 usePullToRefresh 展示顶部的下拉条。pullOffset 是 0~1.2 的阻尼值。

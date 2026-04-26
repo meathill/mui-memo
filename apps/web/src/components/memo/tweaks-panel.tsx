@@ -1,9 +1,9 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { track } from '@/lib/analytics';
 import { CHECK_ANIMS, type CheckAnim, readCheckAnim, writeCheckAnim } from '@/lib/settings';
-import { THEMES, type Theme, readTheme, writeTheme } from '@/lib/theme';
-import { useEffect, useState } from 'react';
+import { readTheme, THEMES, type Theme, writeTheme } from '@/lib/theme';
 
 export function TweaksPanel() {
   const [theme, setTheme] = useState<Theme>('paper');

@@ -1,11 +1,11 @@
 'use client';
 
+import { LogOutIcon, RefreshCcwIcon } from 'lucide-react';
+import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
 import { TweaksPanel } from '@/components/memo/tweaks-panel';
 import { Button } from '@/components/ui/button';
 import { signOut } from '@/lib/auth-client';
-import { LogOutIcon, RefreshCcwIcon } from 'lucide-react';
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
 
 interface ProfileData {
   user: { name: string; email: string };
@@ -22,16 +22,16 @@ export function ProfileView() {
   const [data, setData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     const res = await fetch('/api/profile/stats', { cache: 'no-store' });
     if (res.ok) setData((await res.json()) as ProfileData);
     setLoading(false);
-  }
+  }, []);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   async function handleLogout() {
     await signOut();

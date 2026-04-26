@@ -1,8 +1,8 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { Input as InputPrimitive } from '@base-ui/react/input';
 import type * as React from 'react';
+import { cn } from '@/lib/utils';
 
 export type InputProps = Omit<InputPrimitive.Props & React.RefAttributes<HTMLInputElement>, 'size'> & {
   size?: 'sm' | 'default' | 'lg' | number;

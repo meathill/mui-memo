@@ -1,7 +1,7 @@
 import type { IntentEffect, TaskView } from '@mui-memo/shared/logic';
 import type { TaskPlace, Utterance } from '@mui-memo/shared/validators';
 import Constants from 'expo-constants';
-import { type SessionUser, getToken, useSession } from './session';
+import { getToken, type SessionUser, useSession } from './session';
 
 /**
  * API base URL。dev 从 app.json 的 extra.apiBase 注入（通常是局域网里电脑的
@@ -152,8 +152,7 @@ export const api = {
       // 不能传普通字符串，否则 415 VALIDATION_ERROR
       const firstName = params.fullName?.givenName ?? undefined;
       const lastName = params.fullName?.familyName ?? undefined;
-      const userPayload =
-        firstName || lastName ? { name: { firstName, lastName } } : undefined;
+      const userPayload = firstName || lastName ? { name: { firstName, lastName } } : undefined;
 
       const res = await fetch(`${API_BASE}/api/auth/sign-in/social`, {
         method: 'POST',

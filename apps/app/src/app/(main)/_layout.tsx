@@ -1,6 +1,6 @@
-import { useSession } from '@/lib/session';
 import { Redirect, Stack } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
+import { useSession } from '@/lib/session';
 
 /**
  * 登录后的 Stack：未登录踢回 /login；登录后走 Tabs 子布局 +

@@ -1,7 +1,7 @@
-import { requireAuthDb } from '@/lib/route';
 import { tasks as tasksTable } from '@mui-memo/shared/schema';
 import { eq, sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import { requireAuthDb } from '@/lib/route';
 
 export async function GET() {
   const [resp, ctx] = await requireAuthDb();

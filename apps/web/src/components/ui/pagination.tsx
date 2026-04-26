@@ -1,11 +1,11 @@
 'use client';
 
-import { type Button, buttonVariants } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
 import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from 'lucide-react';
 import type * as React from 'react';
+import { type Button, buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export function Pagination({ className, ...props }: React.ComponentProps<'nav'>): React.ReactElement {
   return (

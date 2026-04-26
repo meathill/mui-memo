@@ -1,14 +1,14 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { track } from '@/lib/analytics';
-import { MAX_ATTACHMENT_SIZE } from '@/lib/config';
 import { PLACE_LABEL } from '@mui-memo/shared/logic';
 import type { TaskPlace, TaskStatus, TaskWindow } from '@mui-memo/shared/validators';
 import { ArrowLeftIcon, TrashIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { track } from '@/lib/analytics';
+import { MAX_ATTACHMENT_SIZE } from '@/lib/config';
 import { ConfirmDialog } from './confirm-dialog';
 import { type Attachment, AttachmentsSection } from './task-detail-attachments';
 import {
@@ -16,12 +16,12 @@ import {
   PLACES,
   PRIORITIES,
   PRIORITY_LABEL,
-  STATUSES,
-  STATUS_LABEL,
   Segmented,
+  STATUS_LABEL,
+  STATUSES,
   TimeRow,
-  WINDOWS,
   WINDOW_LABEL,
+  WINDOWS,
 } from './task-detail-fields';
 
 interface Task {

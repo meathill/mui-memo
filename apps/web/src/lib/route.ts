@@ -1,7 +1,7 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { NextResponse } from 'next/server';
 import { getServerSession } from './auth';
-import { type Database, createDb } from './db';
+import { createDb, type Database } from './db';
 
 type Session = NonNullable<Awaited<ReturnType<typeof getServerSession>>>;
 type CfEnv = Awaited<ReturnType<typeof getCloudflareContext>>['env'];

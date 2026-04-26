@@ -1,8 +1,8 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { Popover as PopoverPrimitive } from '@base-ui/react/popover';
 import type React from 'react';
+import { cn } from '@/lib/utils';
 
 export const PopoverCreateHandle: typeof PopoverPrimitive.createHandle = PopoverPrimitive.createHandle;
 
@@ -96,4 +96,4 @@ export function PopoverDescription({ className, ...props }: PopoverPrimitive.Des
   );
 }
 
-export { PopoverPrimitive, PopoverPopup as PopoverContent };
+export { PopoverPopup as PopoverContent, PopoverPrimitive };

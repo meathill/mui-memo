@@ -1,10 +1,10 @@
 'use client';
 
+import { PaperclipIcon, TrashIcon } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ASSETS_URL } from '@/lib/config';
 import { cn } from '@/lib/utils';
-import { PaperclipIcon, TrashIcon } from 'lucide-react';
-import { useState } from 'react';
 
 export interface Attachment {
   id: string;
@@ -93,6 +93,7 @@ export function AttachmentsSection({
   return (
     <section
       data-testid="attachments"
+      aria-label="附件拖放区"
       className={cn(
         'mt-8 space-y-3 rounded-2xl p-2 transition-colors',
         dragOver && 'bg-accent-warm/10 ring-2 ring-accent-warm/60',

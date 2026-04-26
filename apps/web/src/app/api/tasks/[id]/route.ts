@@ -1,4 +1,3 @@
-import { requireAuthDb } from '@/lib/route';
 import {
   attachments as attachmentsTable,
   tasks as tasksTable,
@@ -8,6 +7,7 @@ import type { TaskPlace, TaskStatus, TaskWindow } from '@mui-memo/shared/validat
 import { taskCoreSchema, taskStatusEnum } from '@mui-memo/shared/validators';
 import { and, asc, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import { requireAuthDb } from '@/lib/route';
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const [resp, ctx] = await requireAuthDb();

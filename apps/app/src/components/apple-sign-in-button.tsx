@@ -1,9 +1,9 @@
-import { api } from '@/lib/api';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Crypto from 'expo-crypto';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Platform, View } from 'react-native';
+import { api } from '@/lib/api';
 
 /**
  * iOS 原生 Sign in with Apple 按钮。用 Expo 封装过的系统组件（高亮 / 跟系统

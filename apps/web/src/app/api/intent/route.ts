@@ -1,12 +1,12 @@
+import { applyIntent, rerank } from '@mui-memo/shared/logic';
+import { taskPlaceEnum } from '@mui-memo/shared/validators';
+import { NextResponse } from 'next/server';
 import { R2_PREFIX } from '@/lib/config';
 import { createGenAI, parseVoiceIntent } from '@/lib/gemini';
 import { requireAuthDb } from '@/lib/route';
 import { resolveTargetTask } from '@/lib/search';
 import { linkAudioKey, listTasksForUser, logUtterance, persistIntentResult } from '@/lib/tasks';
 import { describeNow, normalizeTz } from '@/lib/time';
-import { applyIntent, rerank } from '@mui-memo/shared/logic';
-import { taskPlaceEnum } from '@mui-memo/shared/validators';
-import { NextResponse } from 'next/server';
 
 const INTENTS_NEEDING_RESOLVE = new Set(['STATUS', 'DONE', 'MODIFY', 'LINK']);
 
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   const audioBuffer = await audio.arrayBuffer();
   const mimeType = audio.type || 'audio/webm';
 
-  let utterance;
+  let utterance: Awaited<ReturnType<typeof parseVoiceIntent>>;
   try {
     const anchor = describeNow(tz);
     utterance = await parseVoiceIntent({

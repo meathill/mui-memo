@@ -1,6 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Bucket, IntentEffect, TaskView } from '@mui-memo/shared/logic';
 import type { TaskPlace, Utterance } from '@mui-memo/shared/validators';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 

@@ -1,8 +1,8 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { Tabs as TabsPrimitive } from '@base-ui/react/tabs';
 import type React from 'react';
+import { cn } from '@/lib/utils';
 
 export type TabsVariant = 'default' | 'underline';
 
@@ -68,4 +68,4 @@ export function TabsPanel({ className, ...props }: TabsPrimitive.Panel.Props): R
   return <TabsPrimitive.Panel className={cn('flex-1 outline-none', className)} data-slot="tabs-content" {...props} />;
 }
 
-export { TabsPrimitive, TabsTab as TabsTrigger, TabsPanel as TabsContent };
+export { TabsPanel as TabsContent, TabsPrimitive, TabsTab as TabsTrigger };

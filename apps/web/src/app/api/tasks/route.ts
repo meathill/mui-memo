@@ -1,6 +1,6 @@
+import { NextResponse } from 'next/server';
 import { requireAuthDb } from '@/lib/route';
 import { listTasksForUser } from '@/lib/tasks';
-import { NextResponse } from 'next/server';
 
 /**
  * 返回当前用户的全量未归档任务视图。

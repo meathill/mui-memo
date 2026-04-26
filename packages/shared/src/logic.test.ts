@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { type TaskView, applyIntent, rerank } from './logic.js';
+import { applyIntent, rerank, type TaskView } from './logic.js';
 import type { Utterance } from './validators.js';
 
 // ──────────────────────────────────────────────

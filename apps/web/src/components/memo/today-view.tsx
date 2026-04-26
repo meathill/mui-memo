@@ -1,12 +1,12 @@
 'use client';
 
-import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
-import { track } from '@/lib/analytics';
-import { useAppStore } from '@/store';
-import { BUCKET_LABEL, type Bucket, type TaskView, rerank } from '@mui-memo/shared/logic';
+import { BUCKET_LABEL, type Bucket, rerank, type TaskView } from '@mui-memo/shared/logic';
 import type { TaskPlace } from '@mui-memo/shared/validators';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo } from 'react';
+import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
+import { track } from '@/lib/analytics';
+import { useAppStore } from '@/store';
 import { ContextStrip } from './context-strip';
 import { DoingCard } from './doing-card';
 import { EffectToast } from './effect-toast';
@@ -94,7 +94,7 @@ export function TodayView({ userName }: Props) {
         setProcessing(false);
       }
     },
-    [place, setProcessing, setLastEffect, hydrate, lastEffect, lastUtterance],
+    [place, setProcessing, setLastEffect, hydrate],
   );
 
   const handleDone = useCallback(

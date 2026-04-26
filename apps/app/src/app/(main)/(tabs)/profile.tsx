@@ -1,13 +1,12 @@
-import { ErrorBanner } from '@/components/error-banner';
-import { type ProfileStats, api } from '@/lib/api';
-import { type PermStatus, getPermissionStatus, requestPermission } from '@/lib/notifications';
 import * as Linking from 'expo-linking';
-import { BellIcon, ZapIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
-import { LogOutIcon } from 'lucide-react-native';
+import { BellIcon, LogOutIcon, ZapIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ErrorBanner } from '@/components/error-banner';
+import { api, type ProfileStats } from '@/lib/api';
+import { getPermissionStatus, type PermStatus, requestPermission } from '@/lib/notifications';
 
 export default function ProfileScreen() {
   const [data, setData] = useState<ProfileStats | null>(null);

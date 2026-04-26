@@ -87,7 +87,12 @@ export function HeroDemo() {
   }
 
   return (
-    <div className="relative" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+    <section
+      className="relative"
+      aria-label="预览演示"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
       <div className="relative overflow-hidden rounded-sm border border-rule/70 bg-paper-2/40">
         <div className="flex items-center justify-between border-b border-rule/50 px-5 py-3 sm:px-6">
           <p className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.8rem]">
@@ -155,6 +160,6 @@ export function HeroDemo() {
       <p className="mt-3 text-right font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.8rem]">
         ↑ 从一句话到完成的四步闭环
       </p>
-    </div>
+    </section>
   );
 }
