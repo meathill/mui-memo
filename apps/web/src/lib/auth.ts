@@ -1,10 +1,8 @@
-import { getApplePublicKey } from '@better-auth/core/social-providers';
 import * as schema from '@mui-memo/shared/schema';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { bearer } from 'better-auth/plugins';
-import { decodeJwt, decodeProtectedHeader, jwtVerify } from 'jose';
 import { headers } from 'next/headers';
 import { createDb } from './db';
 
@@ -51,39 +49,6 @@ export function createAuth(opts: CreateAuthOptions) {
             // 会自动拉 https://appleid.apple.com/auth/keys 验签 + 校 aud
             clientId: opts.appleBundleIdentifier,
             appBundleIdentifier: opts.appleBundleIdentifier,
-            // dev 用 Expo Go 跑时，JWT 的 aud 是 Expo Go 的 bundle id (host.exp.Exponent)，
-            // 不是我们 app 真实 bundle id；生产必须只认真实 bundle id（不然谁都能用 Expo Go
-            // 签出 token 来登录别的账号）。NODE_ENV !== 'production' 时白名单加上备选 aud。
-            verifyIdToken: async (token, nonce) => {
-              const allowedAud =
-                process.env.NODE_ENV === 'production'
-                  ? opts.appleBundleIdentifier
-                  : [opts.appleBundleIdentifier ?? '', 'host.exp.Exponent'];
-              try {
-                const { kid, alg } = decodeProtectedHeader(token);
-                if (!kid || !alg) return false;
-                const { payload } = await jwtVerify(token, await getApplePublicKey(kid), {
-                  algorithms: [alg],
-                  issuer: 'https://appleid.apple.com',
-                  audience: allowedAud,
-                  maxTokenAge: '1h',
-                });
-                if (nonce && payload.nonce !== nonce) return false;
-                if (process.env.NODE_ENV !== 'production') {
-                  const claims = decodeJwt(token);
-                  console.log('[apple] verifyIdToken OK', {
-                    aud: claims.aud,
-                    sub: payload.sub,
-                  });
-                }
-                return true;
-              } catch (err) {
-                if (process.env.NODE_ENV !== 'production') {
-                  console.error('[apple] verifyIdToken failed:', err instanceof Error ? err.message : err);
-                }
-                return false;
-              }
-            },
           },
         }
       : undefined,
