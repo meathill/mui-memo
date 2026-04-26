@@ -13,6 +13,9 @@ import type { ExpoConfig } from 'expo/config';
 const PROD_API_BASE = 'https://muimemo.roudan.io';
 const apiBase = process.env.EXPO_PUBLIC_API_BASE?.trim() || PROD_API_BASE;
 
+const PROD_FEEDBACK_API_BASE = 'https://feedback.roudan.io';
+const feedbackApiBase = process.env.EXPO_PUBLIC_FEEDBACK_API_BASE?.trim() || PROD_FEEDBACK_API_BASE;
+
 // 类型里还没跟上的字段（比如 newArchEnabled）只能借 as 绕开
 const config: ExpoConfig & { newArchEnabled?: boolean } = {
   name: 'MuiMemo',
@@ -55,6 +58,7 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
   },
   extra: {
     apiBase,
+    feedbackApiBase,
     eas: {
       // `eas init` 生成的固定 projectId，别改；重装 / 换机跑 eas build 都靠它认项目
       projectId: 'b2890ed6-fdc6-4ec5-898d-9a7c6f7f8504',

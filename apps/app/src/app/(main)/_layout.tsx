@@ -30,6 +30,7 @@ export default function MainLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen name="feedback" options={{ presentation: 'card', headerShown: false }} />
     </Stack>
   );
 }

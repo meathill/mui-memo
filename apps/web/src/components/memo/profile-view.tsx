@@ -1,8 +1,9 @@
 'use client';
 
-import { LogOutIcon, RefreshCcwIcon } from 'lucide-react';
+import { LogOutIcon, MessageSquareIcon, RefreshCcwIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
+import { FeedbackDialog } from '@/components/memo/feedback-dialog';
 import { TweaksPanel } from '@/components/memo/tweaks-panel';
 import { Button } from '@/components/ui/button';
 import { signOut } from '@/lib/auth-client';
@@ -21,6 +22,7 @@ interface ProfileData {
 export function ProfileView() {
   const [data, setData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -91,7 +93,17 @@ export function ProfileView() {
           <span className="font-serif text-sm text-ink">再看一次入门引导</span>
           <RefreshCcwIcon className="h-4 w-4 text-ink-mute" />
         </button>
+        <button
+          type="button"
+          onClick={() => setFeedbackOpen(true)}
+          className="flex w-full items-center justify-between rounded-xl border border-rule/60 bg-paper-2/60 px-4 py-3 text-left hover:bg-paper-2"
+        >
+          <span className="font-serif text-sm text-ink">意见反馈</span>
+          <MessageSquareIcon className="h-4 w-4 text-ink-mute" />
+        </button>
       </section>
+
+      <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} defaultContact={data?.user.email} />
 
       <section className="mt-6">
         <Button variant="outline" size="lg" className="w-full" onClick={handleLogout}>

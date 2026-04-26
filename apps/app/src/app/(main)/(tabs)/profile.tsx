@@ -1,6 +1,6 @@
 import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
-import { BellIcon, LogOutIcon, ZapIcon } from 'lucide-react-native';
+import { BellIcon, LogOutIcon, MessageSquareIcon, ZapIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -171,6 +171,20 @@ export default function ProfileScreen() {
             <Text className="mt-0.5 text-ink-soft text-sm">「嘿 Siri, 记一下」一秒打开 MuiMemo</Text>
           </View>
           <Text className="font-mono text-accent-good text-sm">怎么配</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => router.push('/feedback')}
+          className="mt-3 flex-row items-center gap-3 rounded-2xl border border-rule/60 bg-paper-2/50 p-4 active:opacity-80"
+        >
+          <View className="h-10 w-10 items-center justify-center rounded-full bg-ink/10">
+            <MessageSquareIcon size={18} color="#1d1a12" />
+          </View>
+          <View className="flex-1">
+            <Text className="font-serif text-base text-ink">意见反馈</Text>
+            <Text className="mt-0.5 text-ink-soft text-sm">遇到问题或想要新功能？告诉我们</Text>
+          </View>
+          <Text className="font-mono text-ink-mute text-sm">→</Text>
         </Pressable>
 
         {loading ? (

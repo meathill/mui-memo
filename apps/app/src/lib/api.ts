@@ -1,6 +1,7 @@
 import type { IntentEffect, TaskView } from '@mui-memo/shared/logic';
 import type { TaskPlace, Utterance } from '@mui-memo/shared/validators';
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 import { getToken, type SessionUser, useSession } from './session';
 
 /**
@@ -267,6 +268,38 @@ export const api = {
   profile: {
     stats() {
       return request<ProfileStats>('/api/profile/stats');
+    },
+  },
+
+  feedback: {
+    /**
+     * 反馈后端 (app-feedback) 不需要鉴权，独立域名，所以不走 request()，
+     * 直接 fetch 避免被注入 Authorization header
+     */
+    async submit(payload: { content: string; contact?: string; tags?: string[] }) {
+      const base = (
+        (Constants.expoConfig?.extra as { feedbackApiBase?: string } | undefined)?.feedbackApiBase ??
+        'https://feedback.roudan.io'
+      ).replace(/\/$/, '');
+      const body = {
+        appId: 'mui-memo-app',
+        version: Constants.expoConfig?.version,
+        deviceInfo: {
+          os: Platform.OS,
+          osVersion: String(Platform.Version),
+        },
+        content: payload.content,
+        contact: payload.contact || undefined,
+        tags: payload.tags?.length ? payload.tags : undefined,
+      };
+      const res = await fetch(`${base}/api/feedbacks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        throw new ApiError(`提交失败 (${res.status})`, res.status);
+      }
     },
   },
 };
