@@ -1,8 +1,9 @@
 import type { Bucket, TaskView } from '@mui-memo/shared/logic';
 import { BUCKET_LABEL, rerank } from '@mui-memo/shared/logic';
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, RefreshControl, ScrollView, Text, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ErrorBanner } from '@/components/error-banner';
 import { ContextStrip } from '@/components/memo/context-strip';
@@ -54,6 +55,18 @@ export default function TodayScreen() {
 
   const doing = useMemo(() => tasks.find((t) => t.status === 'doing') ?? null, [tasks]);
   const ranked = useMemo(() => rerank(tasks, place), [tasks, place]);
+
+  // 切换 place 时给事项区一次淡入脉冲：即便桶分配前后一致，也让用户看到「筛选跑过了」
+  const fade = useSharedValue(1);
+  const fadeStyle = useAnimatedStyle(() => ({ opacity: fade.value }));
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    fade.value = withSequence(withTiming(0.55, { duration: 90 }), withTiming(1, { duration: 220 }));
+  }, [place, fade]);
   const grouped = useMemo(() => {
     const buckets = new Map<Bucket, TaskView[]>();
     for (const t of ranked) {
@@ -152,7 +165,7 @@ export default function TodayScreen() {
           </View>
         ) : null}
 
-        <View className="mt-4">
+        <Animated.View className="mt-4" style={fadeStyle}>
           {SECTION_ORDER.map((bucket) => {
             const list = grouped.get(bucket) ?? [];
             if (!list.length) return null;
@@ -179,7 +192,7 @@ export default function TodayScreen() {
               </Text>
             </View>
           ) : null}
-        </View>
+        </Animated.View>
       </ScrollView>
 
       <View className="absolute inset-x-0 bottom-24 items-center">

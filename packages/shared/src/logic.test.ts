@@ -84,6 +84,30 @@ describe('rerank', () => {
     expect(rerank([t], 'work')[0].bucket).toBe('now');
     expect(rerank([t], 'out')[0].bucket).toBe('now');
   });
+
+  it('ctxPlace=any（全部 tab）：场景不过滤，没有 today_else / blocked', () => {
+    const tasks = [
+      task({ id: 'home-now', text: 'a', place: 'home', window: 'now' }),
+      task({ id: 'work-today', text: 'b', place: 'work', window: 'today' }),
+      task({ id: 'out-now', text: 'c', place: 'out', window: 'now' }),
+      task({ id: 'any-today', text: 'd', place: 'any', window: 'today' }),
+    ];
+    const ranked = rerank(tasks, 'any');
+    expect(ranked.find((t) => t.bucket === 'today_else')).toBeUndefined();
+    expect(ranked.find((t) => t.bucket === 'blocked')).toBeUndefined();
+    expect(
+      ranked
+        .filter((t) => t.bucket === 'now')
+        .map((t) => t.id)
+        .sort(),
+    ).toEqual(['home-now', 'out-now']);
+    expect(
+      ranked
+        .filter((t) => t.bucket === 'today_here')
+        .map((t) => t.id)
+        .sort(),
+    ).toEqual(['any-today', 'work-today']);
+  });
 });
 
 // ──────────────────────────────────────────────

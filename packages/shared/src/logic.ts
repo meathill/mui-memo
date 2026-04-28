@@ -53,7 +53,8 @@ export const BUCKET_LABEL: Record<Bucket, string> = {
  */
 export function rerank(tasks: TaskView[], ctxPlace: TaskPlace): Array<TaskView & { bucket: Bucket }> {
   const list = tasks.filter((t) => !t.done && t.status !== 'linked');
-  const canDoHere = (t: TaskView) => t.place === 'any' || t.place === ctxPlace;
+  // ctxPlace='any' = 「全部」tab：不做场景过滤，所有任务都视为「这里可做」
+  const canDoHere = (t: TaskView) => ctxPlace === 'any' || t.place === 'any' || t.place === ctxPlace;
 
   const bucket = (t: TaskView): Bucket => {
     if (t.status === 'doing') return 'doing';
