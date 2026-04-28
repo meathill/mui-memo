@@ -18,6 +18,9 @@ out/
 .vscode/
 .idea/
 
+# Claude Code sub-agent worktrees（自带 biome.json，会跟根 config 冲突）
+.claude/worktrees/
+
 # OS
 .DS_Store
 Thumbs.db
