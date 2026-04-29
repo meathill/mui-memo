@@ -4,8 +4,8 @@
 
 ## 版本号约定
 
-- `apps/web/package.json` 的 `version` 在构建时由 `apps/web/next.config.ts` 通过 `env.NEXT_PUBLIC_APP_VERSION` 注入客户端 bundle
-- 「我的」页面底部展示当前版本号，方便与用户沟通线上问题
+- web：`apps/web/package.json` 的 `version` 在构建时由 `apps/web/next.config.ts` 通过 `env.NEXT_PUBLIC_APP_VERSION` 注入客户端 bundle，「我的」页面底部展示
+- app：`apps/app/package.json` 是版本号唯一源，`apps/app/app.config.ts` 用 `pkg.version` 注入 ExpoConfig；运行时通过 `expo-constants` 的 `Constants.expoConfig?.version` 读取。「我的」页面底部展示 `vX.Y.Z (build)`，build 号取 `ios.buildNumber` 或 `android.versionCode`（dev / Expo Go 里通常没有，回退为只显示 `vX.Y.Z`）
 - 每次迭代合入前手动调升：bug 修复 **patch**、功能 **minor**、破坏性变更 **major**
 - 不做自动化（changesets 等），保持简洁
 
@@ -83,6 +83,16 @@ embedding VECTOR(1024)
 - SDK 内部会自动补 `/v1beta/models/...`
 - 主模型 `gemini-3-flash-preview`（多模态，直接吃音频 base64）；早期 `gemini-2.0-flash` 已下线
 
+## AI Provider 切换：env 决定走 Gemini 还是 OpenAI 兼容端点
+
+- 入口 [apps/web/src/lib/intent.ts](apps/web/src/lib/intent.ts) 的 `resolveAndParseVoiceIntent` 按 `env.AI_PROVIDER` 路由：缺省 `'gemini'`，传 `'openai'` 走 OpenAI 兼容协议
+- 共享部分（system prompt / userPrompt / audioToBase64 / extractJson / TimeAnchor）抽到 [apps/web/src/lib/intent-shared.ts](apps/web/src/lib/intent-shared.ts)，两个 provider 共用，确保输出 schema 一致
+- OpenAI 路径默认目标是小米 MIMO（[platform.xiaomimimo.com](https://platform.xiaomimimo.com/docs/zh-CN/api/chat/openai-api)），用官方 `openai` SDK 直连，不走 CF Gateway（国内服务收益不大）
+- 切到 MIMO 时需要的 secrets：`AI_PROVIDER=openai` + `OPENAI_API_KEY` + `OPENAI_BASE_URL` + `OPENAI_MODEL`，在 `.dev.vars` 或 `wrangler secret put` 设
+- `input_audio.format` 字段：OpenAI SDK 类型只声明 `'wav' | 'mp3'`，但 MIMO 实际接受 mp3 / wav / flac / m4a / ogg（[音频限制](https://platform.xiaomimimo.com/docs/zh-CN/usage-guide/multimodal-understanding/audio-understanding?target=%E9%9F%B3%E9%A2%91%E9%99%90%E5%88%B6)），代码里 cast 绕过类型限制
+- **webm 不在 MIMO 白名单里**——这是 web MediaRecorder 的默认产物。[apps/web/src/components/memo/mic-button.tsx](apps/web/src/components/memo/mic-button.tsx) 把录音格式优先级改成 `mp4 > ogg/opus > webm/opus`，让 Chrome 116+ / Safari 录 mp4，Firefox 录 ogg；老 Chrome 兜底 webm 时切到 OpenAI provider 会被服务端 `pickAudioFormat` 拒绝
+- MIMO 支持 OpenAI 的 JSON mode，已开 `response_format: { type: 'json_object' }`；保留 `extractJson` 兜底，万一某次返回带前缀也能救回
+
 ## Next.js 16 (App Router) 要注意
 
 - `params` / `headers` / `cookies` 都是 **Promise**，必须 `await`
@@ -129,7 +139,7 @@ embedding VECTOR(1024)
 
 **Shared 包的雷区**：`apps/app` 只许 import `@mui-memo/shared/validators` 和 `@mui-memo/shared/logic`。`@mui-memo/shared/schema` 拖着 drizzle-orm + TiDB 驱动，Metro 不认，一碰就 bundle 失败。review 代码时搜一遍确认没有。
 
-**音频格式**：Web MediaRecorder 默认 `audio/webm;codecs=opus`，iOS `expo-audio` 默认 `.m4a`。[apps/web/src/app/api/intent/route.ts](apps/web/src/app/api/intent/route.ts) 的 R2 扩展名分支已同时覆盖 webm / m4a / wav。Gemini 对两种格式都能识别，实测 m4a 联调成功。
+**音频格式**：Web MediaRecorder 走 `mp4 > ogg/opus > webm/opus` 优先级（[mic-button.tsx](apps/web/src/components/memo/mic-button.tsx) 的 `RECORDER_MIME_CANDIDATES`，见「AI Provider 切换」段落里关于 MIMO webm 不支持的说明），iOS `expo-audio` 默认 `.m4a`。[apps/web/src/app/api/intent/route.ts](apps/web/src/app/api/intent/route.ts) 的 R2 扩展名分支已同时覆盖 webm / m4a / wav；走 OpenAI provider 时 webm 会被拒，新录音才能命中 mp4。Gemini 对所有这些格式都能识别。
 
 **图标库**：`lucide-react-native` + `react-native-svg` 对齐 Web 的 `lucide-react`。peer 依赖 `buffer` 要显式装（react-native-svg 的 `fetchData.ts` 用），否则 bundle 报 `Unable to resolve module buffer`。
 

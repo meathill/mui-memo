@@ -1,4 +1,5 @@
 import type { ExpoConfig } from 'expo/config';
+import pkg from './package.json' with { type: 'json' };
 
 /**
  * 动态配置：支持从环境变量覆盖 API base URL。
@@ -21,7 +22,7 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
   name: 'MuiMemo',
   slug: 'mui-memo',
   scheme: 'muimemo',
-  version: '0.1.0',
+  version: pkg.version,
   orientation: 'portrait',
   userInterfaceStyle: 'light',
   newArchEnabled: true,

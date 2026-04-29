@@ -2,6 +2,7 @@
 
 import { MicIcon } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { blobToWav } from '@/lib/audio-to-wav';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -13,6 +14,22 @@ type Phase = 'idle' | 'recording' | 'processing';
 
 /** 最短录音时长：太短的录音 Gemini 没足够信号，AI 容易胡猜。 */
 const MIN_DURATION_MS = 3000;
+
+/**
+ * 浏览器录音格式优先级：mp4 > ogg/opus > webm/opus。
+ *
+ * 录什么格式其实都行——`onstop` 里用 AudioContext 把 blob 转成 PCM WAV 再上传，
+ * 这样 MIMO（嗅探数据头识别格式，对 Chrome 的 fragmented MP4 不认）也能稳定收。
+ * 但优先级仍按浏览器原生编码效率排，省 transcode 前的 IO。
+ */
+const RECORDER_MIME_CANDIDATES = ['audio/mp4', 'audio/ogg;codecs=opus', 'audio/webm;codecs=opus', 'audio/webm'];
+
+function pickRecorderMime(): string {
+  for (const mime of RECORDER_MIME_CANDIDATES) {
+    if (MediaRecorder.isTypeSupported(mime)) return mime;
+  }
+  return '';
+}
 
 /**
  * 长按录音。支持触摸长按、鼠标长按、Space 键长按。
@@ -56,15 +73,17 @@ export function MicButton({ disabled, onAudio }: Props) {
       streamRef.current = stream;
       chunksRef.current = [];
 
-      const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
-      const rec = new MediaRecorder(stream, { mimeType: mime });
+      const mime = pickRecorderMime();
+      const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
       mediaRef.current = rec;
       rec.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
       rec.onstop = async () => {
         stopTick();
-        const blob = new Blob(chunksRef.current, { type: mime });
+        // mime 为空时取 recorder 自动选的（浏览器默认）
+        const blobType = mime || rec.mimeType;
+        const rawBlob = new Blob(chunksRef.current, { type: blobType });
         chunksRef.current = [];
         streamRef.current?.getTracks().forEach((t) => {
           t.stop();
@@ -77,13 +96,15 @@ export function MicButton({ disabled, onAudio }: Props) {
           setPhase('idle');
           return;
         }
-        if (blob.size === 0) {
+        if (rawBlob.size === 0) {
           setPhase('idle');
           return;
         }
         setPhase('processing');
         try {
-          await onAudio(blob);
+          // 统一转 PCM WAV 上传：避开各浏览器容器差异，MIMO 一定收
+          const wav = await blobToWav(rawBlob);
+          await onAudio(wav);
         } catch (err) {
           setError(err instanceof Error ? err.message : '处理失败');
         } finally {

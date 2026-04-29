@@ -10,9 +10,13 @@ declare namespace Cloudflare {
     BETTER_AUTH_URL: 'https://muimemo.roudan.io';
     CF_ACCOUNT_ID: 'fdc63eeea83ae8f5234357308b9a638b';
     CF_AI_GATEWAY_ID: 'meathill';
+    AI_PROVIDER: 'gemini' | 'openai';
     TIDB_DATABASE_URL: string;
     GEMINI_API_KEY: string;
     BETTER_AUTH_SECRET: string;
+    OPENAI_API_KEY?: string;
+    OPENAI_BASE_URL?: string;
+    OPENAI_MODEL?: string;
   }
 }
 interface CloudflareEnv extends Cloudflare.Env {}
@@ -29,6 +33,7 @@ declare namespace NodeJS {
         | 'BETTER_AUTH_URL'
         | 'CF_ACCOUNT_ID'
         | 'CF_AI_GATEWAY_ID'
+        | 'AI_PROVIDER'
         | 'TIDB_DATABASE_URL'
         | 'GEMINI_API_KEY'
         | 'BETTER_AUTH_SECRET'

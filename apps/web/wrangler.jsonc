@@ -26,6 +26,11 @@
     "NEXT_PUBLIC_SITE_URL": "https://muimemo.roudan.io",
     "BETTER_AUTH_URL": "https://muimemo.roudan.io",
     "CF_ACCOUNT_ID": "fdc63eeea83ae8f5234357308b9a638b",
-    "CF_AI_GATEWAY_ID": "meathill"
+    "CF_AI_GATEWAY_ID": "meathill",
+    // 'gemini' | 'openai'；切到 'openai' 走 OpenAI 兼容端点（默认目标 MIMO），
+    // 同时需要把 OPENAI_API_KEY / OPENAI_BASE_URL / OPENAI_MODEL 作为 secrets 设进来。
+    "AI_PROVIDER": "openai",
+    "OPENAI_BASE_URL": "https://token-plan-sgp.xiaomimimo.com/v1",
+    "OPENAI_MODEL": "mimo-v2.5"
   }
 }

@@ -1,12 +1,25 @@
+import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
 import { BellIcon, LogOutIcon, MessageSquareIcon, ZapIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ErrorBanner } from '@/components/error-banner';
 import { api, type ProfileStats } from '@/lib/api';
 import { getPermissionStatus, type PermStatus, requestPermission } from '@/lib/notifications';
+
+const VERSION_LABEL = (() => {
+  const version = Constants.expoConfig?.version ?? '';
+  if (!version) return '';
+  const buildNumber =
+    Platform.OS === 'ios'
+      ? Constants.expoConfig?.ios?.buildNumber
+      : Constants.expoConfig?.android?.versionCode != null
+        ? String(Constants.expoConfig.android.versionCode)
+        : undefined;
+  return buildNumber ? `v${version} (${buildNumber})` : `v${version}`;
+})();
 
 export default function ProfileScreen() {
   const [data, setData] = useState<ProfileStats | null>(null);
@@ -200,6 +213,12 @@ export default function ProfileScreen() {
           <LogOutIcon size={18} color="#1d1a12" />
           <Text className="text-ink text-base">退出登录</Text>
         </Pressable>
+
+        {VERSION_LABEL ? (
+          <Text className="mt-6 text-center font-mono text-[10px] text-ink-mute tracking-[0.15em]">
+            {VERSION_LABEL}
+          </Text>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );

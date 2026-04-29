@@ -2,7 +2,7 @@ import { applyIntent, rerank } from '@mui-memo/shared/logic';
 import { taskPlaceEnum } from '@mui-memo/shared/validators';
 import { NextResponse } from 'next/server';
 import { R2_PREFIX } from '@/lib/config';
-import { createGenAI, parseVoiceIntent } from '@/lib/gemini';
+import { resolveAndParseVoiceIntent } from '@/lib/intent';
 import { requireAuthDb } from '@/lib/route';
 import { resolveTargetTask } from '@/lib/search';
 import { linkAudioKey, listTasksForUser, logUtterance, persistIntentResult } from '@/lib/tasks';
@@ -27,22 +27,15 @@ export async function POST(req: Request) {
   const placeParsed = taskPlaceEnum.safeParse(placeStr);
   const ctxPlace = placeParsed.success ? placeParsed.data : 'any';
 
-  const genai = createGenAI({
-    apiKey: env.GEMINI_API_KEY,
-    gatewayAccountId: env.CF_ACCOUNT_ID,
-    gatewayId: env.CF_AI_GATEWAY_ID,
-  });
-
   const tasksBefore = await listTasksForUser(db, userId);
 
   const audioBuffer = await audio.arrayBuffer();
   const mimeType = audio.type || 'audio/webm';
 
-  let utterance: Awaited<ReturnType<typeof parseVoiceIntent>>;
+  let utterance: Awaited<ReturnType<typeof resolveAndParseVoiceIntent>>;
   try {
     const anchor = describeNow(tz);
-    utterance = await parseVoiceIntent({
-      genai,
+    utterance = await resolveAndParseVoiceIntent(env, {
       audio: audioBuffer,
       audioMimeType: mimeType,
       currentTasks: tasksBefore,
@@ -50,7 +43,7 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
-    return NextResponse.json({ error: 'gemini_failed', detail: msg }, { status: 502 });
+    return NextResponse.json({ error: 'ai_failed', detail: msg }, { status: 502 });
   }
 
   // 混合搜索：TiDB 原生 fts_match_word + VEC_EMBED_COSINE_DISTANCE，
