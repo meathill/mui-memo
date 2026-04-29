@@ -52,7 +52,7 @@ export function ProfileView() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-6 pb-24 sm:pt-10">
       <header>
-        <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">MuiMemo · 我的</p>
+        <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">叨叨记 · 我的</p>
         <h1 className="font-serif text-2xl text-ink">账号与数据</h1>
       </header>
 

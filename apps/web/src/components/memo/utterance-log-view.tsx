@@ -112,7 +112,7 @@ export function UtteranceLogView() {
           <ArrowLeftIcon />
         </Button>
         <div>
-          <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">MuiMemo · 输入记录</p>
+          <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">叨叨记 · 输入记录</p>
           <h1 className="font-serif text-2xl text-ink">你说过的每一句</h1>
         </div>
       </header>

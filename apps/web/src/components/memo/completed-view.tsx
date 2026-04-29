@@ -144,7 +144,7 @@ export function CompletedView() {
     <main className="relative mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-6 pb-24 sm:pt-10">
       <PullIndicator pullOffset={pullOffset} refreshing={refreshing} onManualRefresh={() => trigger()} />
       <header>
-        <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">MuiMemo · 已完成</p>
+        <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">叨叨记 · 已完成</p>
         <h1 className="font-serif text-2xl text-ink">你搞定的那些事</h1>
         <p className="mt-1 text-sm text-ink-soft">
           已加载 {tasks.length} 件{hasMore ? '（还可下拉/滚到底部看更多）' : ''}

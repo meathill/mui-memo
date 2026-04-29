@@ -4,9 +4,9 @@ import { createMarketingMetadata } from '@/lib/site';
 
 export const metadata = createMarketingMetadata({
   title: '隐私说明',
-  description: '查看 MuiMemo 当前真实的数据处理链路，包括账号信息、任务、录音、附件、AI 解析与分析埋点。',
+  description: '查看叨叨记当前真实的数据处理链路，包括账号信息、任务、录音、附件、AI 解析与分析埋点。',
   path: '/privacy',
-  keywords: ['MuiMemo 隐私', '数据处理', '录音存储'],
+  keywords: ['叨叨记隐私', '数据处理', '录音存储'],
 });
 
 export default function PrivacyPage() {

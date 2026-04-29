@@ -163,7 +163,7 @@
 }
 
 :root {
-  /* MuiMemo · paper 主题 —— 温润纸感 */
+  /* 叨叨记 · paper 主题 —— 温润纸感 */
   --paper-bg: #f4ede0;
   --paper-bg-2: #ece3d2;
   --ink: #1d1a12;
@@ -219,7 +219,7 @@
 }
 
 .dark {
-  /* MuiMemo · night —— 深夜纸感 */
+  /* 叨叨记 · night —— 深夜纸感 */
   --paper-bg: #1a1812;
   --paper-bg-2: #232017;
   --ink: #f0e6d2;
@@ -274,7 +274,7 @@
 }
 
 .theme-mono {
-  /* MuiMemo · mono —— 极简黑白 */
+  /* 叨叨记 · mono —— 极简黑白 */
   --paper-bg: #fafaf8;
   --paper-bg-2: #f1f1ee;
   --ink: #0a0a0a;

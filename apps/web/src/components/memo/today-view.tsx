@@ -166,7 +166,7 @@ export function TodayView({ userName }: Props) {
       <PullIndicator pullOffset={pullOffset} refreshing={refreshing} onManualRefresh={() => trigger()} />
 
       <header>
-        <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">MuiMemo · 今天</p>
+        <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">叨叨记 · 今天</p>
         <h1 className="font-serif text-2xl text-ink">你好，{userName}</h1>
       </header>
 

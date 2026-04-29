@@ -44,7 +44,7 @@ function Hero() {
           <span className="text-accent-warm">待办</span>。
         </h1>
         <p className="font-serif mt-6 max-w-[36ch] text-[1.15rem] leading-[1.72] text-ink-soft sm:text-[1.38rem] sm:leading-[1.68]">
-          不是先记一段语音，再回头整理。 你一开口，MuiMemo 就开始判断你要做什么，并顺手补上时间、优先级和该归的场景。
+          不是先记一段语音，再回头整理。 你一开口，叨叨记就开始判断你要做什么，并顺手补上时间、优先级和该归的场景。
         </p>
         <p className="mt-5 max-w-[42rem] font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.82rem]">
           记下 → 理解 → 归堆 → 到该做的时候浮出来
@@ -139,7 +139,7 @@ function SceneArticle({ scene, index }: { scene: Scene; index: number }) {
         </div>
         <div className="mt-5 border-t border-rule/60 pt-4">
           <p className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.8rem]">
-            MuiMemo 接住
+            叨叨记接住
           </p>
           <p className="mt-3 max-w-[50ch] text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">{scene.effect}</p>
         </div>

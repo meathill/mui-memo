@@ -1,6 +1,6 @@
 {
-  "name": "MuiMemo · 口述备忘",
-  "short_name": "MuiMemo",
+  "name": "叨叨记 · 口述备忘",
+  "short_name": "叨叨记",
   "description": "意图驱动的 AI 语音轻量任务调度",
   "start_url": "/app",
   "scope": "/app",

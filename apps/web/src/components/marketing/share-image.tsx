@@ -71,10 +71,10 @@ export function ShareImage() {
                   color: '#5f4522',
                   fontSize: 24,
                   fontWeight: 700,
-                  letterSpacing: '-0.08em',
+                  letterSpacing: 0,
                 }}
               >
-                MM
+                叨
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span

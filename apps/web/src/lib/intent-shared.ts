@@ -1,6 +1,6 @@
 import type { TaskView } from '@mui-memo/shared/logic';
 
-export const SYSTEM_PROMPT = `你是 MuiMemo 的语音意图解析器。用户会说一句中文大白话，你需要把它转成一条结构化的 JSON 操作，用来更新用户的任务清单。
+export const SYSTEM_PROMPT = `你是叨叨记的语音意图解析器。用户会说一句中文大白话，你需要把它转成一条结构化的 JSON 操作，用来更新用户的任务清单。
 
 输出必须严格符合如下 JSON Schema（只输出 JSON，不要任何解释）：
 

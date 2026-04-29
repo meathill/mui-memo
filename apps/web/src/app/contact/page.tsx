@@ -4,9 +4,9 @@ import { createMarketingMetadata, SITE_EMAIL } from '@/lib/site';
 
 export const metadata = createMarketingMetadata({
   title: '联系',
-  description: `通过 ${SITE_EMAIL} 联系 MuiMemo，反馈 bug、讨论产品、处理隐私或数据删除请求。`,
+  description: `通过 ${SITE_EMAIL} 联系叨叨记，反馈 bug、讨论产品、处理隐私或数据删除请求。`,
   path: '/contact',
-  keywords: ['联系 MuiMemo', '反馈 bug', '数据删除'],
+  keywords: ['联系叨叨记', '反馈 bug', '数据删除'],
 });
 
 export default function ContactPage() {
