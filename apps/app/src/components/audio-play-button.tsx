@@ -1,4 +1,4 @@
-import { type AudioStatus, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import { type AudioPlayer, type AudioStatus, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import Constants from 'expo-constants';
 import { AlertCircleIcon, PauseIcon, PlayIcon } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
@@ -33,6 +33,7 @@ export function AudioPlayButton({ audioKey, label = '播放原声' }: Props) {
   const player = useAudioPlayer(source);
   const status = useAudioPlayerStatus(player);
   const { error, onPlay } = useAudioErrorFallback(status);
+  useRewindOnFinish(player, status.didJustFinish);
   const playing = status.playing;
 
   function toggle() {
@@ -98,6 +99,7 @@ export function AudioUrlPlayButton({ url }: { url: string }) {
   const player = useAudioPlayer(source);
   const status = useAudioPlayerStatus(player);
   const { error, onPlay } = useAudioErrorFallback(status);
+  useRewindOnFinish(player, status.didJustFinish);
   return (
     <View className="flex-row items-center gap-2">
       <Pressable
@@ -182,4 +184,19 @@ function useAudioErrorFallback(status: AudioStatus): { error: boolean; onPlay: (
       setAttemptId((id) => id + 1);
     },
   };
+}
+
+/**
+ * 播完自动把播放头归零，方便用户连续重听。
+ *
+ * 为什么必须：iOS AVPlayer 播完后 currentTime 停在 duration，再调 player.play()
+ * 会立即触发 didJustFinish 不重新播。expo-audio 没自带「auto-rewind」开关，
+ * 这里在 didJustFinish 由 false 变 true 时主动 seekTo(0)。
+ */
+function useRewindOnFinish(player: AudioPlayer, didJustFinish: boolean) {
+  useEffect(() => {
+    if (didJustFinish) {
+      player.seekTo(0);
+    }
+  }, [didJustFinish, player]);
 }
