@@ -1,15 +1,13 @@
 'use client';
 
-import type { TaskPlace, TaskStatus, TaskWindow } from '@mui-memo/shared/validators';
+import { PLACES, PRIORITIES, STATUSES, WINDOWS } from '@mui-memo/shared/logic';
+import type { TaskStatus, TaskWindow } from '@mui-memo/shared/validators';
 import { useEffect, useRef, useState } from 'react';
 import { useNowTick } from '@/hooks/use-now-tick';
 import { formatDueAt, isOverdue, isoToLocalInput, localInputToISO, relativeTimeLabel } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
-export const PLACES: TaskPlace[] = ['home', 'work', 'out', 'any'];
-export const WINDOWS: TaskWindow[] = ['now', 'today', 'later'];
-export const PRIORITIES = [1, 2, 3] as const;
-export const STATUSES: TaskStatus[] = ['pending', 'doing', 'done'];
+export { PLACES, PRIORITIES, STATUSES, WINDOWS };
 
 export const STATUS_LABEL: Record<TaskStatus, string> = {
   pending: '待做',

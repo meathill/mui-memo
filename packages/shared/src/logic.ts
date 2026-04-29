@@ -256,3 +256,10 @@ export const PLACE_LABEL: Record<TaskPlace, { label: string; icon: string }> = {
   out: { label: '在外', icon: '🚶' },
   any: { label: '任何地方', icon: '•' },
 };
+
+// 任务字段的可选值列表，前后端共享。
+// label 文案保留在各端（web 与 app 措辞不同），这里只导出值列表。
+export const PLACES: TaskPlace[] = ['home', 'work', 'out', 'any'];
+export const WINDOWS: TaskWindow[] = ['now', 'today', 'later'];
+export const STATUSES: TaskStatus[] = ['pending', 'doing', 'done'];
+export const PRIORITIES = [1, 2, 3] as const;

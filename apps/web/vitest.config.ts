@@ -10,5 +10,7 @@ export default defineConfig({
   test: {
     // e2e/ 走 Playwright，不由 vitest 跑
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    environment: 'happy-dom',
+    setupFiles: ['./src/test/setup.ts'],
   },
 });

@@ -1,5 +1,5 @@
-import type { TaskView } from '@mui-memo/shared/logic';
-import type { TaskPlace } from '@mui-memo/shared/validators';
+import { PLACES as SHARED_PLACES, WINDOWS as SHARED_WINDOWS, type TaskView } from '@mui-memo/shared/logic';
+import type { TaskPlace, TaskWindow } from '@mui-memo/shared/validators';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { CheckIcon, XIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
@@ -18,19 +18,26 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { api, type TaskPatch } from '@/lib/api';
 import { useAppStore } from '@/store';
 
-const PLACES: { value: TaskPlace; label: string }[] = [
-  { value: 'home', label: '在家' },
-  { value: 'work', label: '工位' },
-  { value: 'out', label: '在外' },
-  { value: 'any', label: '不限' },
-];
+const PLACE_LABELS: Record<TaskPlace, string> = {
+  home: '在家',
+  work: '工位',
+  out: '在外',
+  any: '不限',
+};
+const PLACES: { value: TaskPlace; label: string }[] = SHARED_PLACES.map((value) => ({
+  value,
+  label: PLACE_LABELS[value],
+}));
 
-type TaskWindow = 'now' | 'today' | 'later';
-const WINDOWS: { value: TaskWindow; label: string }[] = [
-  { value: 'now', label: '立刻' },
-  { value: 'today', label: '今天内' },
-  { value: 'later', label: '改天' },
-];
+const WINDOW_LABELS: Record<TaskWindow, string> = {
+  now: '立刻',
+  today: '今天内',
+  later: '改天',
+};
+const WINDOWS: { value: TaskWindow; label: string }[] = SHARED_WINDOWS.map((value) => ({
+  value,
+  label: WINDOW_LABELS[value],
+}));
 
 /**
  * Expect-at 预设：语音 app 的核心理念是「不强制管理时间」，所以这里不上
