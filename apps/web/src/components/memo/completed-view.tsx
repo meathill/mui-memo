@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckIcon, TrashIcon } from 'lucide-react';
+import { CheckIcon, RotateCcwIcon, TrashIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
@@ -44,6 +44,7 @@ export function CompletedView() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<CompletedTask | null>(null);
+  const [vanishing, setVanishing] = useState<Set<string>>(() => new Set());
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const handleDelete = useCallback(async (taskId: string) => {
@@ -51,6 +52,27 @@ export function CompletedView() {
     if (!res.ok) return;
     setTasks((prev) => prev.filter((t) => t.id !== taskId));
     track({ name: 'task_delete', source: 'completed' });
+  }, []);
+
+  const handleReopen = useCallback(async (taskId: string) => {
+    setVanishing((prev) => {
+      const next = new Set(prev);
+      next.add(taskId);
+      return next;
+    });
+    const apiPromise = fetch(`/api/tasks/${taskId}/reopen`, { method: 'POST' }).catch(() => null);
+    // 等动画跑完再从列表里拿掉，避免抖动
+    await new Promise((r) => setTimeout(r, 400));
+    const res = await apiPromise;
+    setVanishing((prev) => {
+      const next = new Set(prev);
+      next.delete(taskId);
+      return next;
+    });
+    if (res?.ok) {
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      track({ name: 'task_reopen', source: 'completed' });
+    }
   }, []);
 
   const fetchPage = useCallback(async (before?: string | null) => {
@@ -143,7 +165,10 @@ export function CompletedView() {
               <SectionHeader title={day} count={list.length} />
               <ul className="rounded-2xl border border-rule/60 bg-paper-2/40 px-3">
                 {list.map((t) => (
-                  <li key={t.id} className="flex items-start gap-3 border-b border-rule/50 px-1 py-3 last:border-b-0">
+                  <li
+                    key={t.id}
+                    className={`flex items-start gap-3 border-b border-rule/50 px-1 py-3 last:border-b-0${vanishing.has(t.id) ? ' mm-vanish' : ''}`}
+                  >
                     <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-good text-paper">
                       <CheckIcon className="h-3 w-3" />
                     </span>
@@ -156,6 +181,15 @@ export function CompletedView() {
                         {t.completedAt ? <span>· {formatTime(t.completedAt)}</span> : null}
                       </div>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleReopen(t.id)}
+                      aria-label="恢复任务"
+                      data-testid="completed-reopen-btn"
+                    >
+                      <RotateCcwIcon />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"

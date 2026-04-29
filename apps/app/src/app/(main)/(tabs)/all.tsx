@@ -46,6 +46,7 @@ export default function AllScreen() {
   const handleDone = useCallback(
     async (id: string) => {
       const current = useAppStore.getState().tasks;
+      const original = current.find((t) => t.id === id);
       hydrate({
         tasks: current.map((t) =>
           t.id === id
@@ -62,10 +63,18 @@ export default function AllScreen() {
       try {
         await api.tasks.done(id);
       } catch {
-        load();
+        // 失败时只回滚单条；load() 全表覆盖会让 TaskRow 退场动画结束后
+        // 因 task ref 批量变化而被全部重建（视觉「复位」）。
+        if (original) {
+          const latest = useAppStore.getState().tasks;
+          hydrate({
+            tasks: latest.map((t) => (t.id === id ? original : t)),
+            ranked: [],
+          });
+        }
       }
     },
-    [hydrate, load],
+    [hydrate],
   );
 
   const pending = useMemo(() => tasks.filter((t) => !t.done && t.status !== 'linked'), [tasks]);

@@ -82,6 +82,7 @@ export default function TodayScreen() {
     async (id: string) => {
       // 乐观更新，和 web 对齐
       const current = useAppStore.getState().tasks;
+      const original = current.find((t) => t.id === id);
       hydrate({
         tasks: current.map((t) =>
           t.id === id
@@ -101,10 +102,19 @@ export default function TodayScreen() {
         await api.tasks.done(id);
       } catch (err) {
         if (err instanceof Error) Alert.alert('标记失败', err.message);
-        loadTasks();
+        // 失败时只把这一条回滚成原状态。不要 loadTasks 全表覆盖 ——
+        // 那会让 TaskRow 退场动画结束后所有行因 task ref 变化批量重建，
+        // 被勾掉的行视觉「复位」。
+        if (original) {
+          const latest = useAppStore.getState().tasks;
+          hydrate({
+            tasks: latest.map((t) => (t.id === id ? original : t)),
+            ranked: [],
+          });
+        }
       }
     },
-    [hydrate, loadTasks],
+    [hydrate],
   );
 
   const handleAudio = useCallback(
