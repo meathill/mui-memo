@@ -267,7 +267,7 @@ describe('applyIntent · STATUS', () => {
 // ──────────────────────────────────────────────
 
 describe('applyIntent · DONE', () => {
-  it('匹配时勾掉对应任务并打时间戳', () => {
+  it('匹配时不直接勾掉，而是返回 effect 等待确认', () => {
     const before: TaskView[] = [task({ id: 'a', text: '带水' })];
     const u = utter({
       intent: 'DONE',
@@ -276,14 +276,12 @@ describe('applyIntent · DONE', () => {
     });
     const { tasks, effect } = applyIntent(before, u, FIXED_NOW);
     const t = tasks.find((x) => x.id === 'a')!;
-    expect(t.done).toBe(true);
-    expect(t.status).toBe('done');
-    // completedAt 是 ISO 字符串
-    expect(t.completedAt).toBe(FIXED_NOW.toISOString());
+    expect(t.done).toBe(false);
+    expect(t.status).toBe('pending');
     expect(effect.kind).toBe('done');
   });
 
-  it('未匹配且 createIfMissing 存在时补记一条已完成任务', () => {
+  it('未匹配且 createIfMissing 存在时补一条 pending 等待确认', () => {
     const u = utter({
       intent: 'DONE',
       aiVerb: '已完成',
@@ -293,8 +291,8 @@ describe('applyIntent · DONE', () => {
     const { tasks, effect } = applyIntent([], u, FIXED_NOW);
     expect(tasks).toHaveLength(1);
     expect(tasks[0].text).toBe('发货给 A');
-    expect(tasks[0].done).toBe(true);
-    expect(tasks[0].status).toBe('done');
+    expect(tasks[0].done).toBe(false);
+    expect(tasks[0].status).toBe('pending');
     expect(effect.kind).toBe('done-backfill');
   });
 

@@ -67,7 +67,6 @@ test.describe('任务详情 · 字段编辑', () => {
 
     await page.goto(`/app/tasks/${id}`);
     await page.getByRole('button', { name: '已完成', exact: true }).click();
-
     // API 端 completedAt 非空
     await expect
       .poll(async () => {
@@ -77,10 +76,30 @@ test.describe('任务详情 · 字段编辑', () => {
         };
         return data.task.completedAt;
       })
-      .not.toBeNull();
+      .toBeTruthy();
 
-    await page.goto('/app/completed');
-    await expect(page.getByText('寄快递')).toBeVisible();
+    // 回到 Today 看不见了
+    await page.goto('/app');
+    await expect(page.getByText('寄快递')).toHaveCount(0);
+
+    // 回到详情页并点击重新启动
+    await page.goto(`/app/tasks/${id}`);
+    await page.getByRole('button', { name: '重新启动', exact: true }).click();
+
+    // 等待接口成功返回（通过界面重新出现“搞定了”或状态改变确认）
+    await expect(page.getByText('待做')).toBeVisible();
+    await expect(page.getByRole('button', { name: '重新启动', exact: true })).toHaveCount(0);
+
+    // API 端 completedAt 变回 null, status 回到 pending
+    await expect
+      .poll(async () => {
+        const res = await page.request.get(`/api/tasks/${id}`);
+        const data = (await res.json()) as {
+          task: { status: string; completedAt: string | null };
+        };
+        return data.task;
+      })
+      .toMatchObject({ status: 'pending', completedAt: null });
   });
 });
 

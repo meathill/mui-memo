@@ -216,6 +216,11 @@ export const api = {
         method: 'POST',
       });
     },
+    reopen(id: string) {
+      return request<{ success: boolean }>(`/api/tasks/${id}/reopen`, {
+        method: 'POST',
+      });
+    },
     batchDone(ids: string[]) {
       return request<{ tasks: TaskView[] }>('/api/tasks/batch-done', {
         method: 'POST',

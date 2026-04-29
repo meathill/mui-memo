@@ -93,11 +93,6 @@ export interface ApplyResult {
   effect: IntentEffect;
 }
 
-function nowStamp(now: Date = new Date()) {
-  // 返回 ISO 字符串，前端用 new Date(iso) 可直接格式化；后端能安全地 new Date() 再持久化
-  return now.toISOString();
-}
-
 function genId() {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
     return crypto.randomUUID();
@@ -125,8 +120,6 @@ function matchTask(tasks: TaskView[], u: Utterance): TaskView | null {
  * 返回新列表 + 副作用描述（用于 toast 提示）。
  */
 export function applyIntent(tasks: TaskView[], u: Utterance, now: Date = new Date()): ApplyResult {
-  const stamp = nowStamp(now);
-
   if (u.intent === 'ADD') {
     const core = u.task ?? {};
     const id = genId();
@@ -178,12 +171,9 @@ export function applyIntent(tasks: TaskView[], u: Utterance, now: Date = new Dat
   if (u.intent === 'DONE') {
     const t = matchTask(tasks, u);
     if (t) {
-      const next = tasks.map((x) =>
-        x.id === t.id ? { ...x, done: true, status: 'done' as TaskStatus, completedAt: stamp } : x,
-      );
       return {
-        tasks: next,
-        effect: { kind: 'done', id: t.id, text: t.text, verb: u.aiVerb, reason: u.aiReason },
+        tasks,
+        effect: { kind: 'done', id: t.id, text: t.text, verb: '待确认完成', reason: u.aiReason },
       };
     }
     if (u.createIfMissing) {
@@ -202,10 +192,9 @@ export function applyIntent(tasks: TaskView[], u: Utterance, now: Date = new Dat
         expectAt: core.expectAt,
         dueAt: core.dueAt,
         aiReason: u.aiReason,
-        status: 'done',
-        done: true,
+        status: 'pending',
+        done: false,
         addedAt: '刚才',
-        completedAt: stamp,
       };
       return {
         tasks: [nt, ...tasks],
@@ -213,7 +202,7 @@ export function applyIntent(tasks: TaskView[], u: Utterance, now: Date = new Dat
           kind: 'done-backfill',
           id,
           text: nt.text,
-          verb: u.aiVerb,
+          verb: '待确认完成',
           reason: u.aiReason,
         },
       };

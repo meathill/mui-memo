@@ -78,34 +78,6 @@ export default function TodayScreen() {
     return buckets;
   }, [ranked]);
 
-  const handleAudio = useCallback(
-    async ({ uri, mimeType }: { uri: string; mimeType: string }) => {
-      setProcessing(true);
-      try {
-        const tz = Intl.DateTimeFormat?.().resolvedOptions?.().timeZone ?? 'Asia/Shanghai';
-        const { utterance, effect, tasks } = await api.intent.submit({
-          audioUri: uri,
-          mimeType,
-          place,
-          tz,
-        });
-        hydrate({ tasks, ranked: [] });
-        setLastEffect(effect, utterance);
-      } catch (err) {
-        setLastEffect(
-          {
-            kind: 'miss',
-            verb: err instanceof Error ? err.message : '识别失败',
-          },
-          null,
-        );
-      } finally {
-        setProcessing(false);
-      }
-    },
-    [place, hydrate, setLastEffect, setProcessing],
-  );
-
   const handleDone = useCallback(
     async (id: string) => {
       // 乐观更新，和 web 对齐
@@ -133,6 +105,47 @@ export default function TodayScreen() {
       }
     },
     [hydrate, loadTasks],
+  );
+
+  const handleAudio = useCallback(
+    async ({ uri, mimeType }: { uri: string; mimeType: string }) => {
+      setProcessing(true);
+      try {
+        const tz = Intl.DateTimeFormat?.().resolvedOptions?.().timeZone ?? 'Asia/Shanghai';
+        const { utterance, effect, tasks } = await api.intent.submit({
+          audioUri: uri,
+          mimeType,
+          place,
+          tz,
+        });
+        hydrate({ tasks, ranked: [] });
+        setLastEffect(effect, utterance);
+
+        if (effect.kind === 'done' || effect.kind === 'done-backfill') {
+          Alert.alert('确认完成', `是否确认完成任务「${effect.text}」？`, [
+            { text: '取消', style: 'cancel' },
+            {
+              text: '确认完成',
+              style: 'default',
+              onPress: () => {
+                void handleDone((effect as { id: string }).id);
+              },
+            },
+          ]);
+        }
+      } catch (err) {
+        setLastEffect(
+          {
+            kind: 'miss',
+            verb: err instanceof Error ? err.message : '识别失败',
+          },
+          null,
+        );
+      } finally {
+        setProcessing(false);
+      }
+    },
+    [place, hydrate, setLastEffect, setProcessing, handleDone],
   );
 
   return (
