@@ -12,7 +12,7 @@ test.describe('音频归档回放', () => {
     await resetTasks();
   });
 
-  test('有 audioKey 的任务 → 详情页出现 <audio> → /api/audio 流 200', async ({ inject, page }) => {
+  test('有 audioKey 的任务 → 详情页出现 <audio> → /api/audio 流 200 + Range', async ({ inject, page }) => {
     // 1) 先注一条任务
     const res = await inject(
       buildUtterance({
@@ -45,10 +45,41 @@ test.describe('音频归档回放', () => {
     const audio = page.getByTestId('task-audio');
     await expect(audio).toHaveAttribute('src', `/api/audio/${key}`);
 
-    // 4) 验证流 URL 本身带鉴权能 200 回
+    // 4) 无 Range 的 GET：200 + Content-Length + Accept-Ranges
     const stream = await page.request.get(`/api/audio/${key}`);
     expect(stream.status()).toBe(200);
     expect(stream.headers()['content-type']).toContain('audio/webm');
+    expect(stream.headers()['accept-ranges']).toBe('bytes');
+    expect(stream.headers()['content-length']).toBe(String(TINY_WEBM.length));
+
+    // 5) Range bytes=0-1 → 206 + Content-Range + body 长度 2（iOS AVPlayer 要这个！）
+    const partial = await page.request.get(`/api/audio/${key}`, {
+      headers: { Range: 'bytes=0-1' },
+    });
+    expect(partial.status()).toBe(206);
+    expect(partial.headers()['content-range']).toBe(`bytes 0-1/${TINY_WEBM.length}`);
+    expect(partial.headers()['content-length']).toBe('2');
+    expect(partial.headers()['accept-ranges']).toBe('bytes');
+    expect((await partial.body()).length).toBe(2);
+
+    // 6) Range bytes=0- → 起头到末尾
+    const open = await page.request.get(`/api/audio/${key}`, { headers: { Range: 'bytes=0-' } });
+    expect(open.status()).toBe(206);
+    expect(open.headers()['content-range']).toBe(`bytes 0-${TINY_WEBM.length - 1}/${TINY_WEBM.length}`);
+
+    // 7) Range 越界 → 416 + Content-Range bytes */size
+    const oob = await page.request.get(`/api/audio/${key}`, {
+      headers: { Range: `bytes=${TINY_WEBM.length}-` },
+    });
+    expect(oob.status()).toBe(416);
+    expect(oob.headers()['content-range']).toBe(`bytes */${TINY_WEBM.length}`);
+
+    // 8) HEAD → 200 头 + 无 body
+    const head = await page.request.fetch(`/api/audio/${key}`, { method: 'HEAD' });
+    expect(head.status()).toBe(200);
+    expect(head.headers()['content-length']).toBe(String(TINY_WEBM.length));
+    expect(head.headers()['accept-ranges']).toBe('bytes');
+    expect((await head.body()).length).toBe(0);
   });
 
   test('访问别人的 audio key → 403', async ({ page }) => {

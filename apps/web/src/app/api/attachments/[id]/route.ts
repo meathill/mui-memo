@@ -1,14 +1,17 @@
 import { attachments as attachmentsTable } from '@mui-memo/shared/schema';
 import { and, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import { streamR2Object, withHeadBodyStripped } from '@/lib/r2-stream';
 import { requireAuthDb } from '@/lib/route';
 
 /**
  * 私有附件流式返回。靠 DB 里 userId 做所有权校验。
  * 不走 /api/audio/[...key]：那个路径只给语音原声（muimemo/audio/ 前缀），
  * 这里覆盖任意类型的附件（muimemo/attachments/... 前缀）。
+ *
+ * GET / HEAD 都走 streamR2Object：iOS AVPlayer 播附件音频时同样要 Range/206。
  */
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+async function handle(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const [resp, ctx] = await requireAuthDb();
   if (resp) return resp;
   const { id } = await params;
@@ -24,16 +27,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const bucket = ctx.env.AUDIO_BUCKET;
   if (!bucket) return NextResponse.json({ error: 'r2_not_bound' }, { status: 500 });
 
-  const obj = await bucket.get(row.key);
-  if (!obj) return NextResponse.json({ error: 'not_found' }, { status: 404 });
-
-  return new Response(obj.body, {
-    headers: {
-      'content-type': obj.httpMetadata?.contentType ?? row.mime ?? 'application/octet-stream',
-      'cache-control': 'private, max-age=31536000, immutable',
-    },
+  return streamR2Object({
+    bucket,
+    key: row.key,
+    request: req,
+    fallbackContentType: row.mime ?? 'application/octet-stream',
   });
 }
+
+export const GET = handle;
+// HEAD 走 wrapper 自动剥 body（同 audio 路由理由）
+export const HEAD = withHeadBodyStripped(handle);
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const [resp, ctx] = await requireAuthDb();
