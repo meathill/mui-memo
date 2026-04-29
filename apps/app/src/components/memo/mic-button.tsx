@@ -79,7 +79,9 @@ export function MicButton({ onAudio, disabled, processing }: Props) {
       setHint('没拿到录音文件，再试一次');
       return;
     }
-    onAudio({ uri, mimeType: 'audio/m4a' });
+    // 标准 mime：用 audio/mp4 而不是 audio/m4a。后者非 IANA，iOS AVPlayer
+    // 在某些场景下识别不稳；前者是 m4a 容器的官方 MIME。
+    onAudio({ uri, mimeType: 'audio/mp4' });
   }, [onAudio, recorder, state.isRecording]);
 
   const durationLabel = state.isRecording ? `${Math.floor(state.durationMillis / 1000)}s` : '按住说话';
