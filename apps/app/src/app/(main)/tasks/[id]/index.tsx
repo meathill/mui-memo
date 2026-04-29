@@ -1,7 +1,7 @@
 import type { TaskView } from '@mui-memo/shared/logic';
 import Constants from 'expo-constants';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { CheckIcon, ChevronLeftIcon, PencilIcon, Trash2Icon } from 'lucide-react-native';
+import { CheckIcon, ChevronLeftIcon, PencilIcon, RotateCcwIcon, Trash2Icon } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -212,7 +212,22 @@ export default function TaskDetailScreen() {
               <CheckIcon size={18} color="#f4ede0" />
               <Text className="font-medium text-paper text-base">搞定了</Text>
             </Pressable>
-          ) : null}
+          ) : (
+            <Pressable
+              onPress={async () => {
+                try {
+                  await api.tasks.reopen(task.id);
+                  router.back();
+                } catch (err) {
+                  if (err instanceof Error) Alert.alert('重启失败', err.message);
+                }
+              }}
+              className="mt-8 flex-row items-center justify-center gap-2 rounded-xl border border-rule bg-paper py-3.5 active:bg-ink/5"
+            >
+              <RotateCcwIcon size={18} color="#1d1a12" />
+              <Text className="font-medium text-ink text-base">重新启动</Text>
+            </Pressable>
+          )}
         </ScrollView>
       )}
     </SafeAreaView>

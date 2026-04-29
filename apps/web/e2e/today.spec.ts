@@ -77,6 +77,12 @@ test.describe('Today 页', () => {
     await page.reload();
     await expect(page.getByText('带水').first()).toBeVisible();
 
+    // 注册 dialog 处理器，点击确认完成
+    page.once('dialog', async (dialog) => {
+      expect(dialog.message()).toContain('确认完成任务「带水」？');
+      await dialog.accept();
+    });
+
     await inject(
       buildUtterance({
         raw: '水买了',

@@ -2,7 +2,7 @@
 
 import { PLACE_LABEL } from '@mui-memo/shared/logic';
 import type { TaskPlace, TaskStatus, TaskWindow } from '@mui-memo/shared/validators';
-import { ArrowLeftIcon, TrashIcon } from 'lucide-react';
+import { ArrowLeftIcon, RotateCcwIcon, TrashIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -208,6 +208,7 @@ export function TaskDetailView({ id }: { id: string }) {
       <section className="mt-6 space-y-5">
         <Field label="内容">
           <textarea
+            aria-label="内容"
             defaultValue={task.text}
             onBlur={(e) => {
               const v = e.target.value.trim();
@@ -263,6 +264,7 @@ export function TaskDetailView({ id }: { id: string }) {
         <div className="grid grid-cols-2 gap-3">
           <Field label="标签">
             <Input
+              aria-label="标签"
               defaultValue={task.tag ?? ''}
               onBlur={(e) => {
                 const v = e.target.value.trim();
@@ -324,6 +326,28 @@ export function TaskDetailView({ id }: { id: string }) {
               data-testid="task-audio"
             />
           </div>
+        ) : null}
+
+        {task.status === 'done' ? (
+          <Button
+            variant="outline"
+            className="w-full py-6 text-base"
+            onClick={async () => {
+              try {
+                setSaving(true);
+                const res = await fetch(`/api/tasks/${task.id}/reopen`, { method: 'POST' });
+                if (!res.ok) throw new Error('重启失败');
+                await load();
+              } catch (err) {
+                setError(err instanceof Error ? err.message : '重启失败');
+              } finally {
+                setSaving(false);
+              }
+            }}
+          >
+            <RotateCcwIcon className="mr-2 h-5 w-5" />
+            重新启动
+          </Button>
         ) : null}
       </section>
 

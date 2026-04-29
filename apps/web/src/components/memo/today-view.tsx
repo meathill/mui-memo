@@ -79,6 +79,39 @@ export function TodayView({ userName }: Props) {
     el.classList.add('animate-filter-pulse');
   }, [place]);
 
+  const handleDone = useCallback(
+    async (id: string) => {
+      // 乐观更新：本地先打 done，省一次回拉
+      const current = useAppStore.getState().tasks;
+      hydrate({
+        tasks: current.map((t) =>
+          t.id === id
+            ? {
+                ...t,
+                status: 'done',
+                done: true,
+                completedAt: new Date().toISOString(),
+              }
+            : t,
+        ),
+        ranked: [],
+      });
+      await fetch(`/api/tasks/${id}/done`, { method: 'POST' });
+      track({ name: 'task_complete', source: 'today' });
+    },
+    [hydrate],
+  );
+
+  const confirmTimerRef = useRef<number | null>(null);
+  useEffect(() => {
+    return () => {
+      if (confirmTimerRef.current !== null) {
+        window.clearTimeout(confirmTimerRef.current);
+        confirmTimerRef.current = null;
+      }
+    };
+  }, []);
+
   const handleAudio = useCallback(
     async (blob: Blob) => {
       setProcessing(true);
@@ -105,34 +138,26 @@ export function TodayView({ userName }: Props) {
         hydrate({ tasks: data.tasks, ranked: [] });
         setLastEffect(data.effect, data.utterance);
         track({ name: 'voice_intent', intent: data.effect?.kind });
+
+        if (data.effect?.kind === 'done' || data.effect?.kind === 'done-backfill') {
+          const effect = data.effect as { id: string; text: string };
+          // 稍加延迟，让 React 渲染完最新的任务列表和 EffectToast
+          if (confirmTimerRef.current !== null) {
+            window.clearTimeout(confirmTimerRef.current);
+          }
+          confirmTimerRef.current = window.setTimeout(() => {
+            if (window.confirm(`确认完成任务「${effect.text}」？`)) {
+              void handleDone(effect.id).catch(() => {
+                setLastEffect({ kind: 'miss', verb: '完成任务失败' }, null);
+              });
+            }
+          }, 100);
+        }
       } finally {
         setProcessing(false);
       }
     },
-    [place, setProcessing, setLastEffect, hydrate],
-  );
-
-  const handleDone = useCallback(
-    async (id: string) => {
-      // 乐观更新：本地先打 done，省一次回拉
-      const current = useAppStore.getState().tasks;
-      hydrate({
-        tasks: current.map((t) =>
-          t.id === id
-            ? {
-                ...t,
-                status: 'done',
-                done: true,
-                completedAt: new Date().toISOString(),
-              }
-            : t,
-        ),
-        ranked: [],
-      });
-      await fetch(`/api/tasks/${id}/done`, { method: 'POST' });
-      track({ name: 'task_complete', source: 'today' });
-    },
-    [hydrate],
+    [place, setProcessing, setLastEffect, hydrate, handleDone],
   );
 
   return (

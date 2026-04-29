@@ -229,6 +229,13 @@ export async function markTaskDone(db: Database, userId: string, id: string): Pr
     .where(and(eq(tasksTable.id, id), eq(tasksTable.userId, userId)));
 }
 
+export async function reopenTask(db: Database, userId: string, id: string): Promise<void> {
+  await db
+    .update(tasksTable)
+    .set({ status: 'pending', completedAt: null, updatedAt: new Date() })
+    .where(and(eq(tasksTable.id, id), eq(tasksTable.userId, userId)));
+}
+
 export async function markBatchDone(db: Database, userId: string, ids: string[]): Promise<void> {
   if (!ids.length) return;
   await db
