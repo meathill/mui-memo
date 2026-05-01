@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AudioPlayButton, AudioUrlPlayButton, isAudioMime } from '@/components/audio-play-button';
 import { ErrorBanner } from '@/components/error-banner';
 import { type Attachment, api } from '@/lib/api';
+import { useThemeHex } from '@/lib/use-theme-hex';
 
 const STATUS_LABEL: Record<string, string> = {
   pending: '待办',
@@ -42,6 +43,7 @@ function formatDateTime(iso: string): string {
 
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const colors = useThemeHex();
   const [task, setTask] = useState<TaskView | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,7 +99,7 @@ export default function TaskDetailScreen() {
           hitSlop={8}
           className="h-9 w-9 items-center justify-center rounded-full active:bg-ink/10"
         >
-          <ChevronLeftIcon size={22} color="#1d1a12" />
+          <ChevronLeftIcon size={22} color={colors.ink} />
         </Pressable>
         <View className="flex-row items-center gap-2">
           <Pressable
@@ -106,7 +108,7 @@ export default function TaskDetailScreen() {
             hitSlop={8}
             className="flex-row items-center gap-1.5 rounded-full border border-rule px-3 py-1.5 active:opacity-70"
           >
-            <PencilIcon size={14} color="#7a7266" />
+            <PencilIcon size={14} color={colors.inkMute} />
             <Text className="text-ink-soft text-sm">编辑</Text>
           </Pressable>
           <Pressable
@@ -115,7 +117,7 @@ export default function TaskDetailScreen() {
             hitSlop={8}
             className="flex-row items-center gap-1.5 rounded-full border border-rule px-3 py-1.5 active:opacity-70"
           >
-            <Trash2Icon size={14} color="#7a7266" />
+            <Trash2Icon size={14} color={colors.inkMute} />
             <Text className="text-ink-soft text-sm">删除</Text>
           </Pressable>
         </View>
@@ -129,7 +131,7 @@ export default function TaskDetailScreen() {
         </View>
       ) : loading || !task ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#1d1a12" />
+          <ActivityIndicator color={colors.ink} />
         </View>
       ) : (
         <ScrollView contentContainerClassName="px-5 pb-10">
@@ -209,7 +211,7 @@ export default function TaskDetailScreen() {
               }}
               className="mt-8 flex-row items-center justify-center gap-2 rounded-xl bg-ink py-3.5 active:opacity-80"
             >
-              <CheckIcon size={18} color="#f4ede0" />
+              <CheckIcon size={18} color={colors.paper} />
               <Text className="font-medium text-paper text-base">搞定了</Text>
             </Pressable>
           ) : (
@@ -224,7 +226,7 @@ export default function TaskDetailScreen() {
               }}
               className="mt-8 flex-row items-center justify-center gap-2 rounded-xl border border-rule bg-paper py-3.5 active:bg-ink/5"
             >
-              <RotateCcwIcon size={18} color="#1d1a12" />
+              <RotateCcwIcon size={18} color={colors.ink} />
               <Text className="font-medium text-ink text-base">重新启动</Text>
             </Pressable>
           )}

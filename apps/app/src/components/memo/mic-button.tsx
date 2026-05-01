@@ -3,6 +3,7 @@ import * as Linking from 'expo-linking';
 import { MicIcon, SendIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
+import { useThemeHex } from '@/lib/use-theme-hex';
 
 interface Props {
   /** 录音满 3s 松手时触发。uri 是本地 file://... m4a */
@@ -17,6 +18,7 @@ const MIN_DURATION_MS = 3000;
 type PermStatus = 'unknown' | 'granted' | 'prompt' | 'blocked';
 
 export function MicButton({ onAudio, disabled, processing }: Props) {
+  const colors = useThemeHex();
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const state = useAudioRecorderState(recorder, 250);
   const startedAtRef = useRef<number>(0);
@@ -97,11 +99,11 @@ export function MicButton({ onAudio, disabled, processing }: Props) {
         } active:opacity-80`}
       >
         {processing ? (
-          <ActivityIndicator color="#f4ede0" />
+          <ActivityIndicator color={colors.paper} />
         ) : state.isRecording ? (
-          <SendIcon size={28} color="#f4ede0" />
+          <SendIcon size={28} color={colors.paper} />
         ) : (
-          <MicIcon size={28} color="#f4ede0" />
+          <MicIcon size={28} color={colors.paper} />
         )}
       </Pressable>
       <Text className="mt-2 font-mono text-ink-mute text-sm">{processing ? '解析中…' : durationLabel}</Text>

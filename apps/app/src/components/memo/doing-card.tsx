@@ -4,6 +4,7 @@ import { CheckIcon } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import { useThemeHex } from '@/lib/use-theme-hex';
 
 interface Props {
   task: TaskView;
@@ -17,6 +18,7 @@ interface Props {
  * 循环 2.4s，对标 web 的 mm-pulse box-shadow 效果。只动装饰层，文字和内容不抖。
  */
 export function DoingCard({ task, onDone }: Props) {
+  const colors = useThemeHex();
   const place = PLACE_LABEL[task.place];
   const progress = useSharedValue(0);
 
@@ -80,7 +82,7 @@ export function DoingCard({ task, onDone }: Props) {
           hitSlop={6}
           className="mt-3 flex-row items-center gap-1.5 self-start rounded-full bg-ink px-4 py-2 active:opacity-80"
         >
-          <CheckIcon size={16} color="#f4ede0" />
+          <CheckIcon size={16} color={colors.paper} />
           <Text className="text-paper text-sm">搞定了</Text>
         </Pressable>
       </Pressable>

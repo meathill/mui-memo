@@ -11,6 +11,7 @@ import Animated, {
   withDelay,
   withTiming,
 } from 'react-native-reanimated';
+import { useThemeHex } from '@/lib/use-theme-hex';
 
 interface Props {
   task: TaskView;
@@ -20,6 +21,7 @@ interface Props {
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export function TaskRow({ task, onDone }: Props) {
+  const colors = useThemeHex();
   const triggered = useRef(false);
   const naturalHeight = useSharedValue(0);
   const collapse = useSharedValue(1);
@@ -86,19 +88,27 @@ export function TaskRow({ task, onDone }: Props) {
           className="relative h-6 w-6 items-center justify-center rounded-full active:bg-ink/10"
         >
           <Animated.View style={[StyleSheet.absoluteFillObject, styles.iconCenter, circleStyle]} pointerEvents="none">
-            <CircleIcon size={18} color="#7a7266" />
+            <CircleIcon size={18} color={colors.inkMute} />
           </Animated.View>
           <Animated.View
-            style={[StyleSheet.absoluteFillObject, styles.iconCenter, styles.checkPill, checkStyle]}
+            style={[
+              StyleSheet.absoluteFillObject,
+              styles.iconCenter,
+              { backgroundColor: colors.accentGood, borderRadius: 9999 },
+              checkStyle,
+            ]}
             pointerEvents="none"
           >
-            <CheckIcon size={14} color="#f4ede0" />
+            <CheckIcon size={14} color={colors.paper} />
           </Animated.View>
         </Pressable>
         <View className="flex-1">
           <View style={styles.relative}>
             <Text className="text-ink text-lg leading-snug">{task.text}</Text>
-            <Animated.View pointerEvents="none" style={[styles.strike, strikeStyle]} />
+            <Animated.View
+              pointerEvents="none"
+              style={[styles.strike, { backgroundColor: colors.inkMute }, strikeStyle]}
+            />
           </View>
           {task.aiReason ? (
             <Text className="mt-1 text-ink-mute text-sm" numberOfLines={1}>
@@ -106,7 +116,7 @@ export function TaskRow({ task, onDone }: Props) {
             </Text>
           ) : null}
         </View>
-        <ChevronRightIcon size={18} color="#7a7266" />
+        <ChevronRightIcon size={18} color={colors.inkMute} />
       </Pressable>
     </Animated.View>
   );
@@ -114,7 +124,6 @@ export function TaskRow({ task, onDone }: Props) {
 
 const styles = StyleSheet.create({
   iconCenter: { alignItems: 'center', justifyContent: 'center' },
-  checkPill: { backgroundColor: '#4a9670', borderRadius: 9999 },
   relative: { position: 'relative' },
   strike: {
     position: 'absolute',
@@ -123,7 +132,6 @@ const styles = StyleSheet.create({
     top: '50%',
     height: 1.5,
     marginTop: -0.75,
-    backgroundColor: '#7a7266',
     transformOrigin: 'left',
   },
 });

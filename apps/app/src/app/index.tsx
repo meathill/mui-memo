@@ -1,6 +1,7 @@
 import { Redirect } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 import { useSession } from '@/lib/session';
+import { useThemeHex } from '@/lib/use-theme-hex';
 
 /**
  * 入口 gate：等 SecureStore hydrate 完，按 token 有无转发。
@@ -8,11 +9,12 @@ import { useSession } from '@/lib/session';
  */
 export default function Index() {
   const { hydrating, token } = useSession();
+  const colors = useThemeHex();
 
   if (hydrating) {
     return (
       <View className="flex-1 items-center justify-center bg-paper">
-        <ActivityIndicator color="#1d1a12" />
+        <ActivityIndicator color={colors.ink} />
       </View>
     );
   }

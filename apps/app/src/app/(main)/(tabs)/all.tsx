@@ -6,12 +6,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ErrorBanner } from '@/components/error-banner';
 import { TaskRow } from '@/components/memo/task-row';
 import { api } from '@/lib/api';
+import { useThemeHex } from '@/lib/use-theme-hex';
 import { useAppStore } from '@/store';
 
 const UNTAGGED = '（未分类）';
 
 export default function AllScreen() {
   const { tasks, hydrate } = useAppStore();
+  const colors = useThemeHex();
   const [loading, setLoading] = useState(tasks.length === 0);
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -93,7 +95,7 @@ export default function AllScreen() {
     <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
       <ScrollView
         contentContainerClassName="px-5 pt-4 pb-10"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1d1a12" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />}
       >
         <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">MuiMemo · 全部</Text>
         <Text className="mt-1 font-serif text-2xl text-ink">清单全景</Text>
@@ -107,7 +109,7 @@ export default function AllScreen() {
 
         {loading ? (
           <View className="mt-12 items-center">
-            <ActivityIndicator color="#1d1a12" />
+            <ActivityIndicator color={colors.ink} />
           </View>
         ) : grouped.length === 0 ? (
           <View className="mt-12 items-center rounded-2xl border border-rule/60 border-dashed px-6 py-10">
