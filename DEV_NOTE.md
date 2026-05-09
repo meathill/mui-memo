@@ -134,17 +134,20 @@ embedding VECTOR(1024)
 
 ## AI prompt 评估套件
 
-每次改 `SYSTEM_PROMPT` 后必跑一轮：
+每次改 `SYSTEM_PROMPT` 或加 case 后必跑一轮：
 
 ```
-pnpm -F @mui-memo/web test src/lib/intent-prompt.eval.test.ts
+pnpm -F @mui-memo/web test:prompt-eval
 ```
+
+常规 `pnpm test` **不跑这套**（50+ 秒 + 真实 API 计费）。`test:prompt-eval` 这条
+script 显式设了 `PROMPT_EVAL=1`，没这个 env 整套 `describe.skip` 跳过。
 
 - **位置**：[`intent-prompt.cases.ts`](apps/web/src/lib/intent-prompt.cases.ts)（case 数据）+ [`intent-prompt.eval.test.ts`](apps/web/src/lib/intent-prompt.eval.test.ts)（驱动）
 - **跑真实模型不 mock**。[`vitest.config.ts`](apps/web/vitest.config.ts) 启动时用 dotenv 把 `apps/web/.dev.vars` 注入 `process.env`，按优先级选 provider：
   1. `OPENAI_API_KEY` + `OPENAI_BASE_URL` + `OPENAI_MODEL` → OpenAI 兼容（MIMO）
   2. `GEMINI_API_KEY` → Gemini
-  3. 都没有 → `describe.skip` 整套跳过，常规 `pnpm test` 默认安全
+  3. 都没有 → `describe.skip` 整套跳过
 - 测试文件首行有 `@vitest-environment node`：OpenAI SDK 检测到 happy-dom 注入的 `window` 会拒跑（怕泄 key），eval 套件不动 DOM 切 node 即可
 - **断言只锁结构和关键 token**（`intent`、`task.text` 包含某子串、`expectAt` 是否填），不锁文案——AI 用词会变，锁死会误报；挂了通常是真行为退化
 - 11 条 case 跑一轮约 50 秒。新增 case 直接 `CASES.push(...)`

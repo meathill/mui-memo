@@ -15,6 +15,7 @@
     "icons:generate": "node ./scripts/generate-brand-icons.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:prompt-eval": "PROMPT_EVAL=1 vitest run src/lib/intent-prompt.eval.test.ts",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "cf-build": "opennextjs-cloudflare build",

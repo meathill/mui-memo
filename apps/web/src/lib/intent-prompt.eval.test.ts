@@ -6,15 +6,20 @@
  * 必须用 node 环境：vitest 默认 happy-dom 会注入 window，OpenAI SDK 一看到
  * 就拒绝跑（怕浏览器里泄 key）。这套测试只调外部 API，不动 DOM，node 环境刚好。
  *
- * **provider 自动选择**（按优先级）：
+ * **opt-in 跑**：常规 `pnpm test` 不跑这套（要花 50+ 秒 + 真实 API call）。
+ * 改 prompt 或加 case 后用专用 script 显式跑：
+ *
+ *   pnpm -F @mui-memo/web test:prompt-eval
+ *
+ * 该 script 设了 `PROMPT_EVAL=1`，配合 .dev.vars 里的 OPENAI_API_KEY /
+ * OPENAI_BASE_URL / OPENAI_MODEL（或 GEMINI_API_KEY）整套就开跑。
+ *
+ * **provider 自动选择**（PROMPT_EVAL=1 + 满足以下之一）：
  *   1. OPENAI_API_KEY + OPENAI_BASE_URL + OPENAI_MODEL → 走 OpenAI 兼容（MIMO）
  *   2. GEMINI_API_KEY → 走 Gemini
  *   3. 都没有 → describe.skip 整套跳过
  *
  * env 来源：vitest.config.ts 在启动时把 .dev.vars / .env 加到 process.env。
- *
- * **怎么跑**（本地）：在 apps/web/.dev.vars 写好 OPENAI_API_KEY/BASE_URL/MODEL，
- * 然后 `pnpm -F @mui-memo/web test src/lib/intent-prompt.eval.test.ts`。
  *
  * AI 输出有方差（temperature=0.2 已经很低，但仍非确定），断言只锁结构和
  * 关键 token，不锁文案；挂了通常说明 prompt 行为变了，需要 review。
@@ -36,6 +41,10 @@ interface ParseArgs {
 }
 
 function makeParser(): { name: string; parse: (a: ParseArgs) => Promise<Utterance> } | null {
+  // opt-in：默认不跑，要跑显式设 PROMPT_EVAL=1（专用 npm script: test:prompt-eval）
+  if (process.env.PROMPT_EVAL !== '1' && process.env.PROMPT_EVAL !== 'true') {
+    return null;
+  }
   const openaiKey = process.env.OPENAI_API_KEY;
   const openaiBase = process.env.OPENAI_BASE_URL;
   const openaiModel = process.env.OPENAI_MODEL;
