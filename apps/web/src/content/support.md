@@ -2,6 +2,12 @@
 
 **邮箱**：<a href="mailto:meathill@gmail.com">meathill@gmail.com</a>
 
+或者用预填模板，省得自己组织语言：
+
+- [报告 bug](/contact?topic=bug)（说的话 / 期望 / 实际 / 设备版本一表填齐）
+- [数据 / 账号删除](/contact?topic=data-deletion)
+- [Team 候补名单](/contact?topic=team-waitlist)
+
 写邮件时附上：你说的那句话、期望的结果、实际发生了什么、用的设备 / 浏览器 / iOS 版本、发生时间。这些信息能让我至少省一来一回。
 
 通常 24 小时内回复；隐私 / 数据删除请求优先处理。

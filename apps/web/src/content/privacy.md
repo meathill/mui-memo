@@ -81,7 +81,7 @@
 - 输入记录整体清空
 - 全部归档录音统一删除
 
-如需删除账号、输入记录或归档数据，请发邮件到 <a href="mailto:meathill@gmail.com">meathill@gmail.com</a>，7 天内处理。
+如需删除账号、输入记录或归档数据，可以走 [快速通道](/contact?topic=data-deletion) 一键打开预填好的邮件，或者直接发邮件到 <a href="mailto:meathill@gmail.com">meathill@gmail.com</a>。7 天内处理。
 
 ## 我会保留多久
 
