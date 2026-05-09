@@ -37,17 +37,17 @@ function Hero() {
     <section className="grid gap-10 pt-2 pb-16 sm:grid-cols-[minmax(0,1.05fr)_minmax(23rem,0.95fr)] sm:gap-12 sm:pb-22 lg:gap-14 lg:items-start">
       <div>
         <p className="font-mono text-[0.72rem] tracking-[0.24em] text-ink-mute uppercase sm:text-[0.8rem]">
-          00 · 口述备忘
+          00 · 语音清单
         </p>
         <h1 className="font-serif mt-5 max-w-[11.5ch] text-balance text-[clamp(3.25rem,6vw,5.5rem)] leading-[1.02] tracking-tight text-ink">
-          说一句话，AI 就把小事收成
-          <span className="text-accent-warm">待办</span>。
+          一句话，整理整张
+          <span className="text-accent-warm">清单</span>。
         </h1>
         <p className="font-serif mt-6 max-w-[36ch] text-[1.15rem] leading-[1.72] text-ink-soft sm:text-[1.38rem] sm:leading-[1.68]">
-          不是先记一段语音，再回头整理。 你一开口，叨叨记就开始判断你要做什么，并顺手补上时间、优先级和该归的场景。
+          不只是记下。说一句就能改时间、勾完成、把堆久的事捞回来。整个 todo 生命周期，全靠语音。
         </p>
         <p className="mt-5 max-w-[42rem] font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.82rem]">
-          记下 → 理解 → 归堆 → 到该做的时候浮出来
+          记下 → 拆分 → 修改 → 完成 → 找回 → 派给身边人
         </p>
 
         <div className="mt-8 flex flex-wrap items-center gap-4 sm:mt-9">

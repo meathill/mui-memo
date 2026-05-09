@@ -2,10 +2,10 @@ import { LandingPageView } from '@/components/landing/landing-page';
 import { createMarketingMetadata } from '@/lib/site';
 
 export const metadata = createMarketingMetadata({
-  title: '说一句话，AI 就把小事收成待办',
-  description: '叨叨记会理解你的意图，顺手补上时间、优先级和场景，让该做的事在该浮出来的时候浮出来。',
+  title: '一句话，整理整张清单',
+  description: '叨叨记是语音操控的 todo：说一句就能记下、拆分、改时间、勾完成、找回，未来还能 @ 联系人把事派出去。',
   path: '/',
-  keywords: ['语音待办', 'AI 口述备忘', '意图驱动任务'],
+  keywords: ['语音待办', '语音清单', 'AI 任务管理', '意图驱动任务'],
 });
 
 export default async function LandingPage() {

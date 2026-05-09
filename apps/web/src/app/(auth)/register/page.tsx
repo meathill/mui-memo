@@ -39,7 +39,7 @@ export default function RegisterPage() {
     <div className="space-y-8">
       <header className="space-y-2 text-center">
         <p className="font-mono text-xs tracking-[0.15em] uppercase text-ink-mute">叨叨记</p>
-        <h1 className="font-serif text-3xl font-medium text-ink">开启你的口述备忘</h1>
+        <h1 className="font-serif text-3xl font-medium text-ink">开启你的语音清单</h1>
         <p className="text-sm text-ink-soft">注册后立即开始录制。</p>
       </header>
 

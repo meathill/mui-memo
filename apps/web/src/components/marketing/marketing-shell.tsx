@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { MARKETING_HEADER_LINKS, type MarketingLink, PUBLIC_SITE_ROUTES } from '@/lib/site';
+import { MARKETING_HEADER_LINKS, type MarketingLink, PUBLIC_SITE_ROUTES, SITE_TAGLINE } from '@/lib/site';
 import { MarketingHeaderAuthLink } from './marketing-auth-links';
 
 type MarketingShellProps = {
@@ -32,7 +32,9 @@ function MarketingHeader({ nav }: { nav: MarketingLink[] }) {
           <span className="block font-mono text-[0.72rem] tracking-[0.2em] text-ink uppercase sm:text-[0.8rem]">
             叨叨记
           </span>
-          <span className="font-serif mt-1 hidden text-[0.95rem] leading-none text-ink-soft sm:block">口述备忘</span>
+          <span className="font-serif mt-1 hidden text-[0.95rem] leading-none text-ink-soft sm:block">
+            {SITE_TAGLINE}
+          </span>
         </span>
       </Link>
       <nav className="flex items-center gap-4 font-mono text-[0.68rem] tracking-[0.16em] text-ink-mute uppercase sm:gap-6 sm:text-[0.76rem]">

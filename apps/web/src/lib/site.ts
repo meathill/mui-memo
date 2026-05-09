@@ -7,9 +7,10 @@ function normalizeSiteUrl(value?: string) {
 }
 
 export const SITE_NAME = '叨叨记';
-export const SITE_TAGLINE = '口述备忘';
+export const SITE_TAGLINE = '语音清单';
 export const SITE_TITLE = `${SITE_NAME} · ${SITE_TAGLINE}`;
-export const SITE_DESCRIPTION = '说一句话，AI 就把小事收成待办。叨叨记是意图驱动的 AI 语音轻量任务调度工具。';
+export const SITE_DESCRIPTION =
+  '叨叨记是一个语音操控的清单工具：一句话就能记下、修改、勾完成、找回；未来还能 @ 联系人把事派给伙伴。';
 export const SITE_URL = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL);
 export const SITE_EMAIL = 'meathill@gmail.com';
 export const OG_IMAGE_PATH = '/opengraph-image';
@@ -29,24 +30,37 @@ export type PublicRoute = MarketingLink & {
 export const LANDING_HEADER_LINKS: MarketingLink[] = [
   { href: '#what', label: '是什么' },
   { href: '#scenes', label: '场景' },
+  { href: '/pricing', label: '价格' },
   { href: '#faq', label: 'FAQ' },
 ];
 
 export const MARKETING_HEADER_LINKS: MarketingLink[] = [
   { href: '/', label: '首页' },
+  { href: '/pricing', label: '价格' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ];
 
 export const PUBLIC_SITE_ROUTES: PublicRoute[] = [
   { href: '/', label: '首页', changeFrequency: 'weekly', priority: 1 },
+  { href: '/pricing', label: '价格', changeFrequency: 'monthly', priority: 0.9 },
   { href: '/about', label: 'About', changeFrequency: 'monthly', priority: 0.8 },
   { href: '/contact', label: 'Contact', changeFrequency: 'monthly', priority: 0.6 },
+  { href: '/support', label: 'Support', changeFrequency: 'monthly', priority: 0.6 },
   { href: '/privacy', label: 'Privacy', changeFrequency: 'yearly', priority: 0.4 },
   { href: '/terms', label: 'Terms', changeFrequency: 'yearly', priority: 0.4 },
 ];
 
-const DEFAULT_KEYWORDS = ['叨叨记', 'MuiMemo', '口述备忘', '语音待办', 'AI 任务管理', '语音记录', '生产力工具'];
+const DEFAULT_KEYWORDS = [
+  '叨叨记',
+  'MuiMemo',
+  '语音清单',
+  '语音待办',
+  'AI 任务管理',
+  '语音记录',
+  '团队协作',
+  '生产力工具',
+];
 
 export function absoluteUrl(path = '/') {
   return new URL(path, `${SITE_URL}/`).toString();
