@@ -73,7 +73,7 @@ export const createTaskSchema = taskCoreSchema.extend({
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 
 // ──────────────────────────────────────────────
-// 语音意图 (Utterance) —— Gemini 输出契约
+// 语音意图 (Utterance) —— AI 输出契约
 // ──────────────────────────────────────────────
 
 /**
@@ -87,28 +87,154 @@ export const dimSchema = z.object({
 });
 export type Dim = z.infer<typeof dimSchema>;
 
+const taskPatchSchema = taskCoreSchema.partial().extend({ status: taskStatusEnum.optional() });
+
 /**
- * 语音意图完整结构
- * 这是 Gemini 解析后吐出来的 JSON，前端/后端共用。
+ * 单个 Action：一句话可以包含多个独立 action，由 AI 拆分。
+ * 用 discriminated union 锁住每种 intent 的字段形状。
+ */
+export const actionSchema = z.discriminatedUnion('intent', [
+  z.object({
+    intent: z.literal('ADD'),
+    aiReason: z.string().default(''),
+    aiVerb: z.string().default(''),
+    task: taskCoreSchema.partial(),
+  }),
+  z.object({
+    intent: z.literal('STATUS'),
+    aiReason: z.string().default(''),
+    aiVerb: z.string().default(''),
+    match: z.string().optional(),
+    matchId: z.string().optional(),
+    patch: taskPatchSchema.optional(),
+  }),
+  z.object({
+    intent: z.literal('DONE'),
+    aiReason: z.string().default(''),
+    aiVerb: z.string().default(''),
+    match: z.string().optional(),
+    matchId: z.string().optional(),
+    createIfMissing: taskCoreSchema.partial().optional(),
+  }),
+  z.object({
+    intent: z.literal('MODIFY'),
+    aiReason: z.string().default(''),
+    aiVerb: z.string().default(''),
+    match: z.string().optional(),
+    matchId: z.string().optional(),
+    patch: taskPatchSchema.optional(),
+  }),
+  z.object({
+    intent: z.literal('LINK'),
+    aiReason: z.string().default(''),
+    aiVerb: z.string().default(''),
+    match: z.string().optional(),
+    matchId: z.string().optional(),
+  }),
+]);
+export type Action = z.infer<typeof actionSchema>;
+
+/**
+ * 一次语音输入完整结构。AI 解析后吐出来的 JSON，前端/后端共用。
  */
 export const utteranceSchema = z.object({
   raw: z.string(),
-  intent: intentKindEnum,
-  /** 供 applyIntent 在现有任务里做字符串匹配（支持正则） */
-  match: z.string().optional(),
-  /** 经服务端混合搜索后解析到的任务 id（优先于 match） */
-  matchId: z.string().optional(),
-  aiReason: z.string().default(''),
-  aiVerb: z.string().default(''),
-  /** ADD 时必填：新建任务的字段 */
-  task: taskCoreSchema.partial().optional(),
-  /** MODIFY / STATUS 时的补丁 */
-  patch: taskCoreSchema.partial().extend({ status: taskStatusEnum.optional() }).optional(),
-  /** DONE 时如果清单无匹配，允许 AI 提供补记字段 */
-  createIfMissing: taskCoreSchema.partial().optional(),
+  actions: z.array(actionSchema).min(1),
   dims: z.array(dimSchema).default([]),
 });
 export type Utterance = z.infer<typeof utteranceSchema>;
+
+// ──────────────────────────────────────────────
+// 老 schema（兼容存量 DB 行 / 老客户端）
+// ──────────────────────────────────────────────
+
+/**
+ * v0.x 时期的单意图 schema。仅供 `legacyToActions` 把存量数据规整到新结构。
+ * 新写入一律用 `utteranceSchema`。
+ */
+export const legacyUtteranceSchema = z.object({
+  raw: z.string(),
+  intent: intentKindEnum,
+  match: z.string().optional(),
+  matchId: z.string().optional(),
+  aiReason: z.string().default(''),
+  aiVerb: z.string().default(''),
+  task: taskCoreSchema.partial().optional(),
+  patch: taskPatchSchema.optional(),
+  createIfMissing: taskCoreSchema.partial().optional(),
+  dims: z.array(dimSchema).default([]),
+});
+export type LegacyUtterance = z.infer<typeof legacyUtteranceSchema>;
+
+/**
+ * 把老的单意图 utterance 包装成新的 actions[1] 形态。
+ * AI 客户端在 parse 失败时也用它兜底（旧 prompt 输出的 JSON 走这里）。
+ */
+export function legacyToActions(legacy: LegacyUtterance): Utterance {
+  const base = {
+    aiReason: legacy.aiReason,
+    aiVerb: legacy.aiVerb,
+  };
+  let action: Action;
+  switch (legacy.intent) {
+    case 'ADD':
+      action = { intent: 'ADD', ...base, task: legacy.task ?? { text: legacy.raw } };
+      break;
+    case 'STATUS':
+      action = {
+        intent: 'STATUS',
+        ...base,
+        ...(legacy.match ? { match: legacy.match } : {}),
+        ...(legacy.matchId ? { matchId: legacy.matchId } : {}),
+        ...(legacy.patch ? { patch: legacy.patch } : {}),
+      };
+      break;
+    case 'DONE':
+      action = {
+        intent: 'DONE',
+        ...base,
+        ...(legacy.match ? { match: legacy.match } : {}),
+        ...(legacy.matchId ? { matchId: legacy.matchId } : {}),
+        ...(legacy.createIfMissing ? { createIfMissing: legacy.createIfMissing } : {}),
+      };
+      break;
+    case 'MODIFY':
+      action = {
+        intent: 'MODIFY',
+        ...base,
+        ...(legacy.match ? { match: legacy.match } : {}),
+        ...(legacy.matchId ? { matchId: legacy.matchId } : {}),
+        ...(legacy.patch ? { patch: legacy.patch } : {}),
+      };
+      break;
+    case 'LINK':
+      action = {
+        intent: 'LINK',
+        ...base,
+        ...(legacy.match ? { match: legacy.match } : {}),
+        ...(legacy.matchId ? { matchId: legacy.matchId } : {}),
+      };
+      break;
+  }
+  return {
+    raw: legacy.raw,
+    actions: [action],
+    dims: legacy.dims,
+  };
+}
+
+/**
+ * AI 返回的 JSON 既可能是新 schema 也可能是旧 schema（迁移期）。
+ * 先尝试新，失败再走老。两个都失败抛错。
+ */
+export function parseUtteranceFlexible(json: unknown): Utterance {
+  const newResult = utteranceSchema.safeParse(json);
+  if (newResult.success) return newResult.data;
+  const oldResult = legacyUtteranceSchema.safeParse(json);
+  if (oldResult.success) return legacyToActions(oldResult.data);
+  // 抛新 schema 的错误（信息更多）
+  throw newResult.error;
+}
 
 // ──────────────────────────────────────────────
 // API 输入校验
@@ -127,3 +253,28 @@ export type BatchCompleteInput = z.infer<typeof batchCompleteSchema>;
 export const setPlaceSchema = z.object({
   place: taskPlaceEnum,
 });
+
+// ──────────────────────────────────────────────
+// /api/intent/confirm 输入
+// ──────────────────────────────────────────────
+
+const taskPatchPersistableSchema = taskPatchSchema; // 与 action.patch 同形
+
+export const intentConfirmSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('modify'),
+    taskId: z.string(),
+    patch: taskPatchPersistableSchema,
+  }),
+  z.object({
+    kind: z.literal('modify-as-add'),
+    rawText: z.string(),
+    task: taskCoreSchema.partial(),
+    aiReason: z.string().optional(),
+  }),
+  z.object({
+    kind: z.literal('done'),
+    taskId: z.string(),
+  }),
+]);
+export type IntentConfirmInput = z.infer<typeof intentConfirmSchema>;

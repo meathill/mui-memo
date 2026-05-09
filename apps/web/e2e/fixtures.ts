@@ -1,5 +1,5 @@
 import type { IntentEffect } from '@mui-memo/shared/logic';
-import type { Utterance } from '@mui-memo/shared/validators';
+import { type IntentKind, type LegacyUtterance, legacyToActions, type Utterance } from '@mui-memo/shared/validators';
 import { type APIRequestContext, test as base, expect } from '@playwright/test';
 
 export interface InjectResult {
@@ -49,16 +49,19 @@ export const test = base.extend<Fixtures>({
 export { expect } from '@playwright/test';
 
 /**
- * 快速构造一条 Utterance。
+ * 快速构造一条 Utterance（actions[1] 形态）。沿用老的字段名（intent / task / patch / ...），
+ * 内部用 legacyToActions 包装到新 schema，便于历史 spec 不需要改动。
  */
-export function buildUtterance(override: Partial<Utterance> & Pick<Utterance, 'intent'>): Utterance {
-  return {
+export function buildUtterance(
+  override: Partial<Omit<LegacyUtterance, 'intent'>> & Pick<LegacyUtterance, 'intent'> & { intent: IntentKind },
+): Utterance {
+  return legacyToActions({
     raw: '',
     aiReason: '',
     aiVerb: '',
     dims: [],
     ...override,
-  };
+  });
 }
 
 export async function callCleanup(request: APIRequestContext, email: string, mode: 'tasks' | 'user' = 'user') {

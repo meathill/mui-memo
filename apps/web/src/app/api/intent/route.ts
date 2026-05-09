@@ -1,5 +1,5 @@
-import { applyIntent, rerank } from '@mui-memo/shared/logic';
-import { taskPlaceEnum } from '@mui-memo/shared/validators';
+import { applyActions, type IntentEffect, rerank, type TaskView } from '@mui-memo/shared/logic';
+import { type Action, taskPlaceEnum } from '@mui-memo/shared/validators';
 import { NextResponse } from 'next/server';
 import { R2_PREFIX } from '@/lib/config';
 import { resolveAndParseVoiceIntent } from '@/lib/intent';
@@ -8,7 +8,21 @@ import { resolveTargetTask } from '@/lib/search';
 import { linkAudioKey, listTasksForUser, logUtterance, persistIntentResult } from '@/lib/tasks';
 import { describeNow, normalizeTz } from '@/lib/time';
 
-const INTENTS_NEEDING_RESOLVE = new Set(['STATUS', 'DONE', 'MODIFY', 'LINK']);
+const RESOLVE_INTENTS = new Set<Action['intent']>(['STATUS', 'DONE', 'MODIFY', 'LINK']);
+
+/**
+ * 待用户确认的 effect。前端在弹窗里给出「确认 / 改为新增 / 取消」三按钮，
+ * 之后调 /api/intent/confirm 真正落库。
+ */
+export interface PendingConfirm {
+  /** 在 effects[] 中的位置，方便前端匹配 */
+  index: number;
+  effect: IntentEffect;
+}
+
+function hasMatch(action: Action): action is Extract<Action, { match?: string; matchId?: string }> {
+  return action.intent !== 'ADD';
+}
 
 export async function POST(req: Request) {
   const [resp, rc] = await requireAuthDb();
@@ -46,24 +60,43 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'ai_failed', detail: msg }, { status: 502 });
   }
 
-  // 混合搜索：TiDB 原生 fts_match_word + VEC_EMBED_COSINE_DISTANCE，
-  // 查询串直接扔进去，TiDB 内部自动嵌入，不再依赖 Gemini embedding API。
-  if (INTENTS_NEEDING_RESOLVE.has(utterance.intent)) {
-    try {
-      const query = utterance.match?.trim() || utterance.raw;
-      const resolved = await resolveTargetTask(db, userId, query, utterance.match);
-      if (resolved) utterance.matchId = resolved.id;
-    } catch {
-      // fallback 给 applyIntent 的正则兜底
-    }
+  // 并发解析每个非 ADD 的 action 的 matchId。一个清单最多 30 条，并发上限不必太严。
+  await Promise.all(
+    utterance.actions.map(async (action) => {
+      if (!RESOLVE_INTENTS.has(action.intent)) return;
+      if (!hasMatch(action)) return;
+      try {
+        const query = action.match?.trim() || utterance.raw;
+        const resolved = await resolveTargetTask(db, userId, query, action.match);
+        if (resolved) {
+          (action as { matchId?: string }).matchId = resolved.id;
+        }
+      } catch {
+        // 静默 fallback：applyAction 内部还会用正则兜底
+      }
+    }),
+  );
+
+  const { tasks: tasksAfter, effects } = applyActions(tasksBefore, utterance);
+
+  // MODIFY/DONE 命中视为「待确认」：DB 不立刻 update。
+  // - DONE 命中：applyAction 没改 tasks，无需 revert。
+  // - MODIFY 命中：tasks 已被改，要把 patch 还原成 before 才能 persist。
+  const pendingModifyById = new Map<string, IntentEffect & { kind: 'modify' }>();
+  for (const e of effects) {
+    if (e.kind === 'modify') pendingModifyById.set(e.id, e);
   }
+  const tasksAutoOnly: TaskView[] = pendingModifyById.size
+    ? tasksAfter.map((t) => {
+        const m = pendingModifyById.get(t.id);
+        return m ? { ...t, ...m.before } : t;
+      })
+    : tasksAfter;
 
-  const { tasks: tasksAfter, effect } = applyIntent(tasksBefore, utterance);
-  await persistIntentResult(db, userId, tasksBefore, tasksAfter);
+  await persistIntentResult(db, userId, tasksBefore, tasksAutoOnly);
 
-  // 归档原始音频到 R2，并把 key 挂到新建的任务行上
+  // R2 归档：所有自动落库的新建任务（add / done-backfill）都挂同一个 audioKey
   const bucket = env.AUDIO_BUCKET;
-  const shouldLinkAudio = (effect.kind === 'add' || effect.kind === 'done-backfill') && effect.id;
   let audioKeyForLog: string | null = null;
   if (bucket && execCtx) {
     const ext = mimeType.includes('webm')
@@ -78,16 +111,30 @@ export async function POST(req: Request) {
     execCtx.waitUntil(
       bucket.put(audioKey, audioBuffer, { httpMetadata: { contentType: mimeType } }).catch(() => undefined),
     );
-    if (shouldLinkAudio) {
-      execCtx.waitUntil(linkAudioKey(db, userId, effect.id, audioKey).catch(() => undefined));
+    for (const e of effects) {
+      if (e.kind === 'add' || e.kind === 'done-backfill') {
+        execCtx.waitUntil(linkAudioKey(db, userId, e.id, audioKey).catch(() => undefined));
+      }
     }
   }
 
-  // 写输入记录（所有意图都记，包括 miss）
   if (execCtx) {
-    execCtx.waitUntil(logUtterance(db, userId, utterance, effect, audioKeyForLog).catch(() => undefined));
+    execCtx.waitUntil(logUtterance(db, userId, utterance, effects, audioKeyForLog).catch(() => undefined));
   }
 
-  const ranked = rerank(tasksAfter, ctxPlace);
-  return NextResponse.json({ utterance, effect, tasks: tasksAfter, ranked });
+  const pendingConfirms: PendingConfirm[] = [];
+  effects.forEach((effect, index) => {
+    if (effect.kind === 'modify' || effect.kind === 'done') {
+      pendingConfirms.push({ index, effect });
+    }
+  });
+
+  const ranked = rerank(tasksAutoOnly, ctxPlace);
+  return NextResponse.json({
+    utterance,
+    effects,
+    tasks: tasksAutoOnly,
+    ranked,
+    pendingConfirms,
+  });
 }

@@ -105,6 +105,51 @@ embedding VECTOR(1024)
 - 过期任务在 UI 里会变红；AI 擅自填时间 → 用户看到「莫名其妙过期的」任务，体验比「没时间」差得多
 - 规则表格和反面样例都写在 prompt 里（见 [apps/web/src/lib/gemini.ts](apps/web/src/lib/gemini.ts)）。改 prompt 时保留这段
 
+## Utterance schema：actions[] + 待确认队列（v0.9）
+
+**背景**：v0.8 之前 utterance 是单意图（顶层 intent + task/patch/...），跑到线上发现两个问题：
+
+1. 用户连说两件不同的事，AI 倾向用 MODIFY 把后说的内容覆盖前一条任务（朋友的 bug：「明天 10 点把货单提供给高老师」 → 「完了转需要提供快递单号」 被并成一条）
+2. 用户希望一句多事能自动拆开
+
+**结构改造**：[`packages/shared/src/validators.ts`](packages/shared/src/validators.ts) 把 utterance 重构成
+
+```ts
+{ raw, actions: Action[], dims }
+```
+
+`actionSchema` 是 `z.discriminatedUnion('intent', [...])`，每个分支的字段形状跟着 intent 变。`legacyToActions` + `parseUtteranceFlexible` 兜底老 JSON。
+
+**applyActions（[`logic.ts`](packages/shared/src/logic.ts)）必须串行**：前一个 action 的 tasks 喂给下一个，否则「先 ADD 一条新任务再 LINK 它」就会找不到。`applyIntent` 保留为单 action wrapper。
+
+**MODIFY / DONE 走待确认队列**，不立即落库：
+
+- `/api/intent` 把 effects 分流，自动 effects 立刻 persist；MODIFY 命中的 task 在内存里 revert 到 `effect.before` 后再 persist，等用户在前端弹窗里选完才发 `/api/intent/confirm`
+- 弹窗三按钮：**确认 / 改为新增 / 取消**。「改为新增」用 `patch` 字段当新 task 的字段新建一条，原任务保持不动——AI 把"另外提一件事"误判成 MODIFY 时的兜底
+- DONE 仍弹两按钮，复用同一队列。store 里的 `pendingConfirms[]` 一个个串行弹
+
+**logUtterance 写多行**：每个 action / effect 一行 `utterances` 表，`actions` JSON 列冗余存全量便于"输入记录"页回看。老行 `actions=NULL`，读端用 `legacyToActions` 兜底。
+
+**Prompt 收紧 MODIFY**（[`intent-shared.ts`](apps/web/src/lib/intent-shared.ts)）：必须有显式信号词（"改成 / 改到 / 推迟到"），过渡词（"对了 / 另外 / 完了转"）一律走 ADD。反例表里专门列了朋友踩过的句式。
+
+## AI prompt 评估套件
+
+每次改 `SYSTEM_PROMPT` 后必跑一轮：
+
+```
+pnpm -F @mui-memo/web test src/lib/intent-prompt.eval.test.ts
+```
+
+- **位置**：[`intent-prompt.cases.ts`](apps/web/src/lib/intent-prompt.cases.ts)（case 数据）+ [`intent-prompt.eval.test.ts`](apps/web/src/lib/intent-prompt.eval.test.ts)（驱动）
+- **跑真实模型不 mock**。[`vitest.config.ts`](apps/web/vitest.config.ts) 启动时用 dotenv 把 `apps/web/.dev.vars` 注入 `process.env`，按优先级选 provider：
+  1. `OPENAI_API_KEY` + `OPENAI_BASE_URL` + `OPENAI_MODEL` → OpenAI 兼容（MIMO）
+  2. `GEMINI_API_KEY` → Gemini
+  3. 都没有 → `describe.skip` 整套跳过，常规 `pnpm test` 默认安全
+- 测试文件首行有 `@vitest-environment node`：OpenAI SDK 检测到 happy-dom 注入的 `window` 会拒跑（怕泄 key），eval 套件不动 DOM 切 node 即可
+- **断言只锁结构和关键 token**（`intent`、`task.text` 包含某子串、`expectAt` 是否填），不锁文案——AI 用词会变，锁死会误报；挂了通常是真行为退化
+- 11 条 case 跑一轮约 50 秒。新增 case 直接 `CASES.push(...)`
+- 朋友再报 prompt-level bug，把那句原话直接搬进来一条 case 就成了永久回归保护
+
 ## 删除任务：级联清理
 
 - `DELETE /api/tasks/[id]` 要清 4 处：

@@ -197,29 +197,35 @@ export async function persistIntentResult(
 }
 
 /**
- * 写一条 utterance 记录，供「我的 · 输入记录」页回看。
+ * 写 utterance 记录，供「我的 · 输入记录」页回看。
+ * 一句话可能有多个 action / effect，每个写一行；actions JSON 冗余存全量便于回看。
  */
 export async function logUtterance(
   db: Database,
   userId: string,
   utterance: Utterance,
-  effect: IntentEffect,
+  effects: IntentEffect[],
   audioKey: string | null,
 ): Promise<void> {
-  const taskId = effect.kind === 'miss' ? null : ((effect as { id?: string }).id ?? null);
-  const row: NewUtteranceRow = {
-    id: crypto.randomUUID(),
-    userId,
-    rawText: utterance.raw,
-    intent: utterance.intent,
-    effectKind: effect.kind,
-    verb: effect.verb ?? null,
-    reason: effect.kind === 'miss' ? null : ((effect as { reason?: string }).reason ?? null),
-    taskId,
-    audioKey,
-    dims: utterance.dims,
-  };
-  await db.insert(utterancesTable).values(row);
+  if (!effects.length) return;
+  const rows: NewUtteranceRow[] = effects.map((effect, i) => {
+    const action = utterance.actions[i];
+    const taskId = effect.kind === 'miss' ? null : ((effect as { id?: string }).id ?? null);
+    return {
+      id: crypto.randomUUID(),
+      userId,
+      rawText: utterance.raw,
+      intent: action?.intent ?? 'ADD',
+      effectKind: effect.kind,
+      verb: effect.verb ?? null,
+      reason: effect.kind === 'miss' ? null : ((effect as { reason?: string }).reason ?? null),
+      taskId,
+      audioKey,
+      dims: utterance.dims,
+      actions: utterance.actions,
+    };
+  });
+  await db.insert(utterancesTable).values(rows);
 }
 
 export async function markTaskDone(db: Database, userId: string, id: string): Promise<void> {

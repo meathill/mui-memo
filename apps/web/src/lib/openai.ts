@@ -1,5 +1,5 @@
 import type { TaskView } from '@mui-memo/shared/logic';
-import { type Utterance, utteranceSchema } from '@mui-memo/shared/validators';
+import { parseUtteranceFlexible, type Utterance } from '@mui-memo/shared/validators';
 import OpenAI, { APIError } from 'openai';
 import type { ChatCompletionContentPart } from 'openai/resources/chat/completions';
 import { audioToBase64, buildUserPrompt, extractJson, SYSTEM_PROMPT, type TimeAnchor } from './intent-shared';
@@ -106,7 +106,34 @@ export async function parseVoiceIntent(opts: ParseOptions): Promise<Utterance> {
   // MIMO（以及大多数 OpenAI 类模型）的习惯是把 optional 字段填 null 而不是省略，
   // 但 utteranceSchema 是按 Gemini 习惯写的（缺失就省略），不接受 null。
   // 先把 null 全删掉，再交给 zod。
-  return utteranceSchema.parse(stripNullsDeep(json));
+  return parseUtteranceFlexible(stripNullsDeep(json));
+}
+
+/**
+ * 纯文本入口：跳过音频多模态，直接给 AI 一段中文原话。
+ * 主要给 prompt 评估测试用。
+ */
+export async function parseTextIntent(opts: {
+  client: OpenAI;
+  model: string;
+  text: string;
+  currentTasks: TaskView[];
+  now: TimeAnchor;
+}): Promise<Utterance> {
+  const userText = buildUserPrompt(opts.currentTasks, opts.now, opts.text);
+  const response = await opts.client.chat.completions.create({
+    model: opts.model,
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: userText },
+    ],
+    response_format: { type: 'json_object' },
+    temperature: 0.2,
+  });
+  const raw = response.choices[0]?.message?.content ?? '';
+  if (!raw) throw new Error('OpenAI/MIMO returned empty content');
+  const json = JSON.parse(extractJson(raw));
+  return parseUtteranceFlexible(stripNullsDeep(json));
 }
 
 function stripNullsDeep(value: unknown): unknown {

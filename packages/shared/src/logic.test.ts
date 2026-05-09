@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { applyIntent, rerank, type TaskView } from './logic.js';
-import type { Utterance } from './validators.js';
+import { applyActions, applyIntent, type IntentEffect, rerank, type TaskView } from './logic.js';
+import type { Action, Dim, IntentKind, TaskCore, TaskStatus, Utterance } from './validators.js';
 
 // ──────────────────────────────────────────────
 // 测试夹具
@@ -18,14 +18,68 @@ function task(partial: Partial<TaskView> & { id: string; text: string }): TaskVi
   };
 }
 
-function utter(partial: Partial<Utterance> & Pick<Utterance, 'intent'>): Utterance {
+interface ActionPartial {
+  intent: IntentKind;
+  aiReason?: string;
+  aiVerb?: string;
+  task?: Partial<TaskCore>;
+  patch?: Partial<TaskCore> & { status?: TaskStatus };
+  createIfMissing?: Partial<TaskCore>;
+  match?: string;
+  matchId?: string;
+}
+
+function buildAction(p: ActionPartial): Action {
+  const base = { aiReason: p.aiReason ?? '', aiVerb: p.aiVerb ?? '' };
+  switch (p.intent) {
+    case 'ADD':
+      return { intent: 'ADD', ...base, task: p.task ?? { text: '' } };
+    case 'STATUS':
+      return {
+        intent: 'STATUS',
+        ...base,
+        ...(p.match ? { match: p.match } : {}),
+        ...(p.matchId ? { matchId: p.matchId } : {}),
+        ...(p.patch ? { patch: p.patch } : {}),
+      };
+    case 'DONE':
+      return {
+        intent: 'DONE',
+        ...base,
+        ...(p.match ? { match: p.match } : {}),
+        ...(p.matchId ? { matchId: p.matchId } : {}),
+        ...(p.createIfMissing ? { createIfMissing: p.createIfMissing } : {}),
+      };
+    case 'MODIFY':
+      return {
+        intent: 'MODIFY',
+        ...base,
+        ...(p.match ? { match: p.match } : {}),
+        ...(p.matchId ? { matchId: p.matchId } : {}),
+        ...(p.patch ? { patch: p.patch } : {}),
+      };
+    case 'LINK':
+      return {
+        intent: 'LINK',
+        ...base,
+        ...(p.match ? { match: p.match } : {}),
+        ...(p.matchId ? { matchId: p.matchId } : {}),
+      };
+  }
+}
+
+/** 单 action utterance 工厂，兼容老测试风格 */
+function utter(partial: ActionPartial & { raw?: string; dims?: Dim[] }): Utterance {
   return {
-    raw: '',
-    aiReason: '',
-    aiVerb: '',
-    dims: [],
-    ...partial,
+    raw: partial.raw ?? '',
+    actions: [buildAction(partial)],
+    dims: partial.dims ?? [],
   };
+}
+
+/** 多 action utterance 工厂 */
+function utterMulti(actions: ActionPartial[], raw = ''): Utterance {
+  return { raw, actions: actions.map(buildAction), dims: [] };
 }
 
 const FIXED_NOW = new Date('2026-04-22T14:05:00Z');
@@ -111,7 +165,7 @@ describe('rerank', () => {
 });
 
 // ──────────────────────────────────────────────
-// applyIntent - ADD
+// applyIntent (单 action 兼容入口)
 // ──────────────────────────────────────────────
 
 describe('applyIntent · dueAt / expectAt', () => {
@@ -193,16 +247,12 @@ describe('applyIntent · ADD', () => {
     expect(effect).toMatchObject({ kind: 'add', text: '带水', verb: '新增' });
   });
 
-  it('未提供 task 时降级使用 raw 作为文本', () => {
-    const u = utter({ intent: 'ADD', raw: '随便记一条' });
+  it('未提供 task.text 时降级使用 raw 作为文本', () => {
+    const u = utter({ intent: 'ADD', raw: '随便记一条', task: {} });
     const { tasks } = applyIntent([], u);
     expect(tasks[0].text).toBe('随便记一条');
   });
 });
-
-// ──────────────────────────────────────────────
-// applyIntent - STATUS
-// ──────────────────────────────────────────────
 
 describe('applyIntent · STATUS', () => {
   it('通过 matchId 精确切换到 doing，其他 doing 降级为 pending', () => {
@@ -222,12 +272,12 @@ describe('applyIntent · STATUS', () => {
     expect(effect.kind).toBe('status');
   });
 
-  it('matchId 优先于 match（即使正则更像别的任务也选 matchId）', () => {
+  it('matchId 优先于 match', () => {
     const before: TaskView[] = [task({ id: 'a', text: '买水' }), task({ id: 'b', text: '打款' })];
     const u = utter({
       intent: 'STATUS',
       matchId: 'b',
-      match: '水', // 这个正则如果生效就会指向 a
+      match: '水',
       aiVerb: '开始做',
     });
     const { tasks } = applyIntent(before, u);
@@ -261,10 +311,6 @@ describe('applyIntent · STATUS', () => {
     expect(effect.kind).toBe('miss');
   });
 });
-
-// ──────────────────────────────────────────────
-// applyIntent - DONE
-// ──────────────────────────────────────────────
 
 describe('applyIntent · DONE', () => {
   it('匹配时不直接勾掉，而是返回 effect 等待确认', () => {
@@ -303,12 +349,8 @@ describe('applyIntent · DONE', () => {
   });
 });
 
-// ──────────────────────────────────────────────
-// applyIntent - MODIFY
-// ──────────────────────────────────────────────
-
 describe('applyIntent · MODIFY', () => {
-  it('把 patch 里的字段合并到匹配任务', () => {
+  it('把 patch 里的字段合并到匹配任务，effect 带 patch 和 before 快照', () => {
     const before: TaskView[] = [task({ id: 'a', text: '付物业费', window: 'today' })];
     const u = utter({
       intent: 'MODIFY',
@@ -320,12 +362,20 @@ describe('applyIntent · MODIFY', () => {
     expect(tasks[0].deadline).toBe('下周一');
     expect(tasks[0].window).toBe('later');
     expect(effect.kind).toBe('modify');
+    if (effect.kind !== 'modify') throw new Error('expected modify');
+    expect(effect.patch).toEqual({ deadline: '下周一', window: 'later' });
+    expect(effect.before).toEqual({ text: '付物业费', window: 'today', deadline: undefined });
+  });
+
+  it('改 text 时 before.text 是命中前的旧文案', () => {
+    const before: TaskView[] = [task({ id: 'a', text: '买水' })];
+    const u = utter({ intent: 'MODIFY', matchId: 'a', aiVerb: '改描述', patch: { text: '买矿泉水' } });
+    const { effect } = applyIntent(before, u);
+    if (effect.kind !== 'modify') throw new Error();
+    expect(effect.before.text).toBe('买水');
+    expect(effect.patch.text).toBe('买矿泉水');
   });
 });
-
-// ──────────────────────────────────────────────
-// applyIntent - LINK
-// ──────────────────────────────────────────────
 
 describe('applyIntent · LINK', () => {
   it('把匹配任务挂到当前 doing 下并改为 linked', () => {
@@ -370,10 +420,6 @@ describe('applyIntent · LINK', () => {
   });
 });
 
-// ──────────────────────────────────────────────
-// 不变性
-// ──────────────────────────────────────────────
-
 describe('applyIntent · 不变性', () => {
   it('不修改传入的 tasks 数组和元素', () => {
     const orig = [task({ id: 'a', text: 'x' })];
@@ -388,5 +434,114 @@ describe('applyIntent · 不变性', () => {
       }),
     );
     expect(orig).toEqual(snapshot);
+  });
+});
+
+// ──────────────────────────────────────────────
+// applyActions · 多 action 串行
+// ──────────────────────────────────────────────
+
+describe('applyActions', () => {
+  it('单 ADD 等价于 applyIntent（结构同形，id 各自生成）', () => {
+    const u = utter({ intent: 'ADD', raw: '带水', task: { text: '带水' } });
+    const multi = applyActions([], u);
+    expect(multi.tasks).toHaveLength(1);
+    expect(multi.tasks[0].text).toBe('带水');
+    expect(multi.effects).toHaveLength(1);
+    expect(multi.effects[0].kind).toBe('add');
+  });
+
+  it('两个独立 ADD 都被插到列表头部，顺序与 actions 一致', () => {
+    const before: TaskView[] = [task({ id: 'old', text: '旧的' })];
+    const u = utterMulti(
+      [
+        { intent: 'ADD', task: { text: '提供货单给高老师' }, aiVerb: '新增' },
+        { intent: 'ADD', task: { text: '提供快递单号' }, aiVerb: '新增' },
+      ],
+      '提供货单给高老师，再提供快递单号',
+    );
+    const { tasks, effects } = applyActions(before, u);
+    // 后一个 ADD 被 prepend，所以顺序为：[第二条, 第一条, 旧的]
+    expect(tasks.map((t) => t.text)).toEqual(['提供快递单号', '提供货单给高老师', '旧的']);
+    expect(effects).toHaveLength(2);
+    expect(effects.every((e) => e.kind === 'add')).toBe(true);
+  });
+
+  it('ADD + LINK：LINK 命中刚 ADD 的任务 id（验证串行喂 tasks）', () => {
+    const before: TaskView[] = [task({ id: 'doing', text: '去银行', status: 'doing', window: 'now' })];
+    const u = utterMulti(
+      [
+        { intent: 'ADD', task: { text: '取快递' }, aiVerb: '新增' },
+        { intent: 'LINK', match: '快递', aiVerb: '顺手做' },
+      ],
+      '顺便取快递',
+    );
+    const { tasks, effects } = applyActions(before, u);
+    expect(effects[0].kind).toBe('add');
+    expect(effects[1].kind).toBe('link');
+    const parent = tasks.find((t) => t.id === 'doing')!;
+    expect(parent.linked).toHaveLength(1);
+    expect(parent.linked?.[0].text).toBe('取快递');
+    const child = tasks.find((t) => t.text === '取快递')!;
+    expect(child.status).toBe('linked');
+  });
+
+  it('两个 STATUS：第二个会覆盖第一个，最终只一个 doing', () => {
+    const before: TaskView[] = [task({ id: 'a', text: 'A' }), task({ id: 'b', text: 'B' })];
+    const u = utterMulti([
+      { intent: 'STATUS', matchId: 'a', aiVerb: '开始做' },
+      { intent: 'STATUS', matchId: 'b', aiVerb: '开始做' },
+    ]);
+    const { tasks, effects } = applyActions(before, u);
+    expect(effects[0].kind).toBe('status');
+    expect(effects[1].kind).toBe('status');
+    expect(tasks.find((t) => t.id === 'a')?.status).toBe('pending');
+    expect(tasks.find((t) => t.id === 'b')?.status).toBe('doing');
+    expect(tasks.filter((t) => t.status === 'doing')).toHaveLength(1);
+  });
+
+  it('一个 MODIFY miss 不影响后续 ADD 生效', () => {
+    const before: TaskView[] = [task({ id: 'a', text: '付物业费' })];
+    const u = utterMulti(
+      [
+        { intent: 'MODIFY', match: '不存在的', aiVerb: '改时间', patch: { deadline: '明天' } },
+        { intent: 'ADD', task: { text: '买菜' }, aiVerb: '新增' },
+      ],
+      '改时间，再买菜',
+    );
+    const { tasks, effects } = applyActions(before, u);
+    expect(effects[0].kind).toBe('miss');
+    expect(effects[1].kind).toBe('add');
+    expect(tasks.find((t) => t.text === '买菜')).toBeDefined();
+    // 原任务未被改
+    expect(tasks.find((t) => t.id === 'a')?.deadline).toBeUndefined();
+  });
+
+  it('回归朋友的 bug：两个独立任务不会被合并成 MODIFY', () => {
+    // 这个测试覆盖的是 logic 层：当 AI 正确返回两个 ADD 时，logic 不会出错。
+    // 实际让 AI 返回正确 actions[] 的责任在 prompt（intent-shared.ts）。
+    const before: TaskView[] = [task({ id: '1', text: '提供货单给高老师', expectAt: '2026-04-23T10:00:00+08:00' })];
+    const u = utterMulti([{ intent: 'ADD', task: { text: '提供快递单号' }, aiVerb: '新增' }], '完了转需要提供快递单号');
+    const { tasks, effects } = applyActions(before, u);
+    expect(effects[0].kind).toBe('add');
+    // 第一条任务原文不变
+    expect(tasks.find((t) => t.id === '1')?.text).toBe('提供货单给高老师');
+    expect(tasks.find((t) => t.text === '提供快递单号')).toBeDefined();
+  });
+});
+
+// ──────────────────────────────────────────────
+// IntentEffect 类型守卫示例（编译时验证）
+// ──────────────────────────────────────────────
+
+describe('IntentEffect modify 携带 patch + before', () => {
+  it('modify effect 的 patch 与 before 字段类型可解构', () => {
+    const before: TaskView[] = [task({ id: 'a', text: '买菜', place: 'home' })];
+    const u = utter({ intent: 'MODIFY', matchId: 'a', aiVerb: '改地点', patch: { place: 'out' } });
+    const { effect } = applyIntent(before, u);
+    const e: IntentEffect = effect;
+    if (e.kind !== 'modify') throw new Error();
+    expect(e.patch.place).toBe('out');
+    expect(e.before.place).toBe('home');
   });
 });

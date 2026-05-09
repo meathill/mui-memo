@@ -1,21 +1,31 @@
 'use client';
 
-import { BUCKET_LABEL, type Bucket, rerank, type TaskView } from '@mui-memo/shared/logic';
+import { BUCKET_LABEL, type Bucket, type IntentEffect, rerank, type TaskView } from '@mui-memo/shared/logic';
 import type { TaskPlace } from '@mui-memo/shared/validators';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import { track } from '@/lib/analytics';
+import type { PendingConfirm } from '@/store';
 import { useAppStore } from '@/store';
 import { ContextStrip } from './context-strip';
 import { DoingCard } from './doing-card';
 import { EffectToast } from './effect-toast';
+import type { ConfirmChoice } from './intent-confirm-dialog';
+import { IntentConfirmDialog } from './intent-confirm-dialog';
 import { MicButton } from './mic-button';
 import { PullIndicator } from './pull-indicator';
 import { SectionHeader } from './section-header';
 import { TaskRow } from './task-row';
 
 const SECTION_ORDER: Bucket[] = ['now', 'today_here', 'today_else', 'blocked', 'later'];
+
+interface IntentResponse {
+  utterance: import('@mui-memo/shared/validators').Utterance;
+  effects: IntentEffect[];
+  tasks: TaskView[];
+  pendingConfirms: Array<{ index: number; effect: IntentEffect }>;
+}
 
 interface Props {
   userName: string;
@@ -31,10 +41,21 @@ export function TodayView({ userName }: Props) {
     } catch {}
   }, [router]);
 
-  const { place, setPlace, tasks, hydrate, setProcessing, isProcessing, lastEffect, lastUtterance, setLastEffect } =
-    useAppStore();
+  const {
+    place,
+    setPlace,
+    tasks,
+    hydrate,
+    setProcessing,
+    isProcessing,
+    lastEffects,
+    lastUtterance,
+    setLastEffects,
+    pendingConfirms,
+    pushPendingConfirms,
+    shiftPendingConfirm,
+  } = useAppStore();
 
-  // 单次拉取：只拉全量 tasks，不带 place；筛选和 rerank 都在前端。
   const fetchAll = useCallback(async () => {
     const res = await fetch(`/api/tasks`, { cache: 'no-store' });
     if (!res.ok) return;
@@ -64,9 +85,6 @@ export function TodayView({ userName }: Props) {
 
   const handlePlaceChange = useCallback((p: TaskPlace) => setPlace(p), [setPlace]);
 
-  // 切场景时重放一次淡入脉冲：避开 key={place} 那种 remount 方案，
-  // 不重置 TaskRow 的本地状态（checked / checking / 事件订阅）。
-  // 经典 trick：移掉 class → 强制 reflow → 再加回去。
   const pulseRef = useRef<HTMLDivElement>(null);
   const lastPlaceRef = useRef(place);
   useEffect(() => {
@@ -81,7 +99,6 @@ export function TodayView({ userName }: Props) {
 
   const handleDone = useCallback(
     async (id: string) => {
-      // 乐观更新：本地先打 done，省一次回拉
       const current = useAppStore.getState().tasks;
       hydrate({
         tasks: current.map((t) =>
@@ -102,16 +119,6 @@ export function TodayView({ userName }: Props) {
     [hydrate],
   );
 
-  const confirmTimerRef = useRef<number | null>(null);
-  useEffect(() => {
-    return () => {
-      if (confirmTimerRef.current !== null) {
-        window.clearTimeout(confirmTimerRef.current);
-        confirmTimerRef.current = null;
-      }
-    };
-  }, []);
-
   const handleAudio = useCallback(
     async (blob: Blob) => {
       setProcessing(true);
@@ -124,45 +131,77 @@ export function TodayView({ userName }: Props) {
         } catch {}
         const res = await fetch('/api/intent', { method: 'POST', body: fd });
         if (!res.ok) {
-          const err = (await res.json().catch(() => ({}))) as {
-            detail?: string;
-          };
-          setLastEffect({ kind: 'miss', verb: err.detail ?? '识别失败' }, null);
+          const err = (await res.json().catch(() => ({}))) as { detail?: string };
+          setLastEffects([{ kind: 'miss', verb: err.detail ?? '识别失败' }], null);
           return;
         }
-        const data = (await res.json()) as {
-          utterance: typeof lastUtterance;
-          effect: typeof lastEffect;
-          tasks: TaskView[];
-        };
+        const data = (await res.json()) as IntentResponse;
         hydrate({ tasks: data.tasks, ranked: [] });
-        setLastEffect(data.effect, data.utterance);
-        track({ name: 'voice_intent', intent: data.effect?.kind });
-
-        if (data.effect?.kind === 'done' || data.effect?.kind === 'done-backfill') {
-          const effect = data.effect as { id: string; text: string };
-          // 稍加延迟，让 React 渲染完最新的任务列表和 EffectToast
-          if (confirmTimerRef.current !== null) {
-            window.clearTimeout(confirmTimerRef.current);
-          }
-          confirmTimerRef.current = window.setTimeout(() => {
-            if (window.confirm(`确认完成任务「${effect.text}」？`)) {
-              void handleDone(effect.id).catch(() => {
-                setLastEffect({ kind: 'miss', verb: '完成任务失败' }, null);
-              });
-            }
-          }, 100);
+        setLastEffects(data.effects, data.utterance);
+        for (const e of data.effects) {
+          track({ name: 'voice_intent', intent: e.kind });
+        }
+        if (data.pendingConfirms?.length) {
+          pushPendingConfirms(
+            data.pendingConfirms.map((p) => ({
+              index: p.index,
+              effect: p.effect,
+              utterance: data.utterance,
+            })),
+          );
         }
       } finally {
         setProcessing(false);
       }
     },
-    [place, setProcessing, setLastEffect, hydrate, handleDone],
+    [place, setProcessing, setLastEffects, hydrate, pushPendingConfirms],
+  );
+
+  const current = pendingConfirms[0] ?? null;
+
+  const handleChoice = useCallback(
+    async (choice: ConfirmChoice) => {
+      if (!current) return;
+      const { effect, utterance } = current;
+      try {
+        if (choice === 'cancel') {
+          shiftPendingConfirm();
+          return;
+        }
+        if (effect.kind === 'modify') {
+          const body =
+            choice === 'confirm'
+              ? { kind: 'modify', taskId: effect.id, patch: effect.patch }
+              : {
+                  kind: 'modify-as-add',
+                  rawText: utterance.raw,
+                  task: { ...effect.before, ...effect.patch },
+                  aiReason: effect.reason,
+                };
+          const res = await fetch('/api/intent/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          if (res.ok) {
+            const data = (await res.json()) as { tasks: TaskView[] };
+            hydrate({ tasks: data.tasks, ranked: [] });
+          } else {
+            setLastEffects([{ kind: 'miss', verb: '保存失败' }], utterance);
+          }
+        } else if (effect.kind === 'done' && choice === 'confirm') {
+          await handleDone(effect.id);
+        }
+      } finally {
+        shiftPendingConfirm();
+      }
+    },
+    [current, hydrate, setLastEffects, shiftPendingConfirm, handleDone],
   );
 
   return (
     <main className="relative mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-6 pb-48 sm:pt-10">
-      <EffectToast effect={lastEffect} utterance={lastUtterance} />
+      <EffectToast effects={lastEffects} utterance={lastUtterance} />
       <PullIndicator pullOffset={pullOffset} refreshing={refreshing} onManualRefresh={() => trigger()} />
 
       <header>
@@ -181,8 +220,6 @@ export function TodayView({ userName }: Props) {
       ) : null}
 
       <section className="mt-4">
-        {/* animate-filter-pulse 不写在默认 className 里：写了首屏 mount 就会自动播一次。
-            effect 在 place 真变化时才 add，跟 RN 侧 isFirstRender 守护对齐。 */}
         <div ref={pulseRef}>
           {SECTION_ORDER.map((bucket) => {
             const list = grouped.get(bucket) ?? [];
@@ -218,6 +255,20 @@ export function TodayView({ userName }: Props) {
       >
         <MicButton disabled={isProcessing} onAudio={handleAudio} />
       </div>
+
+      <IntentConfirmDialog
+        open={current !== null}
+        onOpenChange={(v) => {
+          if (!v && current) shiftPendingConfirm();
+        }}
+        effect={current?.effect ?? null}
+        utterance={current?.utterance ?? null}
+        actionIndex={current?.index ?? 0}
+        onChoose={handleChoice}
+      />
     </main>
   );
 }
+
+// 让 PendingConfirm 类型仍可以被他处引用
+export type { PendingConfirm };

@@ -1,4 +1,4 @@
-import type { TaskPlace, TaskStatus, TaskWindow, Utterance } from './validators.js';
+import type { Action, TaskCore, TaskPlace, TaskStatus, TaskWindow, Utterance } from './validators.js';
 
 /**
  * 前后端共享的任务视图模型。
@@ -76,21 +76,44 @@ export function rerank(tasks: TaskView[], ctxPlace: TaskPlace): Array<TaskView &
 }
 
 // ──────────────────────────────────────────────
-// applyIntent：把语音意图合并到当前任务列表
+// applyActions：把 actions[] 合并到当前任务列表
 // ──────────────────────────────────────────────
+
+export type ModifyPatch = Partial<TaskCore> & { status?: TaskStatus };
+
+/** modify effect 用来给前端"取消 / 改为新增"用的命中前快照 */
+export type TaskSnapshot = Partial<
+  Pick<
+    TaskView,
+    'text' | 'place' | 'window' | 'energy' | 'priority' | 'tag' | 'deadline' | 'expectAt' | 'dueAt' | 'status'
+  >
+>;
 
 export type IntentEffect =
   | { kind: 'add'; id: string; text: string; verb: string; reason: string }
   | { kind: 'status'; id: string; text: string; verb: string; reason: string }
   | { kind: 'done'; id: string; text: string; verb: string; reason: string }
   | { kind: 'done-backfill'; id: string; text: string; verb: string; reason: string }
-  | { kind: 'modify'; id: string; text: string; verb: string; reason: string }
+  | {
+      kind: 'modify';
+      id: string;
+      text: string;
+      verb: string;
+      reason: string;
+      patch: ModifyPatch;
+      before: TaskSnapshot;
+    }
   | { kind: 'link'; id: string; text: string; verb: string; reason: string; host: string }
   | { kind: 'miss'; verb: string };
 
 export interface ApplyResult {
   tasks: TaskView[];
   effect: IntentEffect;
+}
+
+export interface ApplyActionsResult {
+  tasks: TaskView[];
+  effects: IntentEffect[];
 }
 
 function genId() {
@@ -100,33 +123,49 @@ function genId() {
   return `t-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
 }
 
-function matchTask(tasks: TaskView[], u: Utterance): TaskView | null {
-  if (u.matchId) {
-    const byId = tasks.find((t) => t.id === u.matchId && !t.done);
+type ResolvableAction = Extract<Action, { match?: string; matchId?: string }>;
+
+function matchTaskByAction(tasks: TaskView[], action: ResolvableAction): TaskView | null {
+  if (action.matchId) {
+    const byId = tasks.find((t) => t.id === action.matchId && !t.done);
     if (byId) return byId;
   }
-  if (!u.match) return null;
+  if (!action.match) return null;
   let rx: RegExp;
   try {
-    rx = new RegExp(u.match);
+    rx = new RegExp(action.match);
   } catch {
     return null;
   }
   return tasks.find((t) => !t.done && rx.test(t.text)) ?? null;
 }
 
+function snapshotForPatch(t: TaskView, patch: ModifyPatch): TaskSnapshot {
+  const snap: TaskSnapshot = { text: t.text };
+  if (patch.place !== undefined) snap.place = t.place;
+  if (patch.window !== undefined) snap.window = t.window;
+  if (patch.energy !== undefined) snap.energy = t.energy;
+  if (patch.priority !== undefined) snap.priority = t.priority;
+  if (patch.tag !== undefined) snap.tag = t.tag ?? undefined;
+  if (patch.deadline !== undefined) snap.deadline = t.deadline ?? undefined;
+  if (patch.expectAt !== undefined) snap.expectAt = t.expectAt ?? undefined;
+  if (patch.dueAt !== undefined) snap.dueAt = t.dueAt ?? undefined;
+  if (patch.status !== undefined) snap.status = t.status;
+  if (patch.text !== undefined) snap.text = t.text;
+  return snap;
+}
+
 /**
- * 把一条 Utterance 合并到当前任务列表。
- * 返回新列表 + 副作用描述（用于 toast 提示）。
+ * 应用单个 action 到任务列表。返回新列表 + 副作用描述。
  */
-export function applyIntent(tasks: TaskView[], u: Utterance, now: Date = new Date()): ApplyResult {
-  if (u.intent === 'ADD') {
-    const core = u.task ?? {};
+function applyAction(tasks: TaskView[], action: Action, raw: string): ApplyResult {
+  if (action.intent === 'ADD') {
+    const core = action.task ?? {};
     const id = genId();
     const nt: TaskView = {
       id,
-      text: core.text ?? u.raw,
-      rawText: u.raw,
+      text: core.text ?? raw,
+      rawText: raw,
       place: core.place ?? 'any',
       window: core.window ?? 'today',
       energy: core.energy ?? 2,
@@ -135,21 +174,21 @@ export function applyIntent(tasks: TaskView[], u: Utterance, now: Date = new Dat
       deadline: core.deadline,
       expectAt: core.expectAt,
       dueAt: core.dueAt,
-      aiReason: u.aiReason,
+      aiReason: action.aiReason,
       status: 'pending',
       done: false,
       addedAt: '刚才',
     };
     return {
       tasks: [nt, ...tasks],
-      effect: { kind: 'add', id, text: nt.text, verb: u.aiVerb, reason: u.aiReason },
+      effect: { kind: 'add', id, text: nt.text, verb: action.aiVerb, reason: action.aiReason },
     };
   }
 
-  if (u.intent === 'STATUS') {
-    const t = matchTask(tasks, u);
-    if (!t) return { tasks, effect: { kind: 'miss', verb: u.aiVerb } };
-    const patch = u.patch ?? {};
+  if (action.intent === 'STATUS') {
+    const t = matchTaskByAction(tasks, action);
+    if (!t) return { tasks, effect: { kind: 'miss', verb: action.aiVerb } };
+    const patch = action.patch ?? {};
     const next = tasks.map((x) => {
       if (x.id === t.id) {
         return {
@@ -164,25 +203,25 @@ export function applyIntent(tasks: TaskView[], u: Utterance, now: Date = new Dat
     });
     return {
       tasks: next,
-      effect: { kind: 'status', id: t.id, text: t.text, verb: u.aiVerb, reason: u.aiReason },
+      effect: { kind: 'status', id: t.id, text: t.text, verb: action.aiVerb, reason: action.aiReason },
     };
   }
 
-  if (u.intent === 'DONE') {
-    const t = matchTask(tasks, u);
+  if (action.intent === 'DONE') {
+    const t = matchTaskByAction(tasks, action);
     if (t) {
       return {
         tasks,
-        effect: { kind: 'done', id: t.id, text: t.text, verb: '待确认完成', reason: u.aiReason },
+        effect: { kind: 'done', id: t.id, text: t.text, verb: '待确认完成', reason: action.aiReason },
       };
     }
-    if (u.createIfMissing) {
-      const core = u.createIfMissing;
+    if (action.createIfMissing) {
+      const core = action.createIfMissing;
       const id = genId();
       const nt: TaskView = {
         id,
-        text: core.text ?? u.raw,
-        rawText: u.raw,
+        text: core.text ?? raw,
+        rawText: raw,
         place: core.place ?? 'any',
         window: core.window ?? 'now',
         energy: core.energy ?? 2,
@@ -191,7 +230,7 @@ export function applyIntent(tasks: TaskView[], u: Utterance, now: Date = new Dat
         deadline: core.deadline,
         expectAt: core.expectAt,
         dueAt: core.dueAt,
-        aiReason: u.aiReason,
+        aiReason: action.aiReason,
         status: 'pending',
         done: false,
         addedAt: '刚才',
@@ -203,28 +242,37 @@ export function applyIntent(tasks: TaskView[], u: Utterance, now: Date = new Dat
           id,
           text: nt.text,
           verb: '待确认完成',
-          reason: u.aiReason,
+          reason: action.aiReason,
         },
       };
     }
-    return { tasks, effect: { kind: 'miss', verb: u.aiVerb } };
+    return { tasks, effect: { kind: 'miss', verb: action.aiVerb } };
   }
 
-  if (u.intent === 'MODIFY') {
-    const t = matchTask(tasks, u);
-    if (!t) return { tasks, effect: { kind: 'miss', verb: u.aiVerb } };
-    const patch = u.patch ?? {};
+  if (action.intent === 'MODIFY') {
+    const t = matchTaskByAction(tasks, action);
+    if (!t) return { tasks, effect: { kind: 'miss', verb: action.aiVerb } };
+    const patch = action.patch ?? {};
+    const before = snapshotForPatch(t, patch);
     const next = tasks.map((x) => (x.id === t.id ? { ...x, ...patch } : x));
     return {
       tasks: next,
-      effect: { kind: 'modify', id: t.id, text: t.text, verb: u.aiVerb, reason: u.aiReason },
+      effect: {
+        kind: 'modify',
+        id: t.id,
+        text: t.text,
+        verb: action.aiVerb,
+        reason: action.aiReason,
+        patch,
+        before,
+      },
     };
   }
 
-  if (u.intent === 'LINK') {
-    const t = matchTask(tasks, u);
+  if (action.intent === 'LINK') {
+    const t = matchTaskByAction(tasks, action);
     const doing = tasks.find((x) => x.status === 'doing');
-    if (!t || !doing) return { tasks, effect: { kind: 'miss', verb: u.aiVerb } };
+    if (!t || !doing) return { tasks, effect: { kind: 'miss', verb: action.aiVerb } };
     const next = tasks.map((x) => {
       if (x.id === doing.id) {
         return { ...x, linked: [...(x.linked ?? []), { id: t.id, text: t.text }] };
@@ -240,14 +288,38 @@ export function applyIntent(tasks: TaskView[], u: Utterance, now: Date = new Dat
         kind: 'link',
         id: t.id,
         text: t.text,
-        verb: u.aiVerb,
-        reason: u.aiReason,
+        verb: action.aiVerb,
+        reason: action.aiReason,
         host: doing.text,
       },
     };
   }
 
   return { tasks, effect: { kind: 'miss', verb: '无法识别' } };
+}
+
+/**
+ * 把 utterance.actions 串行合并到当前任务列表。
+ * 前一个 action 输出的 tasks 喂给下一个，这样「先 ADD 再 LINK 到刚 ADD 的」能命中。
+ */
+export function applyActions(tasks: TaskView[], utterance: Utterance, _now: Date = new Date()): ApplyActionsResult {
+  let cur = tasks;
+  const effects: IntentEffect[] = [];
+  for (const action of utterance.actions) {
+    const r = applyAction(cur, action, utterance.raw);
+    cur = r.tasks;
+    effects.push(r.effect);
+  }
+  return { tasks: cur, effects };
+}
+
+/**
+ * 单 action 兼容入口。actions[0] 走 applyActions，返回第一个 effect。
+ * 老的调用方在迁移期内仍可用。
+ */
+export function applyIntent(tasks: TaskView[], utterance: Utterance, now: Date = new Date()): ApplyResult {
+  const r = applyActions(tasks, utterance, now);
+  return { tasks: r.tasks, effect: r.effects[0] };
 }
 
 export const PLACE_LABEL: Record<TaskPlace, { label: string; icon: string }> = {

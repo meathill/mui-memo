@@ -64,6 +64,13 @@
       "when": 1776911241530,
       "tag": "0008_powerful_mister_fear",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1778314104676,
+      "tag": "0009_outgoing_mister_sinister",
+      "breakpoints": true
     }
   ]
 }

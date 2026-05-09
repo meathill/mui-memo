@@ -7,12 +7,19 @@ import type { ThemePreference } from '@/lib/theme';
 
 type RankedTask = TaskView & { bucket: Bucket };
 
+export interface PendingConfirm {
+  index: number;
+  effect: IntentEffect;
+  utterance: Utterance;
+}
+
 interface AppState {
   place: TaskPlace;
   tasks: TaskView[];
   ranked: RankedTask[];
-  lastEffect: IntentEffect | null;
+  lastEffects: IntentEffect[];
   lastUtterance: Utterance | null;
+  pendingConfirms: PendingConfirm[];
   isProcessing: boolean;
   isRecording: boolean;
   theme: ThemePreference;
@@ -21,7 +28,10 @@ interface AppState {
   hydrate: (payload: { tasks: TaskView[]; ranked: RankedTask[]; place?: TaskPlace }) => void;
   setRecording: (v: boolean) => void;
   setProcessing: (v: boolean) => void;
-  setLastEffect: (e: IntentEffect | null, u?: Utterance | null) => void;
+  setLastEffects: (effects: IntentEffect[], u?: Utterance | null) => void;
+  pushPendingConfirms: (list: PendingConfirm[]) => void;
+  shiftPendingConfirm: () => void;
+  clearPendingConfirms: () => void;
   setTheme: (t: ThemePreference) => void;
 }
 
@@ -29,11 +39,8 @@ interface AppState {
  * 全局应用状态。
  *
  * **持久化策略**：把 `tasks`、`place`、`theme` 存到 AsyncStorage，杀 app 再开能
- * 立刻看到上次列表（避免白屏等 API）和上次的主题选择。`lastEffect` / `ranked` /
- * recording 状态是当次会话瞬时信息，不存。
- *
- * 持久化用 AsyncStorage（不是 SecureStore），任务文本不敏感，量大，
- * SecureStore 写慢且有大小限制。
+ * 立刻看到上次列表（避免白屏等 API）和上次的主题选择。`lastEffects` /
+ * `pendingConfirms` / `ranked` / recording 是当次会话瞬时信息，不存。
  */
 export const useAppStore = create<AppState>()(
   persist(
@@ -41,8 +48,9 @@ export const useAppStore = create<AppState>()(
       place: 'home',
       tasks: [],
       ranked: [],
-      lastEffect: null,
+      lastEffects: [],
       lastUtterance: null,
+      pendingConfirms: [],
       isProcessing: false,
       isRecording: false,
       theme: 'system',
@@ -51,7 +59,10 @@ export const useAppStore = create<AppState>()(
       hydrate: ({ tasks, ranked, place }) => set((s) => ({ tasks, ranked, place: place ?? s.place })),
       setRecording: (v) => set({ isRecording: v }),
       setProcessing: (v) => set({ isProcessing: v }),
-      setLastEffect: (e, u) => set({ lastEffect: e, lastUtterance: u ?? null }),
+      setLastEffects: (effects, u) => set({ lastEffects: effects, lastUtterance: u ?? null }),
+      pushPendingConfirms: (list) => set((s) => ({ pendingConfirms: [...s.pendingConfirms, ...list] })),
+      shiftPendingConfirm: () => set((s) => ({ pendingConfirms: s.pendingConfirms.slice(1) })),
+      clearPendingConfirms: () => set({ pendingConfirms: [] }),
       setTheme: (t) => set({ theme: t }),
     }),
     {

@@ -189,6 +189,12 @@ export const utterances = mysqlTable('utterances', {
   audioKey: varchar('audio_key', { length: 512 }),
   /** AI 给出的 dims[]，用 JSON 保留便于未来加调试面板 */
   dims: json('dims'),
+  /**
+   * 完整的 actions[]（v0.9 起）。一句话可能含多个 action，每行 utterance 仍代表
+   * 单个 action（intent/effectKind/taskId 各自一行），actions 列冗余存全量便于
+   * 「输入记录」页回看完整结构。老行此列为 NULL，读端用 legacyToActions 兜底。
+   */
+  actions: json('actions'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 

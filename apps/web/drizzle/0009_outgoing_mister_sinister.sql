@@ -1,0 +1,1 @@
+ALTER TABLE `utterances` ADD `actions` json;

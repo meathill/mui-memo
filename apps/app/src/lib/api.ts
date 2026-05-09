@@ -258,9 +258,22 @@ export const api = {
       fd.append('tz', opts.tz);
       return request<{
         utterance: Utterance;
-        effect: IntentEffect;
+        effects: IntentEffect[];
         tasks: TaskView[];
+        pendingConfirms: Array<{ index: number; effect: IntentEffect }>;
       }>('/api/intent', { method: 'POST', body: fd });
+    },
+    confirm(
+      body:
+        | { kind: 'modify'; taskId: string; patch: Record<string, unknown> }
+        | { kind: 'modify-as-add'; rawText: string; task: Record<string, unknown>; aiReason?: string }
+        | { kind: 'done'; taskId: string },
+    ) {
+      return request<{ tasks: TaskView[] }>('/api/intent/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
     },
   },
 

@@ -1,6 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import type { TaskView } from '@mui-memo/shared/logic';
-import { type Utterance, utteranceSchema } from '@mui-memo/shared/validators';
+import { parseUtteranceFlexible, type Utterance } from '@mui-memo/shared/validators';
 import { audioToBase64, buildUserPrompt, extractJson, SYSTEM_PROMPT, type TimeAnchor } from './intent-shared';
 
 const CHAT_MODEL = 'gemini-3-flash-preview';
@@ -65,5 +65,31 @@ export async function parseVoiceIntent(opts: ParseOptions): Promise<Utterance> {
   if (!raw) throw new Error('Gemini returned empty content');
 
   const json = JSON.parse(extractJson(raw));
-  return utteranceSchema.parse(json);
+  return parseUtteranceFlexible(json);
+}
+
+/**
+ * 纯文本入口：跳过音频多模态，直接给 AI 一段中文原话。
+ * 主要给 prompt 评估测试用，也可作未来文本输入功能的基础。
+ */
+export async function parseTextIntent(opts: {
+  genai: GoogleGenAI;
+  text: string;
+  currentTasks: TaskView[];
+  now: TimeAnchor;
+}): Promise<Utterance> {
+  const userText = buildUserPrompt(opts.currentTasks, opts.now, opts.text);
+  const response = await opts.genai.models.generateContent({
+    model: CHAT_MODEL,
+    contents: [{ role: 'user', parts: [{ text: userText }] }],
+    config: {
+      systemInstruction: SYSTEM_PROMPT,
+      responseMimeType: 'application/json',
+      temperature: 0.2,
+    },
+  });
+  const raw = response.text ?? '';
+  if (!raw) throw new Error('Gemini returned empty content');
+  const json = JSON.parse(extractJson(raw));
+  return parseUtteranceFlexible(json);
 }

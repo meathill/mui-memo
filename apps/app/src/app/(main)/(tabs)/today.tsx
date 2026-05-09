@@ -1,5 +1,6 @@
-import type { Bucket, TaskView } from '@mui-memo/shared/logic';
+import type { Bucket, IntentEffect, TaskView } from '@mui-memo/shared/logic';
 import { BUCKET_LABEL, rerank } from '@mui-memo/shared/logic';
+import type { Utterance } from '@mui-memo/shared/validators';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -15,17 +16,28 @@ import { api } from '@/lib/api';
 import { cancelTaskReminder } from '@/lib/notifications';
 import { useSession } from '@/lib/session';
 import { useThemeHex } from '@/lib/use-theme-hex';
-import { useAppStore } from '@/store';
+import { type PendingConfirm, useAppStore } from '@/store';
 
-// 非 doing 的分桶顺序（doing 单独走 DoingCard 在顶部）
 const SECTION_ORDER: Bucket[] = ['now', 'today_here', 'today_else', 'blocked', 'later'];
 
 export default function TodayScreen() {
   const user = useSession((s) => s.user);
   const colors = useThemeHex();
 
-  const { place, tasks, hydrate, setPlace, isProcessing, setProcessing, lastEffect, lastUtterance, setLastEffect } =
-    useAppStore();
+  const {
+    place,
+    tasks,
+    hydrate,
+    setPlace,
+    isProcessing,
+    setProcessing,
+    lastEffects,
+    lastUtterance,
+    setLastEffects,
+    pendingConfirms,
+    pushPendingConfirms,
+    shiftPendingConfirm,
+  } = useAppStore();
 
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -35,7 +47,6 @@ export default function TodayScreen() {
       hydrate({ tasks, ranked: [] });
       setLoadError(null);
     } catch (err) {
-      // 拉失败不再弹 Alert（网络抖动一弹就烦），放顶部 banner 让用户手动重试
       setLoadError(err instanceof Error ? err.message : '请求失败');
     }
   }, [hydrate]);
@@ -48,7 +59,6 @@ export default function TodayScreen() {
     }
   }, [loadTasks]);
 
-  // 屏聚焦就拉一下，从详情/编辑返回时能看到新状态
   useFocusEffect(
     useCallback(() => {
       loadTasks();
@@ -58,7 +68,6 @@ export default function TodayScreen() {
   const doing = useMemo(() => tasks.find((t) => t.status === 'doing') ?? null, [tasks]);
   const ranked = useMemo(() => rerank(tasks, place), [tasks, place]);
 
-  // 切换 place 时给事项区一次淡入脉冲：即便桶分配前后一致，也让用户看到「筛选跑过了」
   const fade = useSharedValue(1);
   const fadeStyle = useAnimatedStyle(() => ({ opacity: fade.value }));
   const isFirstRender = useRef(true);
@@ -82,7 +91,6 @@ export default function TodayScreen() {
 
   const handleDone = useCallback(
     async (id: string) => {
-      // 乐观更新，和 web 对齐
       const current = useAppStore.getState().tasks;
       const original = current.find((t) => t.id === id);
       hydrate({
@@ -98,15 +106,11 @@ export default function TodayScreen() {
         ),
         ranked: [],
       });
-      // 标完立即撤掉本地提醒；reconciler 也会撤，但这里更即时
       cancelTaskReminder(id).catch(() => undefined);
       try {
         await api.tasks.done(id);
       } catch (err) {
         if (err instanceof Error) Alert.alert('标记失败', err.message);
-        // 失败时只把这一条回滚成原状态。不要 loadTasks 全表覆盖 ——
-        // 那会让 TaskRow 退场动画结束后所有行因 task ref 变化批量重建，
-        // 被勾掉的行视觉「复位」。
         if (original) {
           const latest = useAppStore.getState().tasks;
           hydrate({
@@ -124,41 +128,51 @@ export default function TodayScreen() {
       setProcessing(true);
       try {
         const tz = Intl.DateTimeFormat?.().resolvedOptions?.().timeZone ?? 'Asia/Shanghai';
-        const { utterance, effect, tasks } = await api.intent.submit({
+        const { utterance, effects, tasks, pendingConfirms } = await api.intent.submit({
           audioUri: uri,
           mimeType,
           place,
           tz,
         });
         hydrate({ tasks, ranked: [] });
-        setLastEffect(effect, utterance);
-
-        if (effect.kind === 'done' || effect.kind === 'done-backfill') {
-          Alert.alert('确认完成', `是否确认完成任务「${effect.text}」？`, [
-            { text: '取消', style: 'cancel' },
-            {
-              text: '确认完成',
-              style: 'default',
-              onPress: () => {
-                void handleDone((effect as { id: string }).id);
-              },
-            },
-          ]);
+        setLastEffects(effects, utterance);
+        if (pendingConfirms?.length) {
+          pushPendingConfirms(pendingConfirms.map((p) => ({ index: p.index, effect: p.effect, utterance })));
         }
       } catch (err) {
-        setLastEffect(
-          {
-            kind: 'miss',
-            verb: err instanceof Error ? err.message : '识别失败',
-          },
+        setLastEffects(
+          [
+            {
+              kind: 'miss',
+              verb: err instanceof Error ? err.message : '识别失败',
+            },
+          ],
           null,
         );
       } finally {
         setProcessing(false);
       }
     },
-    [place, hydrate, setLastEffect, setProcessing, handleDone],
+    [place, hydrate, setLastEffects, setProcessing, pushPendingConfirms],
   );
+
+  // 处理待确认队列：每次 pendingConfirms[0] 变化都弹 Alert.alert，决定后 shift
+  const promptingRef = useRef(false);
+  useEffect(() => {
+    const head = pendingConfirms[0];
+    if (!head || promptingRef.current) return;
+    promptingRef.current = true;
+    showConfirm(head, async (choice) => {
+      promptingRef.current = false;
+      try {
+        await applyConfirm(head, choice, handleDone, hydrate);
+      } catch (err) {
+        if (err instanceof Error) Alert.alert('保存失败', err.message);
+      } finally {
+        shiftPendingConfirm();
+      }
+    });
+  }, [pendingConfirms, handleDone, hydrate, shiftPendingConfirm]);
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
@@ -182,7 +196,7 @@ export default function TodayScreen() {
           </View>
         ) : null}
 
-        <EffectToast effect={lastEffect} utterance={lastUtterance} />
+        <EffectToast effects={lastEffects} utterance={lastUtterance} />
 
         {doing ? (
           <View className="mt-4">
@@ -226,3 +240,54 @@ export default function TodayScreen() {
     </SafeAreaView>
   );
 }
+
+type ConfirmChoice = 'confirm' | 'modify-as-add' | 'cancel';
+
+function showConfirm(pc: PendingConfirm, onChoose: (choice: ConfirmChoice) => void) {
+  const { effect } = pc;
+  if (effect.kind === 'modify') {
+    const before = effect.before.text ?? effect.text;
+    const after = effect.patch.text ?? before;
+    const body = before !== after ? `「${before}」 → 「${after}」` : `「${effect.text}」 ${effect.verb}`;
+    Alert.alert('要把任务改成这样吗？', body, [
+      { text: '取消', style: 'cancel', onPress: () => onChoose('cancel') },
+      { text: '改为新增', style: 'default', onPress: () => onChoose('modify-as-add') },
+      { text: '确认', style: 'default', onPress: () => onChoose('confirm') },
+    ]);
+  } else if (effect.kind === 'done') {
+    Alert.alert('确认完成？', `「${effect.text}」`, [
+      { text: '取消', style: 'cancel', onPress: () => onChoose('cancel') },
+      { text: '确认', style: 'default', onPress: () => onChoose('confirm') },
+    ]);
+  } else {
+    onChoose('cancel');
+  }
+}
+
+async function applyConfirm(
+  pc: PendingConfirm,
+  choice: ConfirmChoice,
+  handleDone: (id: string) => Promise<void>,
+  hydrate: (payload: { tasks: TaskView[]; ranked: never[] }) => void,
+): Promise<void> {
+  const { effect, utterance } = pc;
+  if (choice === 'cancel') return;
+  if (effect.kind === 'modify') {
+    const body =
+      choice === 'confirm'
+        ? { kind: 'modify' as const, taskId: effect.id, patch: effect.patch as Record<string, unknown> }
+        : {
+            kind: 'modify-as-add' as const,
+            rawText: utterance.raw,
+            task: { ...effect.before, ...effect.patch } as Record<string, unknown>,
+            aiReason: effect.reason,
+          };
+    const { tasks } = await api.intent.confirm(body);
+    hydrate({ tasks, ranked: [] });
+  } else if (effect.kind === 'done' && choice === 'confirm') {
+    await handleDone(effect.id);
+  }
+}
+
+// 让外部能引用 IntentEffect / Utterance（避免未使用 import 报错）
+export type { IntentEffect, Utterance };
