@@ -1,13 +1,42 @@
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
-import { BellIcon, LogOutIcon, MessageSquareIcon, ZapIcon } from 'lucide-react-native';
+import {
+  BellIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  CircleIcon,
+  LogOutIcon,
+  MessageSquareIcon,
+  MoonIcon,
+  PaletteIcon,
+  SmartphoneIcon,
+  SunIcon,
+  ZapIcon,
+} from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ErrorBanner } from '@/components/error-banner';
 import { api, type ProfileStats } from '@/lib/api';
 import { getPermissionStatus, type PermStatus, requestPermission } from '@/lib/notifications';
+import type { ThemePreference } from '@/lib/theme';
+import { useThemeHex } from '@/lib/use-theme-hex';
+import { useAppStore } from '@/store';
+
+const THEME_OPTIONS: { value: ThemePreference; label: string; description: string }[] = [
+  { value: 'paper', label: '浅色', description: '温润纸感' },
+  { value: 'night', label: '深色', description: '深夜纸感' },
+  { value: 'mono', label: '极简', description: '黑白极简' },
+  { value: 'system', label: '跟随系统', description: '跟随手机外观设置' },
+];
+
+function themeIcon(value: ThemePreference, size: number, color: string) {
+  if (value === 'paper') return <SunIcon size={size} color={color} />;
+  if (value === 'night') return <MoonIcon size={size} color={color} />;
+  if (value === 'mono') return <CircleIcon size={size} color={color} />;
+  return <SmartphoneIcon size={size} color={color} />;
+}
 
 const VERSION_LABEL = (() => {
   const version = Constants.expoConfig?.version ?? '';
@@ -22,6 +51,10 @@ const VERSION_LABEL = (() => {
 })();
 
 export default function ProfileScreen() {
+  const colors = useThemeHex();
+  const themePref = useAppStore((s) => s.theme);
+  const setTheme = useAppStore((s) => s.setTheme);
+  const [themeOpen, setThemeOpen] = useState(false);
   const [data, setData] = useState<ProfileStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -96,7 +129,7 @@ export default function ProfileScreen() {
     <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
       <ScrollView
         contentContainerClassName="px-5 pt-4 pb-10"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1d1a12" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />}
       >
         <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">MuiMemo · 我的</Text>
         <Text className="mt-1 font-serif text-2xl text-ink">账号与数据</Text>
@@ -134,7 +167,7 @@ export default function ProfileScreen() {
           className="mt-5 flex-row items-center gap-3 rounded-2xl border border-rule/60 bg-paper-2/50 p-4 active:opacity-80"
         >
           <View className="h-10 w-10 items-center justify-center rounded-full bg-accent-warm/15">
-            <BellIcon size={18} color="#c17a3a" />
+            <BellIcon size={18} color={colors.accentWarm} />
           </View>
           <View className="flex-1">
             <Text className="font-serif text-base text-ink">到点提醒</Text>
@@ -177,7 +210,7 @@ export default function ProfileScreen() {
           className="mt-3 flex-row items-center gap-3 rounded-2xl border border-rule/60 bg-paper-2/50 p-4 active:opacity-80"
         >
           <View className="h-10 w-10 items-center justify-center rounded-full bg-accent-good/15">
-            <ZapIcon size={18} color="#4a9670" />
+            <ZapIcon size={18} color={colors.accentGood} />
           </View>
           <View className="flex-1">
             <Text className="font-serif text-base text-ink">Siri 快捷指令</Text>
@@ -187,11 +220,60 @@ export default function ProfileScreen() {
         </Pressable>
 
         <Pressable
+          onPress={() => setThemeOpen((v) => !v)}
+          className="mt-3 flex-row items-center gap-3 rounded-2xl border border-rule/60 bg-paper-2/50 p-4 active:opacity-80"
+        >
+          <View className="h-10 w-10 items-center justify-center rounded-full bg-accent-warm/15">
+            <PaletteIcon size={18} color={colors.accentWarm} />
+          </View>
+          <View className="flex-1">
+            <Text className="font-serif text-base text-ink">外观</Text>
+            <Text className="mt-0.5 text-ink-soft text-sm">
+              {THEME_OPTIONS.find((o) => o.value === themePref)?.label ?? '跟随系统'} ·{' '}
+              {THEME_OPTIONS.find((o) => o.value === themePref)?.description ?? ''}
+            </Text>
+          </View>
+          <ChevronDownIcon
+            size={18}
+            color={colors.inkMute}
+            style={{ transform: [{ rotate: themeOpen ? '180deg' : '0deg' }] }}
+          />
+        </Pressable>
+
+        {themeOpen ? (
+          <View className="mt-2 gap-1.5 rounded-2xl border border-rule/60 bg-paper-2/30 p-2">
+            {THEME_OPTIONS.map((opt) => {
+              const selected = themePref === opt.value;
+              return (
+                <Pressable
+                  key={opt.value}
+                  onPress={() => setTheme(opt.value)}
+                  className={`flex-row items-center gap-3 rounded-xl px-3 py-2.5 active:opacity-70 ${
+                    selected ? 'bg-accent-warm/10' : ''
+                  }`}
+                >
+                  <View className="h-8 w-8 items-center justify-center rounded-full bg-paper">
+                    {themeIcon(opt.value, 16, selected ? colors.accentWarm : colors.inkSoft)}
+                  </View>
+                  <View className="flex-1">
+                    <Text className={`font-serif text-base ${selected ? 'text-accent-warm' : 'text-ink'}`}>
+                      {opt.label}
+                    </Text>
+                    <Text className="mt-0.5 text-ink-mute text-xs">{opt.description}</Text>
+                  </View>
+                  {selected ? <CheckIcon size={18} color={colors.accentWarm} /> : null}
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : null}
+
+        <Pressable
           onPress={() => router.push('/feedback')}
           className="mt-3 flex-row items-center gap-3 rounded-2xl border border-rule/60 bg-paper-2/50 p-4 active:opacity-80"
         >
           <View className="h-10 w-10 items-center justify-center rounded-full bg-ink/10">
-            <MessageSquareIcon size={18} color="#1d1a12" />
+            <MessageSquareIcon size={18} color={colors.ink} />
           </View>
           <View className="flex-1">
             <Text className="font-serif text-base text-ink">意见反馈</Text>
@@ -202,7 +284,7 @@ export default function ProfileScreen() {
 
         {loading ? (
           <View className="mt-4 items-center">
-            <ActivityIndicator color="#1d1a12" />
+            <ActivityIndicator color={colors.ink} />
           </View>
         ) : null}
 
@@ -210,7 +292,7 @@ export default function ProfileScreen() {
           onPress={handleLogout}
           className="mt-8 flex-row items-center justify-center gap-2 rounded-xl border border-rule py-3.5 active:opacity-70"
         >
-          <LogOutIcon size={18} color="#1d1a12" />
+          <LogOutIcon size={18} color={colors.ink} />
           <Text className="text-ink text-base">退出登录</Text>
         </Pressable>
 

@@ -4,8 +4,10 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, Tex
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppleSignInButton } from '@/components/apple-sign-in-button';
 import { ApiError, api } from '@/lib/api';
+import { useThemeHex } from '@/lib/use-theme-hex';
 
 export default function RegisterScreen() {
+  const colors = useThemeHex();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -83,7 +85,7 @@ export default function RegisterScreen() {
               className="mt-2 items-center justify-center rounded-lg bg-ink py-3.5 active:opacity-80"
             >
               {loading ? (
-                <ActivityIndicator color="#f4ede0" />
+                <ActivityIndicator color={colors.paper} />
               ) : (
                 <Text className="font-medium text-paper text-base">注册</Text>
               )}

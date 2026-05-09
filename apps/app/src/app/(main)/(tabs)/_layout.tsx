@@ -1,17 +1,19 @@
 import { Tabs } from 'expo-router';
 import { CheckCircle2Icon, ListChecksIcon, SunIcon, UserIcon } from 'lucide-react-native';
+import { useThemeHex } from '@/lib/use-theme-hex';
 
 /** 底部四 Tab：今天 / 全部 / 已完成 / 我的 */
 export default function TabsLayout() {
+  const colors = useThemeHex();
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#1d1a12',
-        tabBarInactiveTintColor: '#7a7266',
+        tabBarActiveTintColor: colors.ink,
+        tabBarInactiveTintColor: colors.inkMute,
         tabBarStyle: {
-          backgroundColor: '#f4ede0',
-          borderTopColor: '#d9d0bd',
+          backgroundColor: colors.paper,
+          borderTopColor: colors.rule,
           height: 82,
           paddingTop: 8,
         },

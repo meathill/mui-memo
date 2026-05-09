@@ -14,6 +14,7 @@ import { TaskRow } from '@/components/memo/task-row';
 import { api } from '@/lib/api';
 import { cancelTaskReminder } from '@/lib/notifications';
 import { useSession } from '@/lib/session';
+import { useThemeHex } from '@/lib/use-theme-hex';
 import { useAppStore } from '@/store';
 
 // 非 doing 的分桶顺序（doing 单独走 DoingCard 在顶部）
@@ -21,6 +22,7 @@ const SECTION_ORDER: Bucket[] = ['now', 'today_here', 'today_else', 'blocked', '
 
 export default function TodayScreen() {
   const user = useSession((s) => s.user);
+  const colors = useThemeHex();
 
   const { place, tasks, hydrate, setPlace, isProcessing, setProcessing, lastEffect, lastUtterance, setLastEffect } =
     useAppStore();
@@ -163,7 +165,7 @@ export default function TodayScreen() {
       <ScrollView
         contentContainerClassName="px-5 pt-4 pb-40"
         keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1d1a12" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />}
       >
         <View>
           <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">MuiMemo · 今天</Text>

@@ -13,6 +13,7 @@ import Animated, {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ErrorBanner } from '@/components/error-banner';
 import { api, type CompletedTask } from '@/lib/api';
+import { useThemeHex } from '@/lib/use-theme-hex';
 
 function formatDay(iso: string | null): string {
   if (!iso) return '更早';
@@ -42,6 +43,7 @@ interface FlyingBall {
 }
 
 export default function CompletedScreen() {
+  const colors = useThemeHex();
   const [tasks, setTasks] = useState<CompletedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -163,7 +165,7 @@ export default function CompletedScreen() {
     <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
       <ScrollView
         contentContainerClassName="px-5 pt-4 pb-10"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1d1a12" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />}
       >
         <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">MuiMemo · 已完成</Text>
         <Text className="mt-1 font-serif text-2xl text-ink">你搞定的那些事</Text>
@@ -179,7 +181,7 @@ export default function CompletedScreen() {
 
         {loading ? (
           <View className="mt-12 items-center">
-            <ActivityIndicator color="#1d1a12" />
+            <ActivityIndicator color={colors.ink} />
           </View>
         ) : tasks.length === 0 ? (
           <View className="mt-12 items-center rounded-2xl border border-rule/60 border-dashed px-6 py-10">
@@ -216,7 +218,7 @@ export default function CompletedScreen() {
                   className="rounded-full border border-rule px-4 py-2 active:opacity-70"
                 >
                   {loadingMore ? (
-                    <ActivityIndicator color="#1d1a12" />
+                    <ActivityIndicator color={colors.ink} />
                   ) : (
                     <Text className="text-ink-soft text-sm">加载更多</Text>
                   )}
@@ -252,6 +254,7 @@ interface CompletedRowProps {
 }
 
 function CompletedRow({ task, onReopen, onDelete, onRowVanished, onLaunchBall }: CompletedRowProps) {
+  const colors = useThemeHex();
   const opacity = useSharedValue(1);
   const scale = useSharedValue(1);
   const collapse = useSharedValue(1); // 1 = 原高度, 0 = 折叠
@@ -310,7 +313,7 @@ function CompletedRow({ task, onReopen, onDelete, onRowVanished, onLaunchBall }:
       className="flex-row items-start gap-3 border-rule/50 border-b py-3 last:border-b-0"
     >
       <View className="mt-0.5 h-5 w-5 items-center justify-center rounded-full bg-accent-good">
-        <CheckIcon size={12} color="#f4ede0" />
+        <CheckIcon size={12} color={colors.paper} />
       </View>
       <View className="min-w-0 flex-1">
         <Text className="text-ink-soft text-base line-through">{task.text}</Text>
@@ -320,10 +323,10 @@ function CompletedRow({ task, onReopen, onDelete, onRowVanished, onLaunchBall }:
         </Text>
       </View>
       <Pressable onPress={handleReopenPress} hitSlop={8} className="p-1.5 active:opacity-60">
-        <RotateCcwIcon size={16} color="#7a7266" />
+        <RotateCcwIcon size={16} color={colors.inkMute} />
       </Pressable>
       <Pressable onPress={() => onDelete(task)} hitSlop={8} className="p-1.5 active:opacity-60">
-        <Trash2Icon size={16} color="#7a7266" />
+        <Trash2Icon size={16} color={colors.inkMute} />
       </Pressable>
     </Animated.View>
   );
@@ -338,6 +341,7 @@ interface FlyingBallProps {
 }
 
 function FlyingBall({ startX, startY, targetX, targetY, onDone }: FlyingBallProps) {
+  const colors = useThemeHex();
   const progress = useSharedValue(0);
 
   useEffect(() => {
@@ -366,7 +370,7 @@ function FlyingBall({ startX, startY, targetX, targetY, onDone }: FlyingBallProp
       style={[{ position: 'absolute', left: 0, top: 0 }, style]}
       className="h-6 w-6 items-center justify-center rounded-full bg-accent-good"
     >
-      <CheckIcon size={14} color="#f4ede0" />
+      <CheckIcon size={14} color={colors.paper} />
     </Animated.View>
   );
 }

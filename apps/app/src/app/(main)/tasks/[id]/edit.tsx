@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { api, type TaskPatch } from '@/lib/api';
+import { useThemeHex } from '@/lib/use-theme-hex';
 import { useAppStore } from '@/store';
 
 const PLACE_LABELS: Record<TaskPlace, string> = {
@@ -68,6 +69,7 @@ function expectPresets(): { label: string; iso: string | null }[] {
 
 export default function TaskEditScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const colors = useThemeHex();
   const [task, setTask] = useState<TaskView | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -150,7 +152,7 @@ export default function TaskEditScreen() {
           hitSlop={8}
           className="h-9 w-9 items-center justify-center rounded-full active:bg-ink/10"
         >
-          <XIcon size={22} color="#1d1a12" />
+          <XIcon size={22} color={colors.ink} />
         </Pressable>
         <Text className="font-serif text-ink text-lg">编辑任务</Text>
         <Pressable
@@ -159,13 +161,13 @@ export default function TaskEditScreen() {
           hitSlop={8}
           className="h-9 w-9 items-center justify-center rounded-full active:bg-ink/10"
         >
-          {saving ? <ActivityIndicator color="#1d1a12" /> : <CheckIcon size={22} color="#1d1a12" />}
+          {saving ? <ActivityIndicator color={colors.ink} /> : <CheckIcon size={22} color={colors.ink} />}
         </Pressable>
       </View>
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#1d1a12" />
+          <ActivityIndicator color={colors.ink} />
         </View>
       ) : (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
@@ -176,7 +178,7 @@ export default function TaskEditScreen() {
                 onChangeText={setText}
                 multiline
                 placeholder="这件事是什么？"
-                placeholderTextColor="#7a7266"
+                placeholderTextColor={colors.inkMute}
                 className="min-h-[90px] rounded-lg border border-rule bg-paper-2/50 px-4 py-3 text-base text-ink"
                 textAlignVertical="top"
               />
@@ -215,7 +217,7 @@ export default function TaskEditScreen() {
                 value={tag}
                 onChangeText={setTag}
                 placeholder="可选，比如「网银」「采购」"
-                placeholderTextColor="#7a7266"
+                placeholderTextColor={colors.inkMute}
                 maxLength={32}
                 className="rounded-lg border border-rule bg-paper-2/50 px-4 py-3 text-base text-ink"
               />

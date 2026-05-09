@@ -24,13 +24,18 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
   scheme: 'muimemo',
   version: pkg.version,
   orientation: 'portrait',
-  userInterfaceStyle: 'light',
+  userInterfaceStyle: 'automatic',
   newArchEnabled: true,
   icon: './assets/icon.png',
   splash: {
     backgroundColor: '#f4ede0',
     resizeMode: 'contain',
     image: './assets/splash.png',
+    // 深色模式下用对应的深底色，避免启动一闪刺眼的浅色
+    dark: {
+      backgroundColor: '#1a1812',
+      image: './assets/splash.png',
+    },
   },
   ios: {
     supportsTablet: false,

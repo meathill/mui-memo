@@ -2,6 +2,12 @@ packages:
   - apps/*
   - packages/*
 
+allowBuilds:
+  esbuild: false
+  protobufjs: false
+  sharp: false
+  workerd: false
+
 onlyBuiltDependencies:
   - esbuild
   - sharp

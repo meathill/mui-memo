@@ -15,11 +15,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { api } from '@/lib/api';
 import { useSession } from '@/lib/session';
+import { useThemeHex } from '@/lib/use-theme-hex';
 
 const TAG_OPTIONS = ['bug', '建议', '其他'] as const;
 
 export default function FeedbackScreen() {
   const user = useSession((s) => s.user);
+  const colors = useThemeHex();
   const [content, setContent] = useState('');
   const [contact, setContact] = useState(user?.email ?? '');
   const [tags, setTags] = useState<string[]>([]);
@@ -55,7 +57,7 @@ export default function FeedbackScreen() {
             className="h-10 w-10 items-center justify-center active:opacity-60"
             hitSlop={8}
           >
-            <ChevronLeftIcon size={24} color="#1d1a12" />
+            <ChevronLeftIcon size={24} color={colors.ink} />
           </Pressable>
           <Text className="font-serif text-ink text-lg">意见反馈</Text>
         </View>
@@ -66,7 +68,7 @@ export default function FeedbackScreen() {
             value={content}
             onChangeText={setContent}
             placeholder="遇到了什么问题？或者你想要什么功能？"
-            placeholderTextColor="#9c958a"
+            placeholderTextColor={colors.inkMute}
             multiline
             textAlignVertical="top"
             className="mt-2 min-h-32 rounded-2xl border border-rule/60 bg-paper-2/50 px-4 py-3 font-serif text-base text-ink"
@@ -77,7 +79,7 @@ export default function FeedbackScreen() {
             value={contact}
             onChangeText={setContact}
             placeholder="邮箱 / 微信，方便我们联系你"
-            placeholderTextColor="#9c958a"
+            placeholderTextColor={colors.inkMute}
             autoCapitalize="none"
             keyboardType="email-address"
             className="mt-2 rounded-2xl border border-rule/60 bg-paper-2/50 px-4 py-3 font-mono text-ink text-sm"
@@ -106,7 +108,7 @@ export default function FeedbackScreen() {
             disabled={busy}
             className="mt-8 flex-row items-center justify-center gap-2 rounded-xl bg-ink py-3.5 active:opacity-80 disabled:opacity-50"
           >
-            {busy ? <ActivityIndicator color="#f4ede0" /> : null}
+            {busy ? <ActivityIndicator color={colors.paper} /> : null}
             <Text className="font-serif text-base text-paper">提交</Text>
           </Pressable>
         </ScrollView>

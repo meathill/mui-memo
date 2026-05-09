@@ -4,6 +4,7 @@ import { AlertCircleIcon, PauseIcon, PlayIcon } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { getToken } from '@/lib/session';
+import { useThemeHex } from '@/lib/use-theme-hex';
 
 interface Props {
   /** 私有 R2 key，经 /api/audio/[...key] 代理回放 */
@@ -20,6 +21,7 @@ interface Props {
  * 没进就显示错误态——避免历史上「点了没反应也没报错」的静默失败。
  */
 export function AudioPlayButton({ audioKey, label = '播放原声' }: Props) {
+  const colors = useThemeHex();
   const apiBase = (Constants.expoConfig?.extra as { apiBase?: string } | undefined)?.apiBase;
   const source = useMemo(() => {
     if (!apiBase) return null;
@@ -52,7 +54,7 @@ export function AudioPlayButton({ audioKey, label = '播放原声' }: Props) {
         onPress={toggle}
         className="flex-row items-center gap-2 self-start rounded-full border border-ink-mute/30 bg-ink-mute/10 px-4 py-2 active:opacity-70"
       >
-        <AlertCircleIcon size={16} color="#7a7266" />
+        <AlertCircleIcon size={16} color={colors.inkMute} />
         <Text className="font-mono text-ink-mute text-sm">播放失败 · 重试</Text>
       </Pressable>
     );
@@ -63,7 +65,7 @@ export function AudioPlayButton({ audioKey, label = '播放原声' }: Props) {
       onPress={toggle}
       className="flex-row items-center gap-2 self-start rounded-full border border-accent-warm/40 bg-accent-warm/10 px-4 py-2 active:opacity-70"
     >
-      {playing ? <PauseIcon size={16} color="#c17a3a" /> : <PlayIcon size={16} color="#c17a3a" />}
+      {playing ? <PauseIcon size={16} color={colors.accentWarm} /> : <PlayIcon size={16} color={colors.accentWarm} />}
       <Text className="font-mono text-accent-warm text-sm">{playing ? '暂停' : label}</Text>
       {status.duration > 0 ? (
         <Text className="font-mono text-accent-warm/70 text-xs">
@@ -91,6 +93,7 @@ export function isAudioMime(mime: string | null | undefined): boolean {
 
 /** 播放 URL 源（非 audioKey）的版本，用在附件 direct URL */
 export function AudioUrlPlayButton({ url }: { url: string }) {
+  const colors = useThemeHex();
   const token = getToken();
   const source = useMemo(
     () => ({ uri: url, headers: token ? { Authorization: `Bearer ${token}` } : undefined }),
@@ -117,11 +120,11 @@ export function AudioUrlPlayButton({ url }: { url: string }) {
         } active:opacity-70`}
       >
         {error ? (
-          <AlertCircleIcon size={14} color="#7a7266" />
+          <AlertCircleIcon size={14} color={colors.inkMute} />
         ) : status.playing ? (
-          <PauseIcon size={14} color="#c17a3a" />
+          <PauseIcon size={14} color={colors.accentWarm} />
         ) : (
-          <PlayIcon size={14} color="#c17a3a" />
+          <PlayIcon size={14} color={colors.accentWarm} />
         )}
       </Pressable>
       {error ? (

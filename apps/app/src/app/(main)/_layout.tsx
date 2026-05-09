@@ -1,6 +1,7 @@
 import { Redirect, Stack } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 import { useSession } from '@/lib/session';
+import { useThemeHex } from '@/lib/use-theme-hex';
 
 /**
  * 登录后的 Stack：未登录踢回 /login；登录后走 Tabs 子布局 +
@@ -8,11 +9,12 @@ import { useSession } from '@/lib/session';
  */
 export default function MainLayout() {
   const { hydrating, token } = useSession();
+  const colors = useThemeHex();
 
   if (hydrating) {
     return (
       <View className="flex-1 items-center justify-center bg-paper">
-        <ActivityIndicator color="#1d1a12" />
+        <ActivityIndicator color={colors.ink} />
       </View>
     );
   }
