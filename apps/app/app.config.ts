@@ -58,6 +58,7 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
     // iOS 不需要 google-services，只用 local notifications，配置最简
     'expo-notifications',
     'expo-apple-authentication',
+    "@react-native-community/datetimepicker"
   ],
   experiments: {
     typedRoutes: false,
