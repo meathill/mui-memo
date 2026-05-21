@@ -5,9 +5,6 @@
   "scripts": {
     "dev": "next dev --port ${PORT:-3200}",
     "build": "pnpm -F @mui-memo/shared build && next build",
-    "start": "next start",
-    "lint": "biome check",
-    "format": "biome format --write",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",

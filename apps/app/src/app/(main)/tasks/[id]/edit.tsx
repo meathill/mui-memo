@@ -1,12 +1,14 @@
 import { PLACES as SHARED_PLACES, WINDOWS as SHARED_WINDOWS, type TaskView } from '@mui-memo/shared/logic';
 import type { TaskPlace, TaskWindow } from '@mui-memo/shared/validators';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { CheckIcon, XIcon } from 'lucide-react-native';
+import { CalendarIcon, CheckIcon, XIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -80,6 +82,44 @@ export default function TaskEditScreen() {
   const [taskWindow, setTaskWindow] = useState<TaskWindow>('today');
   const [tag, setTag] = useState('');
   const [expectAt, setExpectAt] = useState<string | null>(null);
+
+  // 时间选择器相关状态
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showAndroidTimePicker, setShowAndroidTimePicker] = useState(false);
+  const [tempDate, setTempDate] = useState<Date>(new Date());
+
+  function handleOpenPicker() {
+    const current = expectAt ? new Date(expectAt) : new Date();
+    setTempDate(current);
+    setShowDatePicker(true);
+  }
+
+  function handleConfirmIOS() {
+    setExpectAt(tempDate.toISOString());
+    setShowDatePicker(false);
+  }
+
+  function handleAndroidDateChange(event: DateTimePickerEvent, date?: Date) {
+    setShowDatePicker(false);
+    if (event.type === 'set' && date) {
+      setTempDate(date);
+      setTimeout(function () {
+        setShowAndroidTimePicker(true);
+      }, 100);
+    }
+  }
+
+  function handleAndroidTimeChange(event: DateTimePickerEvent, date?: Date) {
+    setShowAndroidTimePicker(false);
+    if (event.type === 'set' && date) {
+      const finalDate = new Date(tempDate);
+      finalDate.setHours(date.getHours());
+      finalDate.setMinutes(date.getMinutes());
+      finalDate.setSeconds(0);
+      finalDate.setMilliseconds(0);
+      setExpectAt(finalDate.toISOString());
+    }
+  }
 
   useEffect(() => {
     if (!id) return;
@@ -199,7 +239,9 @@ export default function TaskEditScreen() {
                   return (
                     <Pressable
                       key={preset.label}
-                      onPress={() => setExpectAt(preset.iso)}
+                      onPress={function () {
+                        setExpectAt(preset.iso);
+                      }}
                       className={`rounded-full px-4 py-2 ${active ? 'bg-ink' : 'border border-rule bg-paper-2/50'}`}
                     >
                       <Text className={`text-sm ${active ? 'text-paper' : 'text-ink-soft'}`}>{preset.label}</Text>
@@ -207,9 +249,66 @@ export default function TaskEditScreen() {
                   );
                 })}
               </View>
-              {expectAt ? (
-                <Text className="mt-2 font-mono text-ink-mute text-xs">{new Date(expectAt).toLocaleString()}</Text>
-              ) : null}
+              <Pressable
+                onPress={handleOpenPicker}
+                className="mt-3 flex-row items-center gap-1.5 self-start py-1"
+                hitSlop={8}
+              >
+                <CalendarIcon size={14} color={expectAt ? colors.ink : colors.inkMute} />
+                <Text className={`font-mono text-xs ${expectAt ? 'text-ink underline' : 'text-ink-mute'}`}>
+                  {expectAt ? new Date(expectAt).toLocaleString() : '设置具体时间...'}
+                </Text>
+              </Pressable>
+
+              {/* iOS 日期时间选择弹窗 */}
+              {Platform.OS === 'ios' && showDatePicker && (
+                <Modal
+                  transparent={true}
+                  animationType="slide"
+                  visible={showDatePicker}
+                  onRequestClose={function () {
+                    setShowDatePicker(false);
+                  }}
+                >
+                  <View className="flex-1 justify-end bg-black/40">
+                    <View className="bg-paper rounded-t-2xl pb-8 px-4 pt-4">
+                      <View className="flex-row justify-between items-center mb-4">
+                        <Pressable
+                          onPress={function () {
+                            setShowDatePicker(false);
+                          }}
+                          hitSlop={8}
+                        >
+                          <Text className="text-ink-mute text-base">取消</Text>
+                        </Pressable>
+                        <Text className="font-serif text-ink text-base font-bold">选择时间</Text>
+                        <Pressable onPress={handleConfirmIOS} hitSlop={8}>
+                          <Text className="text-ink text-base font-bold">确定</Text>
+                        </Pressable>
+                      </View>
+                      <DateTimePicker
+                        value={tempDate}
+                        mode="datetime"
+                        display="spinner"
+                        onChange={function (_event, date) {
+                          if (date) setTempDate(date);
+                        }}
+                        textColor={colors.ink}
+                      />
+                    </View>
+                  </View>
+                </Modal>
+              )}
+
+              {/* Android 日期选择器 */}
+              {Platform.OS === 'android' && showDatePicker && (
+                <DateTimePicker value={tempDate} mode="date" display="default" onChange={handleAndroidDateChange} />
+              )}
+
+              {/* Android 时间选择器 */}
+              {Platform.OS === 'android' && showAndroidTimePicker && (
+                <DateTimePicker value={tempDate} mode="time" display="default" onChange={handleAndroidTimeChange} />
+              )}
             </Section>
 
             <Section label="标签">

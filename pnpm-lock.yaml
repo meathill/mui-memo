@@ -29,6 +29,9 @@ importers:
       '@react-native-async-storage/async-storage':
         specifier: ~2.2.0
         version: 2.2.0(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))
+      '@react-native-community/datetimepicker':
+        specifier: ^9.1.0
+        version: 9.1.0(expo@55.0.18)(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
       buffer:
         specifier: ^6.0.3
         version: 6.0.3
@@ -1922,7 +1925,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {node: '>=0.10.0'}
+    engines: {'0': node >=0.10.0}
 
   '@expo/cli@55.0.26':
     resolution: {integrity: sha512-Ud9gpeGMF5RIL42LXvCw3k3mWK8rf/P2wu+Yrzz9Do1kcFKZeT9Vy2D/xukjdr/Xw+ELba87ThOot17GsPiWjw==}
@@ -2872,6 +2875,19 @@ packages:
     resolution: {integrity: sha512-gvRvjR5JAaUZF8tv2Kcq/Gbt3JHwbKFYfmb445rhOj6NUMx3qPLixmDx5pZAyb9at1bYvJ4/eTUipU5aki45xw==}
     peerDependencies:
       react-native: ^0.0.0-0 || >=0.65 <1.0
+
+  '@react-native-community/datetimepicker@9.1.0':
+    resolution: {integrity: sha512-eadbnk+I2vxvW30iTAsm/qlCnMMAadkifIMYNEB2lzhxN/SvlKc7S2V4k5DyrwjdCbqdcMk3t9K6fnUMcAV34w==}
+    peerDependencies:
+      expo: '>=52.0.0'
+      react: '*'
+      react-native: '*'
+      react-native-windows: '*'
+    peerDependenciesMeta:
+      expo:
+        optional: true
+      react-native-windows:
+        optional: true
 
   '@react-native/assets-registry@0.83.6':
     resolution: {integrity: sha512-iljb4ue1yWJ3EhySz7EjV6CzSVrI2uNtR8BI2jzP5+QS5E4Cl3fdIJRmVwDEx1pu8uE97PGEusGRHnoaZ9Q3jg==}
@@ -11373,6 +11389,14 @@ snapshots:
     dependencies:
       merge-options: 3.0.4
       react-native: 0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0)
+
+  '@react-native-community/datetimepicker@9.1.0(expo@55.0.18)(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)':
+    dependencies:
+      invariant: 2.2.4
+      react: 19.2.0
+      react-native: 0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0)
+    optionalDependencies:
+      expo: 55.0.18(@babel/core@7.29.0)(@expo/dom-webview@55.0.5)(@expo/metro-runtime@55.0.10)(expo-router@55.0.13)(react-dom@19.2.0(react@19.2.0))(react-native-worklets@0.7.4(@babel/core@7.29.0)(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0))(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
 
   '@react-native/assets-registry@0.83.6': {}
 
