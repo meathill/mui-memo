@@ -8,6 +8,7 @@
 
 | 版本 | 主要内容 |
 |---|---|
+| v0.8.x | 支持在编辑任务时设置自定义的具体预期时间，保留原有快捷键 |
 | v0.8.0 | 任务删除（详情页 + 已完成页）+ 最短录音 5s→3s |
 | v0.7.x | Gemini prompt 严格化（无时间词不填 expectAt）+ 最短录音时长守护 |
 | v0.5–0.6 | 切换 TiDB 原生 hybrid search（自动 embedding + fulltext + RRF）；移除手动 Gemini embedding |
