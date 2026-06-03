@@ -7,6 +7,7 @@ import { vars } from 'nativewind';
 import { useEffect, useRef } from 'react';
 import { Alert, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { RecordingIndicator } from '@/components/recording-indicator';
 import { api } from '@/lib/api';
 import { applyConfirm, showConfirm } from '@/lib/intent-confirm';
 import { Notifications, reconcileTaskReminders, type TaskNotificationData } from '@/lib/notifications';
@@ -101,6 +102,8 @@ export default function RootLayout() {
             contentStyle: { backgroundColor: THEME_BG_HEX[resolved] },
           }}
         />
+        {/* 全局录音指示条：浮在所有页面/tab 之上，录音时常驻，无开关可关（Apple 2.5.14） */}
+        <RecordingIndicator />
       </View>
     </SafeAreaProvider>
   );

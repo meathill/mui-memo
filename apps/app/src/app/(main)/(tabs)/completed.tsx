@@ -167,7 +167,7 @@ export default function CompletedScreen() {
         contentContainerClassName="px-5 pt-4 pb-10"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />}
       >
-        <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">MuiMemo · 已完成</Text>
+        <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">叨叨记 · 已完成</Text>
         <Text className="mt-1 font-serif text-2xl text-ink">你搞定的那些事</Text>
         <Text className="mt-1 text-ink-soft text-sm">
           已加载 {tasks.length} 件{hasMore ? '（还可加载更多）' : ''}

@@ -1,6 +1,6 @@
 {
   "name": "@mui-memo/app",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
@@ -48,7 +48,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.0",
     "@types/react": "~19.2.14",
-    "eas-cli": "^19.0.5",
+    "eas-cli": "^20.0.0",
     "typescript": "^5.8.3"
   }
 }

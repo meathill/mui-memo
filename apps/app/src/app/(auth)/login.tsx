@@ -38,7 +38,7 @@ export default function LoginScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <View className="flex-1 justify-center px-6">
           <View className="items-center">
-            <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">MuiMemo</Text>
+            <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">叨叨记</Text>
             <Text className="mt-2 font-serif text-3xl text-ink">欢迎回来</Text>
             <Text className="mt-1 text-ink-soft text-sm">说一句话，把琐事记下来。</Text>
           </View>

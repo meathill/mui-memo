@@ -195,6 +195,17 @@ export const api = {
     },
   },
 
+  account: {
+    /**
+     * 注销账号（Apple 5.1.1(v)）：永久删除服务端全部数据。成功后才清本地
+     * session 让 UI 跳登录页；失败则抛错、保留登录态，由调用方提示「注销失败」。
+     */
+    async deleteAccount() {
+      await request('/api/account/delete', { method: 'POST' });
+      await useSession.getState().clearSession();
+    },
+  },
+
   tasks: {
     list() {
       return request<{ tasks: TaskView[] }>('/api/tasks');

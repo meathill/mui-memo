@@ -150,7 +150,7 @@ export default function TodayScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />}
       >
         <View>
-          <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">MuiMemo · 今天</Text>
+          <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">叨叨记 · 今天</Text>
           <Text className="mt-1 font-serif text-2xl text-ink">你好，{user?.name ?? user?.email ?? '朋友'}</Text>
         </View>
 

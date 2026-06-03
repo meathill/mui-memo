@@ -12,6 +12,7 @@ import {
   PaletteIcon,
   SmartphoneIcon,
   SunIcon,
+  Trash2Icon,
   ZapIcon,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
@@ -30,6 +31,10 @@ const THEME_OPTIONS: { value: ThemePreference; label: string; description: strin
   { value: 'mono', label: '极简', description: '黑白极简' },
   { value: 'system', label: '跟随系统', description: '跟随手机外观设置' },
 ];
+
+// 注销按钮的危险红：主题 token 里没有真正的红（accent-warn 是琥珀、mono 下是黑），
+// 危险操作固定用红，任何主题下都读得出「危险/不可逆」。
+const DANGER_RED = '#dc2626';
 
 function themeIcon(value: ThemePreference, size: number, color: string) {
   if (value === 'paper') return <SunIcon size={size} color={color} />;
@@ -60,6 +65,7 @@ export default function ProfileScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [notifPerm, setNotifPerm] = useState<PermStatus>('prompt');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     getPermissionStatus()
@@ -76,7 +82,7 @@ export default function ProfileScreen() {
     const next = await requestPermission();
     setNotifPerm(next);
     if (next === 'blocked') {
-      Alert.alert('已被拒绝', '到「设置 → MuiMemo → 通知」手动打开。');
+      Alert.alert('已被拒绝', '到「设置 → 叨叨记 → 通知」手动打开。');
     }
   }, [notifPerm]);
 
@@ -123,6 +129,37 @@ export default function ProfileScreen() {
     ]);
   }, []);
 
+  // 注销账号（Apple 5.1.1(v)）：两步确认防误触，最终确认后调后端永久删除，
+  // 成功跳登录页；失败弹错误、保留登录态。
+  const handleDeleteAccount = useCallback(() => {
+    Alert.alert('注销账号？', '这会永久删除你的账号和全部数据：任务、录音、输入记录。删除后无法恢复。', [
+      { text: '取消', style: 'cancel' },
+      {
+        text: '继续注销',
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert('最后确认', '确定要永久注销账号吗？此操作不可撤销。', [
+            { text: '我再想想', style: 'cancel' },
+            {
+              text: '确认注销',
+              style: 'destructive',
+              onPress: async () => {
+                setDeleting(true);
+                try {
+                  await api.account.deleteAccount();
+                  router.replace('/login');
+                } catch (err) {
+                  setDeleting(false);
+                  Alert.alert('注销失败', err instanceof Error ? err.message : '请稍后再试');
+                }
+              },
+            },
+          ]);
+        },
+      },
+    ]);
+  }, []);
+
   const initial = data?.user.name?.charAt(0)?.toUpperCase() ?? '·';
 
   return (
@@ -131,7 +168,7 @@ export default function ProfileScreen() {
         contentContainerClassName="px-5 pt-4 pb-10"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />}
       >
-        <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">MuiMemo · 我的</Text>
+        <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">叨叨记 · 我的</Text>
         <Text className="mt-1 font-serif text-2xl text-ink">账号与数据</Text>
 
         {loadError ? (
@@ -195,7 +232,7 @@ export default function ProfileScreen() {
                 '2. URL 填：muimemo://',
                 '3. 指令名改成「记一下」之类',
                 '',
-                '然后对 Siri 说「嘿 Siri, 记一下」就会打开 MuiMemo。',
+                '然后对 Siri 说「嘿 Siri, 记一下」就会打开叨叨记。',
               ].join('\n'),
               [
                 { text: '知道了', style: 'cancel' },
@@ -214,7 +251,7 @@ export default function ProfileScreen() {
           </View>
           <View className="flex-1">
             <Text className="font-serif text-base text-ink">Siri 快捷指令</Text>
-            <Text className="mt-0.5 text-ink-soft text-sm">「嘿 Siri, 记一下」一秒打开 MuiMemo</Text>
+            <Text className="mt-0.5 text-ink-soft text-sm">「嘿 Siri, 记一下」一秒打开叨叨记</Text>
           </View>
           <Text className="font-mono text-accent-good text-sm">怎么配</Text>
         </Pressable>
@@ -294,6 +331,24 @@ export default function ProfileScreen() {
         >
           <LogOutIcon size={18} color={colors.ink} />
           <Text className="text-ink text-base">退出登录</Text>
+        </Pressable>
+
+        {/* 注销账号：危险操作，弱化展示（无边框红字），点击走两步确认（Apple 5.1.1(v)） */}
+        <Pressable
+          onPress={handleDeleteAccount}
+          disabled={deleting}
+          className="mt-3 flex-row items-center justify-center gap-2 py-3 active:opacity-60"
+        >
+          {deleting ? (
+            <ActivityIndicator color={DANGER_RED} />
+          ) : (
+            <>
+              <Trash2Icon size={16} color={DANGER_RED} />
+              <Text style={{ color: DANGER_RED }} className="text-sm">
+                注销账号
+              </Text>
+            </>
+          )}
         </Pressable>
 
         {VERSION_LABEL ? (

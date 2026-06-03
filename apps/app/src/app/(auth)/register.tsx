@@ -33,7 +33,7 @@ export default function RegisterScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <View className="flex-1 justify-center px-6">
           <View className="items-center">
-            <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">MuiMemo</Text>
+            <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">叨叨记</Text>
             <Text className="mt-2 font-serif text-3xl text-ink">开个号</Text>
             <Text className="mt-1 text-ink-soft text-sm">两步搞定，等下就能对着手机说话。</Text>
           </View>

@@ -4,6 +4,7 @@ import { MicIcon, SendIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { useThemeHex } from '@/lib/use-theme-hex';
+import { useAppStore } from '@/store';
 
 interface Props {
   /** 录音满 3s 松手时触发。uri 是本地 file://... m4a，durationMs 是按住时长 */
@@ -22,6 +23,16 @@ export function MicButton({ onAudio, disabled }: Props) {
   const startedAtRef = useRef<number>(0);
   const [hint, setHint] = useState<string | null>(null);
   const [perm, setPerm] = useState<PermStatus>('unknown');
+  const setRecording = useAppStore((s) => s.setRecording);
+
+  // 把本地录音状态提升到全局，供根 layout 的「正在录音」指示条用（Apple 2.5.14：
+  // 录音时必须有明显、不可关闭、跨页面常驻的指示）。
+  useEffect(() => {
+    setRecording(state.isRecording);
+  }, [state.isRecording, setRecording]);
+
+  // 卸载兜底：万一录音中离屏，别让全局指示条卡在「录音中」。
+  useEffect(() => () => setRecording(false), [setRecording]);
 
   useEffect(() => {
     // 只查不请，进屏不要立刻弹系统权限框。首次按按钮时才触发系统弹窗。
@@ -37,7 +48,7 @@ export function MicButton({ onAudio, disabled }: Props) {
 
     // 已被系统级拒绝（canAskAgain=false）：点也没用，引导去设置
     if (perm === 'blocked') {
-      Alert.alert('麦克风被禁用', '你之前拒绝过麦克风权限，系统不会再弹提示。需要到「设置 → MuiMemo」手动打开。', [
+      Alert.alert('麦克风被禁用', '你之前拒绝过麦克风权限，系统不会再弹提示。需要到「设置 → 叨叨记」手动打开。', [
         { text: '取消', style: 'cancel' },
         { text: '去设置', onPress: () => Linking.openSettings() },
       ]);

@@ -124,8 +124,8 @@ importers:
         specifier: ~19.2.14
         version: 19.2.14
       eas-cli:
-        specifier: ^19.0.5
-        version: 19.0.5(@types/node@20.19.39)(typescript@5.9.3)
+        specifier: ^20.0.0
+        version: 20.0.0(@types/node@20.19.39)(typescript@5.9.3)
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
@@ -1994,11 +1994,11 @@ packages:
       react: '*'
       react-native: '*'
 
-  '@expo/eas-build-job@19.0.0':
-    resolution: {integrity: sha512-xQ7eaKaKTFtAUau2ixS0iPeaCq8SpuPtw8nqFSHB2+AVF342OST/eWdXW5zq3PKoy7bdlsrKUABEbiWaxUtOWw==}
+  '@expo/eas-build-job@20.0.0':
+    resolution: {integrity: sha512-27GuS2rirvGs0zqZIEvLLQeQNEbRnmcyTcQ61OulkimI5ftXANDIK8K43YuXaYSEY3T8+tV+wXW1BZB2/TcFSQ==}
 
-  '@expo/eas-json@19.0.0':
-    resolution: {integrity: sha512-RPZkkUx5XdBlMngeEtfZITonuKePg2AIM4qeYFDsuQ7QJW0w+v9nFOc6KEJ8WgR4vVZm2yv9/Pl6TFL7Aed1tA==}
+  '@expo/eas-json@20.0.0':
+    resolution: {integrity: sha512-8oPltLlJNcgLPLf10tORqqEH7vTetMTcVVpzGChvn/3owSUEvcfNMONEiSgkozArLlJAkCO49/oVepNNFY/PKw==}
     engines: {node: '>=20.0.0'}
 
   '@expo/env@1.0.7':
@@ -2047,8 +2047,8 @@ packages:
       react: '*'
       react-native: '*'
 
-  '@expo/logger@19.0.0':
-    resolution: {integrity: sha512-tbcpwLhLyburBNUjmBLBN4+ELo99ntH6oWe8KzVNmYpHgeTbq48HBfHWkh/9i5ovuHJh5L3Kenjq2oyOYyB9qQ==}
+  '@expo/logger@20.0.0':
+    resolution: {integrity: sha512-ov/lDy/FPv4P4AbK+whZMFmlSo/oQQZFRhHaRiamZspe7kJV0V52LP2XJ7kdFEv5tLRMsKbm8X/JCNXOirC4Uw==}
 
   '@expo/metro-config@55.0.23':
     resolution: {integrity: sha512-Mkw3Ss/1LFlafH3iie3r9E13yKMyJgZqGTEkGviGf6LYp51eY5fR8ATbXrNsH69wVc2z+ty4lT/8lEA18YJv7g==}
@@ -2168,8 +2168,8 @@ packages:
     resolution: {integrity: sha512-QdWi16+CHB9JYP7gma19OVVg0BFkvU8zNj9GjWorYI8Iv8FUxjOCcYRuAmX4s/h91e4e7BPsskc8cSrZYho9Ew==}
     engines: {node: '>=12'}
 
-  '@expo/steps@19.0.0':
-    resolution: {integrity: sha512-T5mZAhBFu16Z1PUquXnw4auYVZYAoIvg6hG1F40nuOLvJeY+gddTA5EJ49rXVK4tNtFl98ozDimUFFMZaUdTgA==}
+  '@expo/steps@20.0.0':
+    resolution: {integrity: sha512-QMtHQAjdG2ZlQC6B5aj5JZHoBJDgRQNWrlfnsNSIXvjc6gFSiKAKRHUvwlCHDN7IhAKry3yJU4U0teBumM4FLQ==}
     engines: {node: '>=18'}
 
   '@expo/sudo-prompt@9.3.2':
@@ -2178,8 +2178,8 @@ packages:
   '@expo/timeago.js@1.0.0':
     resolution: {integrity: sha512-PD45CGlCL8kG0U3YcH1NvYxQThw5XAS7qE9bgP4L7dakm8lsMz+p8BQ1IjBFMmImawVWsV3py6JZINaEebXLnw==}
 
-  '@expo/turtle-spawn@19.0.0':
-    resolution: {integrity: sha512-ELHUZqMdROApj5FCixfQ9pm3KZwIzTX49B4tgKdFCxV4r+KdKa1xhSKPdpAe+ki5zzhDrri/nmSJA/QkOJXCtw==}
+  '@expo/turtle-spawn@20.0.0':
+    resolution: {integrity: sha512-5NKnpad0wzRPQLa1q50IusZqZtjuYS3FX9COEsCossXOFoGJB2SAYQOjWJNvt/20Hysl+NR2xeAKWp71pE+mow==}
 
   '@expo/vector-icons@15.1.1':
     resolution: {integrity: sha512-Iu2VkcoI5vygbtYngm7jb4ifxElNVXQYdDrYkT7UCEIiKLeWnQY0wf2ZhHZ+Wro6Sc5TaumpKUOqDRpLi5rkvw==}
@@ -4788,8 +4788,8 @@ packages:
   duplexer@0.1.2:
     resolution: {integrity: sha512-jtD6YG370ZCIi/9GTaJKQxWTZD045+4R4hTk/x1UyoqadyJ9x9CgSi1RlVDQF8U2sxLLSnFkCaMihqljHIWgMg==}
 
-  eas-cli@19.0.5:
-    resolution: {integrity: sha512-kHkJ3mAQrV9j78MHyTaJaMYlTHLux9zi8ThunLqOuiQ5Qd+vX0tI1oc+iZlWPVT5JouE5+lFMFZDLxM1J9LJVw==}
+  eas-cli@20.0.0:
+    resolution: {integrity: sha512-HI0DfNSA4L0gPBAFOgsWvERrOwMx2phdffgi2n0GNlqWKE7m4xJQavg53Eymml/MILuMwRlIlV7xWt3Zd0v39g==}
     engines: {node: '>=20.0.0'}
     hasBin: true
 
@@ -10262,8 +10262,8 @@ snapshots:
   '@expo/config-plugins@55.0.7':
     dependencies:
       '@expo/config-types': 55.0.5
-      '@expo/json-file': 10.0.14
-      '@expo/plist': 0.5.3
+      '@expo/json-file': 10.0.15
+      '@expo/plist': 0.5.4
       '@expo/sdk-runtime-versions': 1.0.0
       chalk: 4.1.2
       debug: 4.4.3(supports-color@8.1.1)
@@ -10338,7 +10338,7 @@ snapshots:
 
   '@expo/config@55.0.10(typescript@5.9.3)':
     dependencies:
-      '@expo/config-plugins': 55.0.9
+      '@expo/config-plugins': 55.0.10
       '@expo/config-types': 55.0.5
       '@expo/json-file': 10.1.1
       '@expo/require-utils': 55.0.5(typescript@5.9.3)
@@ -10389,19 +10389,19 @@ snapshots:
       react: 19.2.0
       react-native: 0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0)
 
-  '@expo/eas-build-job@19.0.0':
+  '@expo/eas-build-job@20.0.0':
     dependencies:
-      '@expo/logger': 19.0.0
+      '@expo/logger': 20.0.0
       '@expo/results': 1.0.0
-      '@expo/turtle-spawn': 19.0.0
+      '@expo/turtle-spawn': 20.0.0
       joi: 17.13.3
       semver: 7.7.4
       zod: 4.3.6
 
-  '@expo/eas-json@19.0.0':
+  '@expo/eas-json@20.0.0':
     dependencies:
       '@babel/code-frame': 7.23.5
-      '@expo/eas-build-job': 19.0.0
+      '@expo/eas-build-job': 20.0.0
       chalk: 4.1.2
       env-string: 1.0.1
       fs-extra: 11.2.0
@@ -10521,7 +10521,7 @@ snapshots:
       react-native: 0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0)
       stacktrace-parser: 0.1.11
 
-  '@expo/logger@19.0.0':
+  '@expo/logger@20.0.0':
     dependencies:
       '@types/bunyan': 1.8.11
       bunyan: 1.8.15
@@ -10756,10 +10756,10 @@ snapshots:
     dependencies:
       cross-spawn: 7.0.6
 
-  '@expo/steps@19.0.0':
+  '@expo/steps@20.0.0':
     dependencies:
-      '@expo/eas-build-job': 19.0.0
-      '@expo/logger': 19.0.0
+      '@expo/eas-build-job': 20.0.0
+      '@expo/logger': 20.0.0
       '@expo/spawn-async': 1.7.2
       arg: 5.0.2
       fs-extra: 11.2.0
@@ -10774,9 +10774,9 @@ snapshots:
 
   '@expo/timeago.js@1.0.0': {}
 
-  '@expo/turtle-spawn@19.0.0':
+  '@expo/turtle-spawn@20.0.0':
     dependencies:
-      '@expo/logger': 19.0.0
+      '@expo/logger': 20.0.0
       '@expo/spawn-async': 1.7.2
 
   '@expo/vector-icons@15.1.1(expo-font@55.0.8)(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)':
@@ -13338,17 +13338,17 @@ snapshots:
 
   duplexer@0.1.2: {}
 
-  eas-cli@19.0.5(@types/node@20.19.39)(typescript@5.9.3):
+  eas-cli@20.0.0(@types/node@20.19.39)(typescript@5.9.3):
     dependencies:
       '@expo/apple-utils': 2.1.19
       '@expo/code-signing-certificates': 0.0.5
       '@expo/config': 55.0.10(typescript@5.9.3)
       '@expo/config-plugins': 55.0.7
-      '@expo/eas-build-job': 19.0.0
-      '@expo/eas-json': 19.0.0
+      '@expo/eas-build-job': 20.0.0
+      '@expo/eas-json': 20.0.0
       '@expo/env': 1.0.7
       '@expo/json-file': 8.3.3
-      '@expo/logger': 19.0.0
+      '@expo/logger': 20.0.0
       '@expo/multipart-body-parser': 2.0.0
       '@expo/osascript': 2.1.4
       '@expo/package-manager': 1.9.10
@@ -13360,7 +13360,7 @@ snapshots:
       '@expo/results': 1.0.0
       '@expo/rudder-sdk-node': 1.1.1
       '@expo/spawn-async': 1.7.2
-      '@expo/steps': 19.0.0
+      '@expo/steps': 20.0.0
       '@expo/timeago.js': 1.0.0
       '@oclif/core': 4.11.1
       '@oclif/plugin-autocomplete': 3.2.47

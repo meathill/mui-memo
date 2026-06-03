@@ -1,10 +1,19 @@
 'use client';
 
-import { LogOutIcon, MessageSquareIcon, RefreshCcwIcon } from 'lucide-react';
+import { LogOutIcon, MessageSquareIcon, RefreshCcwIcon, Trash2Icon } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { FeedbackDialog } from '@/components/memo/feedback-dialog';
 import { TweaksPanel } from '@/components/memo/tweaks-panel';
+import {
+  AlertDialog,
+  AlertDialogClose,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogPopup,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { signOut } from '@/lib/auth-client';
 
@@ -23,6 +32,8 @@ export function ProfileView() {
   const [data, setData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -38,6 +49,21 @@ export function ProfileView() {
   async function handleLogout() {
     await signOut();
     window.location.href = '/login';
+  }
+
+  // 注销账号（Apple 5.1.1(v)）：AlertDialog 本身即确认步骤，确认后调后端永久删除，
+  // 成功跳登录页；失败提示并保留登录态。
+  async function handleDeleteAccount() {
+    setDeleting(true);
+    try {
+      const res = await fetch('/api/account/delete', { method: 'POST' });
+      if (!res.ok) throw new Error('failed');
+      window.location.href = '/login';
+    } catch {
+      setDeleting(false);
+      setDeleteOpen(false);
+      window.alert('注销失败，请稍后再试');
+    }
   }
 
   function restartOnboarding() {
@@ -105,12 +131,38 @@ export function ProfileView() {
 
       <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} defaultContact={data?.user.email} />
 
-      <section className="mt-6">
+      <section className="mt-6 space-y-2">
         <Button variant="outline" size="lg" className="w-full" onClick={handleLogout}>
           <LogOutIcon />
           退出登录
         </Button>
+        <Button
+          variant="destructive-outline"
+          size="lg"
+          className="w-full"
+          onClick={() => setDeleteOpen(true)}
+        >
+          <Trash2Icon />
+          注销账号
+        </Button>
       </section>
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogPopup>
+          <AlertDialogHeader>
+            <AlertDialogTitle>注销账号？</AlertDialogTitle>
+            <AlertDialogDescription>
+              这会永久删除你的账号和全部数据：任务、录音、输入记录。删除后无法恢复。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogClose render={<Button variant="outline">取消</Button>} />
+            <Button variant="destructive" disabled={deleting} onClick={handleDeleteAccount}>
+              {deleting ? '注销中…' : '确认注销'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogPopup>
+      </AlertDialog>
 
       {loading ? <p className="mt-4 text-center text-xs text-ink-mute">加载中…</p> : null}
 

@@ -42,7 +42,10 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
     bundleIdentifier: 'com.meathill.muimemo',
     usesAppleSignIn: true,
     infoPlist: {
-      NSMicrophoneUsageDescription: 'MuiMemo 需要使用麦克风来录制你的语音备忘。',
+      // 主屏显示名 = App Store 商店名「叨叨记」。app.config 是 prebuild 的源头，
+      // ios/ 是 gitignore 的 prebuild 产物，改这里才不会被重新生成覆盖。
+      CFBundleDisplayName: '叨叨记',
+      NSMicrophoneUsageDescription: '叨叨记需要使用麦克风来录制你的语音备忘。',
       ITSAppUsesNonExemptEncryption: false,
     },
   },
@@ -51,7 +54,7 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
     [
       'expo-audio',
       {
-        microphonePermission: '允许 MuiMemo 使用麦克风录制你的语音备忘。',
+        microphonePermission: '允许叨叨记使用麦克风录制你的语音备忘。',
       },
     ],
     'expo-secure-store',
