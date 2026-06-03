@@ -177,26 +177,36 @@ export default function ProfileScreen() {
           </View>
         ) : null}
 
-        <View className="mt-6 flex-row items-center gap-4 rounded-2xl border border-rule/60 bg-paper-2/50 p-5">
-          <View className="h-14 w-14 items-center justify-center rounded-full bg-ink">
-            <Text className="font-serif text-paper text-xl">{initial}</Text>
-          </View>
-          <View className="min-w-0 flex-1">
-            <Text className="font-serif text-ink text-lg" numberOfLines={1}>
-              {data?.user.name ?? '…'}
-            </Text>
-            <Text className="mt-0.5 font-mono text-ink-mute text-sm" numberOfLines={1}>
-              {data?.user.email ?? ''}
-            </Text>
-          </View>
-        </View>
+        {/* 账号 + 统计在这里加载。spinner 放在它们的位置（而非页面底部），加载完才显示
+            真实内容——避免初始时顶部显示会被误认成真实数据的「0」、spinner 却在别处转。 */}
+        {data ? (
+          <>
+            <View className="mt-6 flex-row items-center gap-4 rounded-2xl border border-rule/60 bg-paper-2/50 p-5">
+              <View className="h-14 w-14 items-center justify-center rounded-full bg-ink">
+                <Text className="font-serif text-paper text-xl">{initial}</Text>
+              </View>
+              <View className="min-w-0 flex-1">
+                <Text className="font-serif text-ink text-lg" numberOfLines={1}>
+                  {data.user.name}
+                </Text>
+                <Text className="mt-0.5 font-mono text-ink-mute text-sm" numberOfLines={1}>
+                  {data.user.email}
+                </Text>
+              </View>
+            </View>
 
-        <View className="mt-5 flex-row flex-wrap gap-3">
-          <StatCard label="今日已勾" value={data?.stats.doneToday ?? 0} accent />
-          <StatCard label="累计完成" value={data?.stats.done ?? 0} />
-          <StatCard label="清单待办" value={data?.stats.pending ?? 0} />
-          <StatCard label="正在做" value={data?.stats.doing ?? 0} />
-        </View>
+            <View className="mt-5 flex-row flex-wrap gap-3">
+              <StatCard label="今日已勾" value={data.stats.doneToday} accent />
+              <StatCard label="累计完成" value={data.stats.done} />
+              <StatCard label="清单待办" value={data.stats.pending} />
+              <StatCard label="正在做" value={data.stats.doing} />
+            </View>
+          </>
+        ) : loading ? (
+          <View className="mt-10 items-center">
+            <ActivityIndicator color={colors.ink} />
+          </View>
+        ) : null}
 
         <Pressable
           onPress={handleNotifTap}
@@ -318,12 +328,6 @@ export default function ProfileScreen() {
           </View>
           <Text className="font-mono text-ink-mute text-sm">→</Text>
         </Pressable>
-
-        {loading ? (
-          <View className="mt-4 items-center">
-            <ActivityIndicator color={colors.ink} />
-          </View>
-        ) : null}
 
         <Pressable
           onPress={handleLogout}
