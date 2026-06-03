@@ -5,9 +5,9 @@ declare namespace Cloudflare {
   interface Env {
     AUDIO_BUCKET: R2Bucket;
     ASSETS: Fetcher;
-    NEXT_PUBLIC_ASSETS_URL: 'https://i.roudan.io';
-    NEXT_PUBLIC_SITE_URL: 'https://muimemo.roudan.io';
-    BETTER_AUTH_URL: 'https://muimemo.roudan.io';
+    NEXT_PUBLIC_ASSETS_URL: 'https://i.meathill.com';
+    NEXT_PUBLIC_SITE_URL: 'https://muimemo.meathill.com';
+    BETTER_AUTH_URL: 'https://muimemo.meathill.com';
     CF_ACCOUNT_ID: 'fdc63eeea83ae8f5234357308b9a638b';
     CF_AI_GATEWAY_ID: 'meathill';
     AI_PROVIDER: 'gemini' | 'openai';

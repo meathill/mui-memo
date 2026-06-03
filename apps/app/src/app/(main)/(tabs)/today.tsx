@@ -18,7 +18,7 @@ import { useSession } from '@/lib/session';
 import { useThemeHex } from '@/lib/use-theme-hex';
 import { type PendingConfirm, useAppStore } from '@/store';
 
-const SECTION_ORDER: Bucket[] = ['now', 'today_here', 'today_else', 'blocked', 'later'];
+const SECTION_ORDER: Bucket[] = ['now', 'today_here', 'today_else', 'blocked', 'later', 'done_recurring'];
 
 export default function TodayScreen() {
   const user = useSession((s) => s.user);
@@ -123,6 +123,28 @@ export default function TodayScreen() {
     [hydrate],
   );
 
+  // 周期任务「本轮已完成」可点回恢复成待办
+  const handleReopen = useCallback(
+    async (id: string) => {
+      const current = useAppStore.getState().tasks;
+      const original = current.find((t) => t.id === id);
+      hydrate({
+        tasks: current.map((t) => (t.id === id ? { ...t, status: 'pending', done: false, completedAt: null } : t)),
+        ranked: [],
+      });
+      try {
+        await api.tasks.reopen(id);
+      } catch (err) {
+        if (err instanceof Error) Alert.alert('恢复失败', err.message);
+        if (original) {
+          const latest = useAppStore.getState().tasks;
+          hydrate({ tasks: latest.map((t) => (t.id === id ? original : t)), ranked: [] });
+        }
+      }
+    },
+    [hydrate],
+  );
+
   const handleAudio = useCallback(
     async ({ uri, mimeType }: { uri: string; mimeType: string }) => {
       setProcessing(true);
@@ -215,7 +237,7 @@ export default function TodayScreen() {
                 </Text>
                 <View className="rounded-2xl border border-rule/60 bg-paper-2/40 px-3">
                   {list.map((t) => (
-                    <TaskRow key={t.id} task={t} onDone={handleDone} />
+                    <TaskRow key={t.id} task={t} onDone={handleDone} onReopen={handleReopen} />
                   ))}
                 </View>
               </View>

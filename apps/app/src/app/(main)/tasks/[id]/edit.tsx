@@ -97,7 +97,7 @@ function expectPresets(): { label: string; iso: string | null }[] {
   presets.push(
     { label: '明早', iso: tomorrow.toISOString() },
     { label: '周末', iso: weekend.toISOString() },
-    { label: '清空', iso: null },
+    { label: '无', iso: null },
   );
   return presets;
 }

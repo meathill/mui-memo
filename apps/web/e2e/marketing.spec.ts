@@ -1,6 +1,6 @@
 import { expect, test } from './fixtures';
 
-const SITE_URL = 'https://muimemo.roudan.io';
+const SITE_URL = 'https://muimemo.meathill.com';
 
 const PUBLIC_PAGES = [
   {

@@ -16,12 +16,16 @@ import { useThemeHex } from '@/lib/use-theme-hex';
 interface Props {
   task: TaskView;
   onDone: (id: string) => void;
+  /** 周期任务「本轮已完成」时点勾恢复成待办 */
+  onReopen?: (id: string) => void;
 }
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-export function TaskRow({ task, onDone }: Props) {
+export function TaskRow({ task, onDone, onReopen }: Props) {
   const colors = useThemeHex();
+  // 周期任务完成后不消失，停在「本轮已完成」桶里，静态展示、可点回恢复
+  const isDoneRecurring = task.done && Boolean(task.recurrenceId);
   const triggered = useRef(false);
   const naturalHeight = useSharedValue(0);
   const collapse = useSharedValue(1);
@@ -33,7 +37,8 @@ export function TaskRow({ task, onDone }: Props) {
   const containerStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
     opacity: opacity.value,
-    height: naturalHeight.value > 0 ? naturalHeight.value * collapse.value : undefined,
+    // 平时不锁高（随内容自适应，避免删元素后留白）；仅退场坍缩时按测得高度收起
+    height: collapse.value < 1 ? naturalHeight.value * collapse.value : undefined,
     overflow: 'hidden',
   }));
   const circleStyle = useAnimatedStyle(() => ({ opacity: 1 - checkProgress.value }));
@@ -53,15 +58,20 @@ export function TaskRow({ task, onDone }: Props) {
     if (triggered.current) return;
     triggered.current = true;
 
-    // 1) 圆圈 → 对勾，删除线划过 (0–280ms)
     checkProgress.value = withTiming(1, { duration: 220, easing: Easing.out(Easing.cubic) });
-    strike.value = withTiming(1, { duration: 280, easing: Easing.out(Easing.quad) });
 
-    // 2) 整条向左飞出 (280–680ms)
+    // 周期任务：完成后不飞走，仅打勾 + 划线，列表把它重排到「本轮已完成」
+    if (task.recurrenceId) {
+      strike.value = withTiming(1, { duration: 260, easing: Easing.out(Easing.quad) }, (finished) => {
+        if (finished) runOnJS(notifyDone)();
+      });
+      return;
+    }
+
+    // 普通任务：划线 → 向左飞出 → 行高坍缩 → 通知移除
+    strike.value = withTiming(1, { duration: 280, easing: Easing.out(Easing.quad) });
     translateX.value = withDelay(280, withTiming(-SCREEN_WIDTH, { duration: 400, easing: Easing.in(Easing.cubic) }));
     opacity.value = withDelay(480, withTiming(0, { duration: 200 }));
-
-    // 3) 行高坍缩，下方上移挤占 (600–900ms)
     collapse.value = withDelay(
       600,
       withTiming(0, { duration: 280, easing: Easing.in(Easing.quad) }, (finished) => {
@@ -74,7 +84,8 @@ export function TaskRow({ task, onDone }: Props) {
     <Animated.View
       style={containerStyle}
       onLayout={(e) => {
-        if (naturalHeight.value === 0) naturalHeight.value = e.nativeEvent.layout.height;
+        // 退场动画期间不重测，其它时候随内容更新（修复内容变化后高度不收的留白）
+        if (!triggered.current) naturalHeight.value = e.nativeEvent.layout.height;
       }}
       className="border-rule/60 border-b py-3 last:border-b-0"
     >
@@ -82,42 +93,54 @@ export function TaskRow({ task, onDone }: Props) {
         onPress={() => router.push(`/tasks/${task.id}`)}
         className="flex-row items-center gap-3 active:opacity-70"
       >
-        <Pressable
-          onPress={handleMarkDone}
-          hitSlop={10}
-          className="relative h-6 w-6 items-center justify-center rounded-full active:bg-ink/10"
-        >
-          <Animated.View style={[StyleSheet.absoluteFillObject, styles.iconCenter, circleStyle]} pointerEvents="none">
-            <CircleIcon size={18} color={colors.inkMute} />
-          </Animated.View>
-          <Animated.View
-            style={[
-              StyleSheet.absoluteFillObject,
-              styles.iconCenter,
-              { backgroundColor: colors.accentGood, borderRadius: 9999 },
-              checkStyle,
-            ]}
-            pointerEvents="none"
+        {isDoneRecurring ? (
+          <Pressable
+            onPress={() => onReopen?.(task.id)}
+            hitSlop={10}
+            className="h-6 w-6 items-center justify-center rounded-full"
+            style={{ backgroundColor: colors.accentGood }}
           >
             <CheckIcon size={14} color={colors.paper} />
-          </Animated.View>
-        </Pressable>
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={handleMarkDone}
+            hitSlop={10}
+            className="relative h-6 w-6 items-center justify-center rounded-full active:bg-ink/10"
+          >
+            <Animated.View style={[StyleSheet.absoluteFillObject, styles.iconCenter, circleStyle]} pointerEvents="none">
+              <CircleIcon size={18} color={colors.inkMute} />
+            </Animated.View>
+            <Animated.View
+              style={[
+                StyleSheet.absoluteFillObject,
+                styles.iconCenter,
+                { backgroundColor: colors.accentGood, borderRadius: 9999 },
+                checkStyle,
+              ]}
+              pointerEvents="none"
+            >
+              <CheckIcon size={14} color={colors.paper} />
+            </Animated.View>
+          </Pressable>
+        )}
         <View className="flex-1">
           <View style={styles.relative}>
             <View className="flex-row items-center gap-1.5">
               {task.recurrenceId ? <RepeatIcon size={13} color={colors.inkMute} /> : null}
-              <Text className="flex-1 text-ink text-lg leading-snug">{task.text}</Text>
+              <Text
+                className={`flex-1 text-lg leading-snug ${isDoneRecurring ? 'text-ink-mute line-through' : 'text-ink'}`}
+              >
+                {task.text}
+              </Text>
             </View>
-            <Animated.View
-              pointerEvents="none"
-              style={[styles.strike, { backgroundColor: colors.inkMute }, strikeStyle]}
-            />
+            {isDoneRecurring ? null : (
+              <Animated.View
+                pointerEvents="none"
+                style={[styles.strike, { backgroundColor: colors.inkMute }, strikeStyle]}
+              />
+            )}
           </View>
-          {task.aiReason ? (
-            <Text className="mt-1 text-ink-mute text-sm" numberOfLines={1}>
-              {task.aiReason}
-            </Text>
-          ) : null}
         </View>
         <ChevronRightIcon size={18} color={colors.inkMute} />
       </Pressable>

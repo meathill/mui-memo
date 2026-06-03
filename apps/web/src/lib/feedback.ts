@@ -1,4 +1,4 @@
-const FEEDBACK_BASE = process.env.NEXT_PUBLIC_FEEDBACK_API_BASE ?? 'https://feedback.roudan.io';
+const FEEDBACK_BASE = process.env.NEXT_PUBLIC_FEEDBACK_API_BASE ?? 'https://feedback.meathill.com';
 
 export const FEEDBACK_APP_ID = 'mui-memo-web';
 

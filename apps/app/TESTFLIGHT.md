@@ -203,7 +203,7 @@ eas submit --profile production --platform ios --latest
 |---|---|---|
 | `eas build` 报 "bundle identifier mismatch" | `app.config.ts` 和 Apple Dev 后台 App ID 不一致 | 对齐两边 |
 | TestFlight 上 build 卡「处理中」超 1 小时 | Apple 扫描慢 / 卡在合规问题 | 看邮件，或 App Store Connect 顶栏通知 |
-| 朋友装了打开白屏 | `EXPO_PUBLIC_API_BASE` 没在 eas.json 的 env 里设置对 | 我们已经在 preview / production profile 里写了 `https://muimemo.roudan.io`，默认 OK |
+| 朋友装了打开白屏 | `EXPO_PUBLIC_API_BASE` 没在 eas.json 的 env 里设置对 | 我们已经在 preview / production profile 里写了 `https://muimemo.meathill.com`，默认 OK |
 | Apple 登录点了没反应 | App ID 没开 Sign In with Apple capability | Apple Dev 后台 App ID → Edit → 勾 Sign In with Apple → 保存 |
 | 通知不响 | TestFlight 装的时候拒过权限 | 系统设置 → MuiMemo → 通知 → 打开；Profile 页的「到点提醒」卡片也能引导 |
 | `eas submit` 报 "app version already exists" | 上次 build 的 version 没递增 | 升 `app.config.ts` 里的 `version`，或者在 eas.json production profile 加 `"autoIncrement": "buildNumber"` （我们已经设了 `autoIncrement: true`，默认升 buildNumber）|

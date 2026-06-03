@@ -99,6 +99,17 @@ describe('rerank', () => {
     expect(ranked.map((t) => t.id)).toEqual(['3']);
   });
 
+  it('已完成的周期实例不过滤，落到 done_recurring 桶并排最后', () => {
+    const tasks = [
+      task({ id: '1', text: '本轮已完成', done: true, status: 'done', recurrenceId: 'r1', window: 'now' }),
+      task({ id: '2', text: '普通已完成', done: true, status: 'done' }), // 非周期 → 过滤
+      task({ id: '3', text: '待办', window: 'now' }),
+    ];
+    const ranked = rerank(tasks, 'any');
+    expect(ranked.map((t) => t.id)).toEqual(['3', '1']);
+    expect(ranked.find((t) => t.id === '1')?.bucket).toBe('done_recurring');
+  });
+
   it('doing 任务永远在最前面', () => {
     const tasks = [
       task({ id: '1', text: '买水', window: 'now', priority: 3 }),

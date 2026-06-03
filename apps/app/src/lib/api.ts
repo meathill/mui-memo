@@ -313,7 +313,7 @@ export const api = {
     async submit(payload: { content: string; contact?: string; tags?: string[] }) {
       const base = (
         (Constants.expoConfig?.extra as { feedbackApiBase?: string } | undefined)?.feedbackApiBase ??
-        'https://feedback.roudan.io'
+        'https://feedback.meathill.com'
       ).replace(/\/$/, '');
       const body = {
         appId: 'mui-memo-app',

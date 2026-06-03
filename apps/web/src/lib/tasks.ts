@@ -33,6 +33,7 @@ function rowToView(row: TaskRow, linkedChildren: Array<{ id: string; text: strin
     completedAt: row.completedAt ? row.completedAt.toISOString() : undefined,
     audioKey: row.audioKey,
     recurrenceId: row.recurrenceId,
+    periodIndex: row.periodIndex,
   };
 }
 
@@ -71,6 +72,7 @@ export async function listTasksForUser(db: Database, userId: string): Promise<Ta
       completedAt: tasksTable.completedAt,
       audioKey: tasksTable.audioKey,
       recurrenceId: tasksTable.recurrenceId,
+      periodIndex: tasksTable.periodIndex,
     })
     .from(tasksTable)
     .where(eq(tasksTable.userId, userId))

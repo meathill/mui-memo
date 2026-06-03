@@ -1,6 +1,6 @@
 # MuiMemo
 
-> Live: https://muimemo.roudan.io
+> Live: https://muimemo.meathill.com
 >
 > 用一句话记下来，剩下的交给它。
 

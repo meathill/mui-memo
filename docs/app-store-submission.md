@@ -87,9 +87,9 @@ Tasks surface only when they should.
 
 | 字段 | URL |
 |---|---|
-| **Privacy Policy** | `https://muimemo.roudan.io/privacy` ✅ 已部署 |
-| **Support URL** | `https://muimemo.roudan.io/support` ✅ 已部署 |
-| **Marketing URL**（选填） | `https://muimemo.roudan.io/` |
+| **Privacy Policy** | `https://muimemo.meathill.com/privacy` ✅ 已部署 |
+| **Support URL** | `https://muimemo.meathill.com/support` ✅ 已部署 |
+| **Marketing URL**（选填） | `https://muimemo.meathill.com/` |
 
 ### What's New（首次提交可写）
 
@@ -128,7 +128,7 @@ nonce 验签实测能通过 sandbox 账号）。
 ```
 1. 这个 app 需要麦克风权限来录制语音任务，权限弹窗已说明用途。
 2. AI 解析在服务端用第三方 API 完成（小米 MIMO / Google Gemini，
-   见 https://muimemo.roudan.io/privacy 「数据会发给哪些第三方」）。
+   见 https://muimemo.meathill.com/privacy 「数据会发给哪些第三方」）。
 3. Sign in with Apple 同时支持邮箱注册，符合 4.8 准则。
 4. v0.2.1 暂未启用付费墙；订阅 / IAP 在下一版本里上线，
    会单独走配置流程。
@@ -213,7 +213,7 @@ eas submit --platform ios --profile production --latest
 | 拒因 | 现状 | 应对 |
 |---|---|---|
 | 4.0 设计 | UI 有完整中文 + 暗色模式 + 主题切换 | 应该过 |
-| 5.1 隐私 | 已部署 [/privacy](https://muimemo.roudan.io/privacy)，详细说明数据流 | 上传时把 URL 填对 |
+| 5.1 隐私 | 已部署 [/privacy](https://muimemo.meathill.com/privacy)，详细说明数据流 | 上传时把 URL 填对 |
 | 4.8 Sign in with Apple | 邮箱 + Apple 双登录 | OK |
 | 2.1 完整性 | 录音权限有用途说明 | 已写 [`NSMicrophoneUsageDescription`](../apps/app/app.config.ts) |
 | 3.1.2 IAP | v0.2.1 没 IAP，跳过 | 下一版本上 paywall 时再处理 |

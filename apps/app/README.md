@@ -11,7 +11,7 @@ npx expo start                        # 等同 pnpm dev
 # 按 i 打开 iOS 模拟器；按 s 切到 Expo Go
 ```
 
-**API 指向**：默认打生产 `https://muimemo.roudan.io`。想连本机 web（`apps/web`，端口 3200）：
+**API 指向**：默认打生产 `https://muimemo.meathill.com`。想连本机 web（`apps/web`，端口 3200）：
 
 ```bash
 cp .env.example .env.local

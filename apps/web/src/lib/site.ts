@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-const FALLBACK_SITE_URL = 'https://muimemo.roudan.io';
+const FALLBACK_SITE_URL = 'https://muimemo.meathill.com';
 
 function normalizeSiteUrl(value?: string) {
   return value?.replace(/\/+$/, '') || FALLBACK_SITE_URL;

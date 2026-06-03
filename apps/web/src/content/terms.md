@@ -1,6 +1,6 @@
 ## 服务性质
 
-叨叨记是 meathill 个人开发、持续迭代中的产品，包含网页版（`muimemo.roudan.io`）和 iOS App（App Store）。Web 版和 App 共用账号体系。目标是提供可用的语音任务录入与整理体验，不承诺企业级 SLA。
+叨叨记是 meathill 个人开发、持续迭代中的产品，包含网页版（`muimemo.meathill.com`）和 iOS App（App Store）。Web 版和 App 共用账号体系。目标是提供可用的语音任务录入与整理体验，不承诺企业级 SLA。
 
 ## 你可以怎么用
 

@@ -11,10 +11,10 @@ import pkg from './package.json' with { type: 'json' };
  * 为什么默认走远端：朋友们点模拟器 / 真机就能直接用，不必依赖开发机
  * 把 web 跑起来。本地开发 web 时设一下 .env.local 即可。
  */
-const PROD_API_BASE = 'https://muimemo.roudan.io';
+const PROD_API_BASE = 'https://muimemo.meathill.com';
 const apiBase = process.env.EXPO_PUBLIC_API_BASE?.trim() || PROD_API_BASE;
 
-const PROD_FEEDBACK_API_BASE = 'https://feedback.roudan.io';
+const PROD_FEEDBACK_API_BASE = 'https://feedback.meathill.com';
 const feedbackApiBase = process.env.EXPO_PUBLIC_FEEDBACK_API_BASE?.trim() || PROD_FEEDBACK_API_BASE;
 
 // 类型里还没跟上的字段（比如 newArchEnabled）只能借 as 绕开
@@ -58,7 +58,7 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
     // iOS 不需要 google-services，只用 local notifications，配置最简
     'expo-notifications',
     'expo-apple-authentication',
-    "@react-native-community/datetimepicker"
+    '@react-native-community/datetimepicker',
   ],
   experiments: {
     typedRoutes: false,

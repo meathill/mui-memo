@@ -27,9 +27,11 @@ export interface TaskView {
   audioKey?: string | null;
   /** 周期任务实例所属的定义 id；非周期任务为空。仅用于 UI 标记。 */
   recurrenceId?: string | null;
+  /** 周期序号；服务端只把「当前期」的已完成周期实例发到主列表。 */
+  periodIndex?: number | null;
 }
 
-export type Bucket = 'doing' | 'now' | 'today_here' | 'today_else' | 'blocked' | 'later';
+export type Bucket = 'doing' | 'now' | 'today_here' | 'today_else' | 'blocked' | 'later' | 'done_recurring';
 
 const BUCKET_ORDER: Record<Bucket, number> = {
   doing: -1,
@@ -38,6 +40,7 @@ const BUCKET_ORDER: Record<Bucket, number> = {
   today_else: 2,
   blocked: 3,
   later: 4,
+  done_recurring: 5,
 };
 
 export const BUCKET_LABEL: Record<Bucket, string> = {
@@ -47,18 +50,22 @@ export const BUCKET_LABEL: Record<Bucket, string> = {
   today_else: '今天 · 别处',
   blocked: '被挡住',
   later: '不急',
+  done_recurring: '本轮已完成',
 };
 
 /**
  * 把任务按场景分桶并排序，端口自设计稿 data.jsx。
  * linked 状态的子任务不会出现在主列表（由父任务的 linked[] 展示）。
+ * 已完成的「周期实例」不直接过滤掉，而是落到 done_recurring 桶排到最后（本轮已完成）。
  */
 export function rerank(tasks: TaskView[], ctxPlace: TaskPlace): Array<TaskView & { bucket: Bucket }> {
-  const list = tasks.filter((t) => !t.done && t.status !== 'linked');
+  // 保留：未完成的；以及已完成但属于周期任务的（本轮已完成，展示在最后）
+  const list = tasks.filter((t) => t.status !== 'linked' && (!t.done || Boolean(t.recurrenceId)));
   // ctxPlace='any' = 「全部」tab：不做场景过滤，所有任务都视为「这里可做」
   const canDoHere = (t: TaskView) => ctxPlace === 'any' || t.place === 'any' || t.place === ctxPlace;
 
   const bucket = (t: TaskView): Bucket => {
+    if (t.done && t.recurrenceId) return 'done_recurring';
     if (t.status === 'doing') return 'doing';
     if (!canDoHere(t) && t.window === 'now') return 'blocked';
     if (t.window === 'now') return 'now';

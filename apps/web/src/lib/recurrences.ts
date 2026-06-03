@@ -124,10 +124,20 @@ export async function deleteRecurrence(db: Database, userId: string, id: string)
 /**
  * 对账：生成本期缺失实例 + 删除过期未完成实例。lazy-on-fetch，幂等。
  * 不用事务：唯一索引兜重复、每次 fetch 都会再对账，部分失败下次自愈。
+ * 返回每个定义「当前期序号」的 map，供路由判断哪些已完成实例属于「本轮」需保留展示。
  */
-export async function applyRecurrenceReconcile(db: Database, userId: string, now: Date = new Date()): Promise<void> {
+export async function applyRecurrenceReconcile(
+  db: Database,
+  userId: string,
+  now: Date = new Date(),
+): Promise<Map<string, number>> {
   const defRows = await db.select().from(recurrencesTable).where(eq(recurrencesTable.userId, userId));
-  if (defRows.length === 0) return;
+  const currentIndexMap = new Map<string, number>();
+  for (const r of defRows) {
+    const k = currentPeriodIndex(r.anchorAt, now, r.freq as RecurrenceFreq, r.interval, r.tzOffset);
+    if (k !== null) currentIndexMap.set(r.id, k);
+  }
+  if (defRows.length === 0) return currentIndexMap;
 
   const instRows = await db
     .select({
@@ -180,4 +190,6 @@ export async function applyRecurrenceReconcile(db: Database, userId: string, now
       .delete(tasksTable)
       .where(and(eq(tasksTable.userId, userId), inArray(tasksTable.id, toDelete), ne(tasksTable.status, 'done')));
   }
+
+  return currentIndexMap;
 }
