@@ -1,5 +1,5 @@
 import type { IntentEffect, TaskView } from '@mui-memo/shared/logic';
-import type { TaskPlace, Utterance } from '@mui-memo/shared/validators';
+import type { RecurrenceFreq, TaskPlace, Utterance } from '@mui-memo/shared/validators';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { getToken, type SessionUser, useSession } from './session';
@@ -209,7 +209,9 @@ export const api = {
       }>(`/api/tasks/completed${qs}`);
     },
     detail(id: string) {
-      return request<{ task: TaskView; attachments: Attachment[] }>(`/api/tasks/${id}`);
+      return request<{ task: TaskView; recurrence: RecurrenceInfo | null; attachments: Attachment[] }>(
+        `/api/tasks/${id}`,
+      );
     },
     done(id: string) {
       return request<{ task?: TaskView }>(`/api/tasks/${id}/done`, {
@@ -236,6 +238,20 @@ export const api = {
         method: 'PATCH',
         body,
       });
+    },
+  },
+
+  recurrences: {
+    /** 新建周期任务定义；linkTaskId 把现有任务挂成当前期实例 */
+    create(body: RecurrenceInput) {
+      return request<{ recurrence: RecurrenceInfo }>('/api/recurrences', { method: 'POST', body });
+    },
+    update(id: string, body: Partial<RecurrenceInput>) {
+      return request<{ ok: true }>(`/api/recurrences/${id}`, { method: 'PATCH', body });
+    },
+    /** 关闭重复：删定义，未完成实例 unlink 成普通任务 */
+    delete(id: string) {
+      return request<{ ok: true }>(`/api/recurrences/${id}`, { method: 'DELETE' });
     },
   },
 
@@ -337,6 +353,29 @@ export interface TaskPatch {
   expectAt: string | null;
   dueAt: string | null;
   status: 'pending' | 'doing' | 'done';
+}
+
+/** 周期任务定义。freq=daily/weekly/monthly/workday，interval 表达每 N（weekly=2 即每两周）。 */
+export interface RecurrenceInfo {
+  id: string;
+  freq: RecurrenceFreq;
+  interval: number;
+}
+
+/** 新建/编辑周期任务入参，对齐 web recurrenceCoreSchema。空字段省略（zod 用 default/optional）。 */
+export interface RecurrenceInput {
+  text: string;
+  place: TaskPlace;
+  window: 'now' | 'today' | 'later';
+  energy?: number;
+  priority?: number;
+  tag?: string;
+  freq: RecurrenceFreq;
+  interval: number;
+  anchorAt?: string;
+  /** 创建端 getTimezoneOffset() 分钟数，monthly/workday 按本地日历切分用 */
+  tzOffset?: number;
+  linkTaskId?: string;
 }
 
 export interface CompletedTask {

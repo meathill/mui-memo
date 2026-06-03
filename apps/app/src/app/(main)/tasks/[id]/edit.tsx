@@ -1,5 +1,5 @@
 import { PLACES as SHARED_PLACES, WINDOWS as SHARED_WINDOWS, type TaskView } from '@mui-memo/shared/logic';
-import type { TaskPlace, TaskWindow } from '@mui-memo/shared/validators';
+import type { RecurrenceFreq, TaskPlace, TaskWindow } from '@mui-memo/shared/validators';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { CalendarIcon, CheckIcon, XIcon } from 'lucide-react-native';
@@ -17,7 +17,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { api, type TaskPatch } from '@/lib/api';
+import { api, type RecurrenceInfo, type RecurrenceInput, type TaskPatch } from '@/lib/api';
 import { useThemeHex } from '@/lib/use-theme-hex';
 import { useAppStore } from '@/store';
 
@@ -41,6 +41,39 @@ const WINDOWS: { value: TaskWindow; label: string }[] = SHARED_WINDOWS.map((valu
   value,
   label: WINDOW_LABELS[value],
 }));
+
+// 重复周期。锚点复用任务的 expectAt（星期/号数/时刻）。
+type RepeatOption = 'none' | 'daily' | 'workday' | 'weekly' | 'biweekly' | 'monthly';
+const REPEAT_OPTIONS: { value: RepeatOption; label: string }[] = [
+  { value: 'none', label: '不重复' },
+  { value: 'daily', label: '每天' },
+  { value: 'workday', label: '工作日' },
+  { value: 'weekly', label: '每周' },
+  { value: 'biweekly', label: '每两周' },
+  { value: 'monthly', label: '每月' },
+];
+function toRepeat(freq: RecurrenceFreq, interval: number): RepeatOption {
+  if (freq === 'daily') return 'daily';
+  if (freq === 'workday') return 'workday';
+  if (freq === 'monthly') return 'monthly';
+  return interval === 2 ? 'biweekly' : 'weekly';
+}
+function toFreqInterval(repeat: RepeatOption): { freq: RecurrenceFreq; interval: number } | null {
+  switch (repeat) {
+    case 'daily':
+      return { freq: 'daily', interval: 1 };
+    case 'workday':
+      return { freq: 'workday', interval: 1 };
+    case 'weekly':
+      return { freq: 'weekly', interval: 1 };
+    case 'biweekly':
+      return { freq: 'weekly', interval: 2 };
+    case 'monthly':
+      return { freq: 'monthly', interval: 1 };
+    default:
+      return null;
+  }
+}
 
 /**
  * Expect-at 预设：语音 app 的核心理念是「不强制管理时间」，所以这里不上
@@ -82,6 +115,8 @@ export default function TaskEditScreen() {
   const [taskWindow, setTaskWindow] = useState<TaskWindow>('today');
   const [tag, setTag] = useState('');
   const [expectAt, setExpectAt] = useState<string | null>(null);
+  const [repeat, setRepeat] = useState<RepeatOption>('none');
+  const [loadedRecurrence, setLoadedRecurrence] = useState<RecurrenceInfo | null>(null);
 
   // 时间选择器相关状态
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -126,7 +161,7 @@ export default function TaskEditScreen() {
     let cancelled = false;
     (async () => {
       try {
-        const { task } = await api.tasks.detail(id);
+        const { task, recurrence } = await api.tasks.detail(id);
         if (cancelled) return;
         setTask(task);
         setText(task.text);
@@ -134,6 +169,8 @@ export default function TaskEditScreen() {
         setTaskWindow(task.window);
         setTag(task.tag ?? '');
         setExpectAt(task.expectAt ?? null);
+        setLoadedRecurrence(recurrence);
+        setRepeat(recurrence ? toRepeat(recurrence.freq, recurrence.interval) : 'none');
       } catch (err) {
         if (err instanceof Error) Alert.alert('加载失败', err.message);
       } finally {
@@ -147,12 +184,13 @@ export default function TaskEditScreen() {
 
   const handleSave = useCallback(async () => {
     if (!task || saving) return;
-    if (!text.trim()) {
+    const trimmedText = text.trim();
+    if (!trimmedText) {
       Alert.alert('内容不能为空');
       return;
     }
     const patch: Partial<TaskPatch> = {};
-    if (text.trim() !== task.text) patch.text = text.trim();
+    if (trimmedText !== task.text) patch.text = trimmedText;
     if (place !== task.place) patch.place = place;
     if (taskWindow !== task.window) patch.window = taskWindow;
     const trimmedTag = tag.trim();
@@ -160,14 +198,60 @@ export default function TaskEditScreen() {
     if (normalizedTag !== (task.tag ?? null)) patch.tag = normalizedTag;
     if (expectAt !== (task.expectAt ?? null)) patch.expectAt = expectAt;
 
-    if (Object.keys(patch).length === 0) {
+    const desired = toFreqInterval(repeat);
+    const currentId = loadedRecurrence?.id ?? null;
+    const currentFreq = loadedRecurrence?.freq ?? null;
+    const currentInterval = loadedRecurrence?.interval ?? null;
+    const taskChanged = Object.keys(patch).length > 0;
+    const recurrenceChanged =
+      (desired?.freq ?? null) !== currentFreq || (desired?.interval ?? null) !== currentInterval;
+
+    if (!taskChanged && !recurrenceChanged) {
       router.back();
       return;
     }
 
+    // 周期定义入参：字段来自编辑后的值，锚点用 expectAt（空则服务端取 now）
+    function buildRecurrenceInput(spec: { freq: RecurrenceFreq; interval: number }): RecurrenceInput {
+      return {
+        text: trimmedText,
+        place,
+        window: taskWindow,
+        energy: task?.energy ?? 2,
+        priority: task?.priority ?? 2,
+        ...(normalizedTag ? { tag: normalizedTag } : {}),
+        freq: spec.freq,
+        interval: spec.interval,
+        ...(expectAt ? { anchorAt: expectAt } : {}),
+        tzOffset: new Date().getTimezoneOffset(),
+        linkTaskId: task?.id,
+      };
+    }
+
     setSaving(true);
     try {
-      await api.tasks.patch(task.id, patch);
+      if (taskChanged) await api.tasks.patch(task.id, patch);
+
+      // 开/关/换周期。频率或间隔变了用「删+建」重置周期序号，避免出现重复实例。
+      if (!desired && currentId) {
+        await api.recurrences.delete(currentId);
+      } else if (desired && !currentId) {
+        await api.recurrences.create(buildRecurrenceInput(desired));
+      } else if (desired && currentId) {
+        if (recurrenceChanged) {
+          await api.recurrences.delete(currentId);
+          await api.recurrences.create(buildRecurrenceInput(desired));
+        } else if (taskChanged) {
+          // 同周期，仅同步模板字段，让未来实例跟上这次编辑
+          await api.recurrences.update(currentId, {
+            text: trimmedText,
+            place,
+            window: taskWindow,
+            ...(normalizedTag ? { tag: normalizedTag } : {}),
+          });
+        }
+      }
+
       // 刷全局 tasks，reconciler 会立即看到新 expectAt 并注册通知，不用等回到 today
       try {
         const { tasks } = await api.tasks.list();
@@ -181,7 +265,7 @@ export default function TaskEditScreen() {
     } finally {
       setSaving(false);
     }
-  }, [task, saving, text, place, taskWindow, tag, expectAt]);
+  }, [task, saving, text, place, taskWindow, tag, expectAt, repeat, loadedRecurrence]);
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
@@ -309,6 +393,15 @@ export default function TaskEditScreen() {
               {Platform.OS === 'android' && showAndroidTimePicker && (
                 <DateTimePicker value={tempDate} mode="time" display="default" onChange={handleAndroidTimeChange} />
               )}
+            </Section>
+
+            <Section label="重复">
+              <ChipRow options={REPEAT_OPTIONS} value={repeat} onChange={setRepeat} />
+              {repeat !== 'none' ? (
+                <Text className="mt-2 text-ink-mute text-xs">
+                  以「预期时间」为每期的星期与时刻锚点；留空则取保存时刻。没完成会在下一期自动清掉。
+                </Text>
+              ) : null}
             </Section>
 
             <Section label="标签">

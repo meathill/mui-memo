@@ -25,6 +25,8 @@ export interface TaskView {
   completedAt?: string | null;
   /** 产出该任务的原始语音 R2 key，空表示没有归档。 */
   audioKey?: string | null;
+  /** 周期任务实例所属的定义 id；非周期任务为空。仅用于 UI 标记。 */
+  recurrenceId?: string | null;
 }
 
 export type Bucket = 'doing' | 'now' | 'today_here' | 'today_else' | 'blocked' | 'later';

@@ -73,6 +73,55 @@ export const createTaskSchema = taskCoreSchema.extend({
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 
 // ──────────────────────────────────────────────
+// 周期性任务（Recurring Tasks）
+// ──────────────────────────────────────────────
+
+/**
+ * 重复频率：
+ * - daily   每天（interval 天）
+ * - weekly  每周（interval 周，interval=2 即每两周）
+ * - monthly 每月（interval 月，按本地日历）
+ * - workday 工作日（周一~周五）
+ */
+export const recurrenceFreqEnum = z.enum(['daily', 'weekly', 'monthly', 'workday']);
+export type RecurrenceFreq = z.infer<typeof recurrenceFreqEnum>;
+
+/**
+ * 周期定义（模板）的核心字段。实例每期从这里复制生成。
+ * anchorAt 是锚点时刻（ISO 8601），编码「星期几 / 号数 / 时刻」，也是周期切分的起点。
+ * 不传则由服务端默认 now。
+ * tzOffset 是创建端 getTimezoneOffset() 的分钟数，monthly / workday 用它按本地日历切分。
+ */
+export const recurrenceCoreSchema = z.object({
+  text: z.string().min(1),
+  place: taskPlaceEnum.default('any'),
+  window: taskWindowEnum.default('today'),
+  energy: z.number().int().min(1).max(3).default(2),
+  priority: z.number().int().min(1).max(3).default(2),
+  tag: z.string().max(32).optional(),
+  freq: recurrenceFreqEnum.default('weekly'),
+  interval: z.number().int().min(1).max(52).default(1),
+  anchorAt: z
+    .string()
+    .refine((s) => !Number.isNaN(new Date(s).getTime()), {
+      message: 'invalid ISO datetime',
+    })
+    .optional(),
+  tzOffset: z.number().int().min(-720).max(840).default(0),
+});
+export type RecurrenceCore = z.infer<typeof recurrenceCoreSchema>;
+
+/** 创建周期任务：可选 linkTaskId，把现有任务挂成「当前期实例」。 */
+export const createRecurrenceSchema = recurrenceCoreSchema.extend({
+  linkTaskId: z.string().optional(),
+});
+export type CreateRecurrenceInput = z.infer<typeof createRecurrenceSchema>;
+
+/** 编辑周期任务：所有字段可选。 */
+export const updateRecurrenceSchema = recurrenceCoreSchema.partial();
+export type UpdateRecurrenceInput = z.infer<typeof updateRecurrenceSchema>;
+
+// ──────────────────────────────────────────────
 // 语音意图 (Utterance) —— AI 输出契约
 // ──────────────────────────────────────────────
 

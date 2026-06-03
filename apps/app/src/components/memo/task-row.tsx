@@ -1,6 +1,6 @@
 import type { TaskView } from '@mui-memo/shared/logic';
 import { router } from 'expo-router';
-import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react-native';
+import { CheckIcon, ChevronRightIcon, CircleIcon, RepeatIcon } from 'lucide-react-native';
 import { useRef } from 'react';
 import { Dimensions, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
@@ -104,7 +104,10 @@ export function TaskRow({ task, onDone }: Props) {
         </Pressable>
         <View className="flex-1">
           <View style={styles.relative}>
-            <Text className="text-ink text-lg leading-snug">{task.text}</Text>
+            <View className="flex-row items-center gap-1.5">
+              {task.recurrenceId ? <RepeatIcon size={13} color={colors.inkMute} /> : null}
+              <Text className="flex-1 text-ink text-lg leading-snug">{task.text}</Text>
+            </View>
             <Animated.View
               pointerEvents="none"
               style={[styles.strike, { backgroundColor: colors.inkMute }, strikeStyle]}

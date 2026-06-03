@@ -1,5 +1,15 @@
 import { sql } from 'drizzle-orm';
-import { boolean, customType, int, json, mysqlTable, text, timestamp, varchar } from 'drizzle-orm/mysql-core';
+import {
+  boolean,
+  customType,
+  int,
+  json,
+  mysqlTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  varchar,
+} from 'drizzle-orm/mysql-core';
 
 // ──────────────────────────────────────────────
 // Custom Types (TiDB-specific)
@@ -96,49 +106,91 @@ export const verifications = mysqlTable('verifications', {
  * - entities: 其它 AI 解析的结构化实体 (people/amount/...)
  * - embedding: 语义向量（v1 暂不写入，v1.1 接入混合搜索）
  */
-export const tasks = mysqlTable('tasks', {
+export const tasks = mysqlTable(
+  'tasks',
+  {
+    id: varchar('id', { length: 36 }).primaryKey(),
+    userId: varchar('user_id', { length: 36 }).notNull(),
+    rawText: text('raw_text').notNull(),
+    text: text('text').notNull(),
+    place: varchar('place', { length: 10 }).notNull().default('any'),
+    taskWindow: varchar('task_window', { length: 10 }).notNull().default('today'),
+    energy: int('energy').notNull().default(2),
+    priority: int('priority').notNull().default(2),
+    tag: varchar('tag', { length: 32 }),
+    deadline: varchar('deadline', { length: 64 }),
+    /**
+     * 预期完成时间：用户原话里「打算做的时间」，如「明天下午三点」。
+     * 未来会被 rerank 用来排序、被 UI 用来显示相对时间 label。
+     */
+    expectAt: timestamp('expect_at'),
+    /**
+     * 真正的 deadline：可以晚于 expectAt，AI 只有用户显式说了才填。
+     * 例如「明天做，最晚这周」→ expectAt=明天，dueAt=周日 23:59。
+     */
+    dueAt: timestamp('due_at'),
+    aiReason: text('ai_reason'),
+    actionType: varchar('action_type', { length: 50 }),
+    entities: json('entities'),
+    status: varchar('status', { length: 20 }).notNull().default('pending'),
+    linkedTo: varchar('linked_to', { length: 36 }),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    completedAt: timestamp('completed_at'),
+    /**
+     * TiDB 自动生成的语义向量（基于 `text` 列）。写入时不要手动赋值。
+     * 读出来的值我们用不到；声明它只是为了 schema 一致 + 让 drizzle
+     * 能识别该列。
+     */
+    embedding: vector1024('embedding').generatedAlwaysAs(sql.raw(`EMBED_TEXT("${TIDB_EMBED_MODEL}", \`text\`)`), {
+      mode: 'stored',
+    }),
+    /** 创建这条任务的原始语音 R2 key（仅 ADD / DONE-backfill 会填）。 */
+    audioKey: varchar('audio_key', { length: 512 }),
+    /** 周期任务实例：指向 recurrences.id（普通任务为 null）。约定无外键，仿 linkedTo。 */
+    recurrenceId: varchar('recurrence_id', { length: 36 }),
+    /** 周期序号 k（自 anchorAt 起第几期）。与 recurrenceId 组唯一键，防重复生成。 */
+    periodIndex: int('period_index'),
+  },
+  (t) => [uniqueIndex('uq_tasks_recurrence_period').on(t.recurrenceId, t.periodIndex)],
+);
+
+export type TaskRow = typeof tasks.$inferSelect;
+export type NewTaskRow = typeof tasks.$inferInsert;
+
+// ──────────────────────────────────────────────
+// 周期性任务定义（模板）
+// ──────────────────────────────────────────────
+
+/**
+ * 周期任务定义：长期存在的「模板」。每个周期由 reconcile 生成一条普通 task
+ * 实例（tasks.recurrenceId 指回这里）。实例完成进「已完成」，未完成下期清理。
+ *
+ * - freq + repeat_interval: v1 只有 weekly，interval 表达每周(1)/每两周(2)/每 N 周
+ * - anchorAt: 锚点时刻，编码「星期几 + 时刻」，也是周期切分起点；实例 expectAt 由它推算
+ * - 其余字段（text/place/...）每期复制到实例
+ */
+export const recurrences = mysqlTable('recurrences', {
   id: varchar('id', { length: 36 }).primaryKey(),
   userId: varchar('user_id', { length: 36 }).notNull(),
-  rawText: text('raw_text').notNull(),
   text: text('text').notNull(),
   place: varchar('place', { length: 10 }).notNull().default('any'),
   taskWindow: varchar('task_window', { length: 10 }).notNull().default('today'),
   energy: int('energy').notNull().default(2),
   priority: int('priority').notNull().default(2),
   tag: varchar('tag', { length: 32 }),
-  deadline: varchar('deadline', { length: 64 }),
-  /**
-   * 预期完成时间：用户原话里「打算做的时间」，如「明天下午三点」。
-   * 未来会被 rerank 用来排序、被 UI 用来显示相对时间 label。
-   */
-  expectAt: timestamp('expect_at'),
-  /**
-   * 真正的 deadline：可以晚于 expectAt，AI 只有用户显式说了才填。
-   * 例如「明天做，最晚这周」→ expectAt=明天，dueAt=周日 23:59。
-   */
-  dueAt: timestamp('due_at'),
-  aiReason: text('ai_reason'),
-  actionType: varchar('action_type', { length: 50 }),
-  entities: json('entities'),
-  status: varchar('status', { length: 20 }).notNull().default('pending'),
-  linkedTo: varchar('linked_to', { length: 36 }),
+  freq: varchar('freq', { length: 10 }).notNull().default('weekly'),
+  // `interval` 是 SQL 保留字，列名用 repeat_interval；TS 字段保持语义 interval
+  interval: int('repeat_interval').notNull().default(1),
+  anchorAt: timestamp('anchor_at').notNull(),
+  // 创建端 getTimezoneOffset() 分钟数，monthly/workday 按本地日历切分用
+  tzOffset: int('tz_offset').notNull().default(0),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  completedAt: timestamp('completed_at'),
-  /**
-   * TiDB 自动生成的语义向量（基于 `text` 列）。写入时不要手动赋值。
-   * 读出来的值我们用不到；声明它只是为了 schema 一致 + 让 drizzle
-   * 能识别该列。
-   */
-  embedding: vector1024('embedding').generatedAlwaysAs(sql.raw(`EMBED_TEXT("${TIDB_EMBED_MODEL}", \`text\`)`), {
-    mode: 'stored',
-  }),
-  /** 创建这条任务的原始语音 R2 key（仅 ADD / DONE-backfill 会填）。 */
-  audioKey: varchar('audio_key', { length: 512 }),
 });
 
-export type TaskRow = typeof tasks.$inferSelect;
-export type NewTaskRow = typeof tasks.$inferInsert;
+export type RecurrenceRow = typeof recurrences.$inferSelect;
+export type NewRecurrenceRow = typeof recurrences.$inferInsert;
 
 // ──────────────────────────────────────────────
 // 附件

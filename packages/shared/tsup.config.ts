@@ -5,6 +5,7 @@ export default defineConfig({
     schema: 'src/schema.ts',
     validators: 'src/validators.ts',
     logic: 'src/logic.ts',
+    recurrence: 'src/recurrence.ts',
   },
   format: ['esm'],
   dts: true,

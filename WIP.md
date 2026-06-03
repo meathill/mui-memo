@@ -1,6 +1,10 @@
 # WIP · MuiMemo
 
-> 无活跃迭代。当前焦点见 [TODO.md](./TODO.md) 的 Phase 2 iOS 章节；架构与决策备忘见 [DEV_NOTE.md](./DEV_NOTE.md)。
+> 周期性任务功能代码已完成（shared / web / app 三层 + 单测）。
+> **唯一待办（需 `.env`，由你执行）**：应用迁移 0010 —— `pnpm -F @mui-memo/web db:migrate`
+> （迁移文件 `apps/web/drizzle/0010_small_rictor.sql` 已就位且核对过：仅建 `recurrences` 表 +
+> 给 `tasks` 加 `recurrence_id/period_index` + 唯一约束，未触碰向量/全文索引）。
+> 架构与决策见 [DEV_NOTE.md](./DEV_NOTE.md) 的「周期性任务」章节。
 
 下一轮起新迭代时，再把当轮目标与任务分解写到这里。
 
@@ -8,6 +12,7 @@
 
 | 版本 | 主要内容 |
 |---|---|
+| v0.9（待发） | 周期性任务：每天/每周/每两周/每月/工作日；定义表 + 实例为普通 task；lazy-on-fetch 对账生成/清理；编辑页「重复」开关；未完成自动删、完成进历史 |
 | v0.8.x | 支持在编辑任务时设置自定义的具体预期时间，保留原有快捷键 |
 | v0.8.0 | 任务删除（详情页 + 已完成页）+ 最短录音 5s→3s |
 | v0.7.x | Gemini prompt 严格化（无时间词不填 expectAt）+ 最短录音时长守护 |

@@ -7,6 +7,7 @@ import type { TaskPlace, TaskStatus, TaskWindow } from '@mui-memo/shared/validat
 import { taskCoreSchema, taskStatusEnum } from '@mui-memo/shared/validators';
 import { and, asc, eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
+import { getRecurrence } from '@/lib/recurrences';
 import { requireAuthDb } from '@/lib/route';
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -22,6 +23,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     .limit(1);
 
   if (!row) return NextResponse.json({ error: 'not_found' }, { status: 404 });
+
+  // 编辑页要据此初始化「重复」开关
+  const rec = row.recurrenceId ? await getRecurrence(ctx.db, userId, row.recurrenceId) : null;
 
   const atts = await ctx.db
     .select({
@@ -55,7 +59,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       createdAt: row.createdAt.toISOString(),
       completedAt: row.completedAt?.toISOString() ?? null,
       audioKey: row.audioKey ?? null,
+      recurrenceId: row.recurrenceId ?? null,
     },
+    recurrence: rec ? { id: rec.id, freq: rec.freq, interval: rec.interval } : null,
     attachments: atts.map((a) => ({
       ...a,
       createdAt: a.createdAt.toISOString(),
