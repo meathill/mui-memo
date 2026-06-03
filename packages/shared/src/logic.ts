@@ -48,7 +48,7 @@ export const BUCKET_LABEL: Record<Bucket, string> = {
   now: '此刻可做',
   today_here: '今天 · 这里',
   today_else: '今天 · 别处',
-  blocked: '被挡住',
+  blocked: '其它待办',
   later: '不急',
   done_recurring: '本轮已完成',
 };
