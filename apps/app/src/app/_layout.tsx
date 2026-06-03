@@ -4,11 +4,13 @@ import { router, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { vars } from 'nativewind';
-import { useEffect } from 'react';
-import { useColorScheme, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Alert, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { api } from '@/lib/api';
+import { applyConfirm, showConfirm } from '@/lib/intent-confirm';
 import { Notifications, reconcileTaskReminders, type TaskNotificationData } from '@/lib/notifications';
+import { startQueuePump } from '@/lib/queue-pump';
 import { useSession } from '@/lib/session';
 import { resolveTheme, statusBarStyle, THEME_BG_HEX, THEME_TOKENS } from '@/lib/theme';
 import { useAppStore } from '@/store';
@@ -65,6 +67,29 @@ export default function RootLayout() {
     });
     return () => sub.remove();
   }, []);
+
+  // 待处理录音队列的后台 pump：跨 tab、跨页面常驻，逐条顺序处理。
+  useEffect(() => startQueuePump(), []);
+
+  // 全局确认弹窗：MODIFY/DONE 命中时弹 Alert，决定后调后端并 shift。放根 layout 而非
+  // 今天页——pump 在后台跑、用户可能不在今天页，否则弹不出来、pump 会因待确认卡死。
+  const pendingConfirms = useAppStore((s) => s.pendingConfirms);
+  const promptingRef = useRef(false);
+  useEffect(() => {
+    const head = pendingConfirms[0];
+    if (!head || promptingRef.current) return;
+    promptingRef.current = true;
+    showConfirm(head, async (choice) => {
+      promptingRef.current = false;
+      try {
+        await applyConfirm(head, choice);
+      } catch (err) {
+        if (err instanceof Error) Alert.alert('保存失败', err.message);
+      } finally {
+        useAppStore.getState().shiftPendingConfirm();
+      }
+    });
+  }, [pendingConfirms]);
 
   return (
     <SafeAreaProvider>

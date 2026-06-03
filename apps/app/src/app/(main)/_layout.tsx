@@ -32,6 +32,7 @@ export default function MainLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen name="queue/[id]" options={{ presentation: 'modal', headerShown: false }} />
       <Stack.Screen name="feedback" options={{ presentation: 'card', headerShown: false }} />
     </Stack>
   );

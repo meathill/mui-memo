@@ -2,22 +2,20 @@ import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioRecorder, use
 import * as Linking from 'expo-linking';
 import { MicIcon, SendIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { useThemeHex } from '@/lib/use-theme-hex';
 
 interface Props {
-  /** 录音满 3s 松手时触发。uri 是本地 file://... m4a */
-  onAudio: (payload: { uri: string; mimeType: string }) => void;
+  /** 录音满 3s 松手时触发。uri 是本地 file://... m4a，durationMs 是按住时长 */
+  onAudio: (payload: { uri: string; mimeType: string; durationMs: number }) => void;
   disabled?: boolean;
-  /** 上传中等外部状态展示 */
-  processing?: boolean;
 }
 
 const MIN_DURATION_MS = 3000;
 
 type PermStatus = 'unknown' | 'granted' | 'prompt' | 'blocked';
 
-export function MicButton({ onAudio, disabled, processing }: Props) {
+export function MicButton({ onAudio, disabled }: Props) {
   const colors = useThemeHex();
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const state = useAudioRecorderState(recorder, 250);
@@ -34,7 +32,7 @@ export function MicButton({ onAudio, disabled, processing }: Props) {
   }, []);
 
   const handlePressIn = useCallback(async () => {
-    if (disabled || processing) return;
+    if (disabled) return;
     setHint(null);
 
     // 已被系统级拒绝（canAskAgain=false）：点也没用，引导去设置
@@ -61,7 +59,7 @@ export function MicButton({ onAudio, disabled, processing }: Props) {
     } catch (err) {
       setHint(err instanceof Error ? err.message : '录音启动失败');
     }
-  }, [disabled, processing, perm, recorder]);
+  }, [disabled, perm, recorder]);
 
   const handlePressOut = useCallback(async () => {
     if (!state.isRecording && startedAtRef.current === 0) return;
@@ -83,7 +81,7 @@ export function MicButton({ onAudio, disabled, processing }: Props) {
     }
     // 标准 mime：用 audio/mp4 而不是 audio/m4a。后者非 IANA，iOS AVPlayer
     // 在某些场景下识别不稳；前者是 m4a 容器的官方 MIME。
-    onAudio({ uri, mimeType: 'audio/mp4' });
+    onAudio({ uri, mimeType: 'audio/mp4', durationMs: held });
   }, [onAudio, recorder, state.isRecording]);
 
   const durationLabel = state.isRecording ? `${Math.floor(state.durationMillis / 1000)}s` : '按住说话';
@@ -93,20 +91,18 @@ export function MicButton({ onAudio, disabled, processing }: Props) {
       <Pressable
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        disabled={disabled || processing}
+        disabled={disabled}
         className={`h-20 w-20 items-center justify-center rounded-full ${
           state.isRecording ? 'bg-accent-warm' : 'bg-ink'
         } active:opacity-80`}
       >
-        {processing ? (
-          <ActivityIndicator color={colors.paper} />
-        ) : state.isRecording ? (
+        {state.isRecording ? (
           <SendIcon size={28} color={colors.paper} />
         ) : (
           <MicIcon size={28} color={colors.paper} />
         )}
       </Pressable>
-      <Text className="mt-2 font-mono text-ink-mute text-sm">{processing ? '解析中…' : durationLabel}</Text>
+      <Text className="mt-2 font-mono text-ink-mute text-sm">{durationLabel}</Text>
       {hint ? <Text className="mt-1 text-accent-warn text-sm">{hint}</Text> : null}
     </View>
   );

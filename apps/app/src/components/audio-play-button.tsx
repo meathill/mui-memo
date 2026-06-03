@@ -138,6 +138,53 @@ export function AudioUrlPlayButton({ url }: { url: string }) {
   );
 }
 
+/** 播放本地 file:// 录音（待处理队列里的项还没上传，直接放本地，无需鉴权） */
+export function LocalAudioPlayButton({ uri, label = '试听录音' }: { uri: string; label?: string }) {
+  const colors = useThemeHex();
+  const source = useMemo(() => ({ uri }), [uri]);
+  const player = useAudioPlayer(source);
+  const status = useAudioPlayerStatus(player);
+  const { error, onPlay } = useAudioErrorFallback(status);
+  useRewindOnFinish(player, status.didJustFinish);
+  const playing = status.playing;
+
+  function toggle() {
+    if (error || !playing) {
+      player.play();
+      onPlay();
+    } else {
+      player.pause();
+    }
+  }
+
+  if (error) {
+    return (
+      <Pressable
+        onPress={toggle}
+        className="flex-row items-center gap-2 self-start rounded-full border border-ink-mute/30 bg-ink-mute/10 px-4 py-2 active:opacity-70"
+      >
+        <AlertCircleIcon size={16} color={colors.inkMute} />
+        <Text className="font-mono text-ink-mute text-sm">播放失败 · 重试</Text>
+      </Pressable>
+    );
+  }
+
+  return (
+    <Pressable
+      onPress={toggle}
+      className="flex-row items-center gap-2 self-start rounded-full border border-accent-warm/40 bg-accent-warm/10 px-4 py-2 active:opacity-70"
+    >
+      {playing ? <PauseIcon size={16} color={colors.accentWarm} /> : <PlayIcon size={16} color={colors.accentWarm} />}
+      <Text className="font-mono text-accent-warm text-sm">{playing ? '暂停' : label}</Text>
+      {status.duration > 0 ? (
+        <Text className="font-mono text-accent-warm/70 text-xs">
+          {formatTime(status.currentTime)} / {formatTime(status.duration)}
+        </Text>
+      ) : null}
+    </Pressable>
+  );
+}
+
 /**
  * 监听点击播放后是否在 LOAD_TIMEOUT_MS 内拿到 duration。没拿到就置错误态。
  * 为什么 5s：iOS LTE 上 R2 跨洋首字节通常 < 2s；5s 既能容忍弱网，又不会让真错误等太久。
