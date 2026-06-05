@@ -1,7 +1,13 @@
 import { MicIcon } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { Text, View } from 'react-native';
-import Animated, { cancelAnimation, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import Animated, {
+  cancelAnimation,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppStore } from '@/store';
 

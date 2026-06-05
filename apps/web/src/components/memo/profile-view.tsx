@@ -136,12 +136,7 @@ export function ProfileView() {
           <LogOutIcon />
           退出登录
         </Button>
-        <Button
-          variant="destructive-outline"
-          size="lg"
-          className="w-full"
-          onClick={() => setDeleteOpen(true)}
-        >
+        <Button variant="destructive-outline" size="lg" className="w-full" onClick={() => setDeleteOpen(true)}>
           <Trash2Icon />
           注销账号
         </Button>

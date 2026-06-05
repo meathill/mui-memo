@@ -107,11 +107,7 @@ export function MicButton({ onAudio, disabled }: Props) {
           state.isRecording ? 'bg-accent-warm' : 'bg-ink'
         } active:opacity-80`}
       >
-        {state.isRecording ? (
-          <SendIcon size={28} color={colors.paper} />
-        ) : (
-          <MicIcon size={28} color={colors.paper} />
-        )}
+        {state.isRecording ? <SendIcon size={28} color={colors.paper} /> : <MicIcon size={28} color={colors.paper} />}
       </Pressable>
       <Text className="mt-2 font-mono text-ink-mute text-sm">{durationLabel}</Text>
       {hint ? <Text className="mt-1 text-accent-warn text-sm">{hint}</Text> : null}
