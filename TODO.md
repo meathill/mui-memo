@@ -57,3 +57,4 @@
 
 ## Phase 3: Native Features（战略预留）
 ## Phase 4: Desktop Worker（战略预留）
+- macOS 菜单栏语音快速捕获方案（Tauri v2 包壳 web）见 [docs/macos-desktop.md](./docs/macos-desktop.md)（已出方案，未开工）

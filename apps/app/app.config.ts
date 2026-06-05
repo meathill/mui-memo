@@ -45,6 +45,11 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
       // 主屏显示名 = App Store 商店名「叨叨记」。app.config 是 prebuild 的源头，
       // ios/ 是 gitignore 的 prebuild 产物，改这里才不会被重新生成覆盖。
       CFBundleDisplayName: '叨叨记',
+      // 开发区域 = 简体中文。不设的话 prebuild 默认落到 en，App Store 商品页
+      //「语言」栏会声明成英文（这一栏读的是包里声明的本地化，与 UI 实际语言无关）。
+      // 改完需重新 build + submit，商品页那一栏才会随新二进制变成「简体中文」。
+      CFBundleDevelopmentRegion: 'zh-Hans',
+      CFBundleLocalizations: ['zh-Hans'],
       NSMicrophoneUsageDescription: '叨叨记需要使用麦克风来录制你的语音备忘。',
       ITSAppUsesNonExemptEncryption: false,
     },

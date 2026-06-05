@@ -3,14 +3,18 @@
 > 慢慢提交。这份文档是「直接复制粘贴到 App Store Connect 后台」的素材库 +
 > Pre-flight checklist + EAS 命令清单。
 
+> **ASO 原理（决定三个字段怎么填）：** Apple App Store 只索引 **名称 / 副标题 / 关键词** 三处，
+> **描述不进搜索**。所以：① 关键词火力全压这三处，描述只管转化；② 三处之间**不重复词**
+>（重复 = 浪费配额）；③ **不堆竞品商标**（滴答清单 / Todoist 等会被拒）；④ 名称权重最高，务必塞高价值词。
+
 ## 一、Apple 后台填写
 
 ### App 元数据
 
 | 字段 | 内容 |
 |---|---|
-| **Name (App Store)** | `叨叨记` |
-| **Subtitle** (≤30 字符) | `一句话，整理整张清单`（推荐）<br>备选：`语音操控的待办，全程靠说` / `叨叨一句，AI 接手清单` |
+| **Name (App Store)** | `叨叨记 - 语音待办清单·AI任务提醒`（19 字符，含 语音/待办/清单/AI/任务/提醒 六词）<br>备选：`叨叨记 - 语音待办·AI提醒清单` / `叨叨记 · 语音AI待办清单`<br>⚠️ 主屏图标名仍是「叨叨记」（见 `app.config.ts` 的 `CFBundleDisplayName`），这俩是两回事 |
+| **Subtitle** (≤30 字符) | `语音记事·日程备忘，说一句全搞定`（推荐，16 字符，放名称里**没有**的新词 记事/日程/备忘）<br>备选：`语音记事·提醒备忘，开口就归类` / `一句话，整理整张清单`（旧版，但「清单」与名称重复浪费配额） |
 | **Bundle ID** | `com.meathill.muimemo` ✅ 已注册 |
 | **SKU / ASC App ID** | `6763317433` ✅ 已存在 |
 | **Apple Team ID** | `FNXZ69UX8K` |
@@ -18,11 +22,16 @@
 | **Secondary Category**（可选） | Utilities（工具） |
 | **Age Rating** | 4+（无受限内容） |
 
-### 关键词（≤100 字符，逗号分隔）
+### 关键词（≤100 字符，逗号分隔无空格，与名称/副标题**不重复**）
 
 ```
-语音清单,待办,语音输入,AI助手,提醒,任务,记事,GTD,叨叨,memo,效率,团队
+语音输入,提醒事项,备忘录,语音笔记,语音转文字,录音,计划,笔记,todo,todolist,GTD,Siri,iCloud,同步,智能助手,效率,语音助手
 ```
+
+> 约 79 字符，还有余量可加长尾词。已剔除与新名称/副标题重复的词（语音/待办/清单/AI/任务/提醒/记事/日程/备忘），
+> 也不放竞品商标。
+>
+> **`语音转文字` 权衡：** 高流量词，但本 app 不是纯转写工具，期望错配可能拉低转化/评分；保留与否你定。
 
 ### 描述（中文，App Store Connect → App 信息 → 描述 中粘贴）
 
@@ -82,6 +91,24 @@ Tasks surface only when they should.
 • Pro ~$0.99/month: unlimited AI + priority endpoint
 • Team (coming): @ your contacts to delegate tasks
 ```
+
+### 推广文本（Promotional Text，≤170 字符，免审核可改）
+
+> 显示在描述上方，不进搜索索引，但能随时改——适合放时效信息 / 当前主打。
+
+```
+按住麦克风说一句，AI 自动拆成带时间的待办；「改到下午三点」改时间、「物业费搞定了」自动勾掉。在家不显示工作的事，出门该办的自动浮上来。免费每月 120 次 AI，记录这件事能省一秒是一秒。
+```
+
+### 商店语言（Primary Language + 本地化声明）
+
+> 「商品页『语言』栏显示英文」和「标题/描述默认显示英文」是**两个不同根因**，要分别处理。
+
+1. **包里声明的本地化**（决定商品页「语言」栏）：[`app.config.ts`](../apps/app/app.config.ts) 已加
+   `CFBundleDevelopmentRegion: 'zh-Hans'` + `CFBundleLocalizations: ['zh-Hans']`。不设的话 prebuild 默认 `en`。
+   **必须重新 build + submit**，过审上架后那一栏才会变「简体中文」（改后台不会立即生效）。
+2. **后台 Primary Language**（决定标题/描述等文字的默认语言）：ASC → App 信息 → 把 **Primary Language 设为
+   「简体中文」**，并确保 zh-Hans 本地化里名称/副标题/关键词/描述都按本文档填好；确认中国区可售。
 
 ### 必填 URL
 
@@ -175,6 +202,7 @@ nonce 验签实测能通过 sandbox 账号）。
 - [ ] [`apps/app/package.json`](../apps/app/package.json) 的 `version` 已更新（首次 0.2.1 OK）
 - [ ] [`eas.json`](../apps/app/eas.json) 的 `appleId` / `ascAppId` / `appleTeamId` 都对（已对）
 - [ ] App Store Connect 后台 App 信息表填完（描述 / 关键词 / 隐私 URL / Support URL）
+- [ ] Primary Language 设为「简体中文」；`CFBundleDevelopmentRegion: zh-Hans` 已进包（重新 build 生效）
 - [ ] 1024 icon 上传完成
 - [ ] 5 张 iPhone 6.9" 截图上传完成
 - [ ] App Review 联系信息填好
