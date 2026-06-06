@@ -31,7 +31,7 @@
     // OpenAI 兼容端点(MIMO)，其余走 Gemini；显式 'openai'/'gemini' 则强制锁定。
     // 两个 provider 的 secrets 都要备好：OPENAI_API_KEY/OPENAI_BASE_URL/OPENAI_MODEL 与 GEMINI_API_KEY。
     "AI_PROVIDER": "auto",
-    "OPENAI_BASE_URL": "https://token-plan-sgp.xiaomimimo.com/v1",
+    "OPENAI_BASE_URL": "https://token-plan-cn.xiaomimimo.com/v1",
     "OPENAI_MODEL": "mimo-v2.5"
   }
 }

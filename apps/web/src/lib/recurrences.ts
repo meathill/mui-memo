@@ -7,8 +7,8 @@ import {
 import {
   type NewRecurrenceRow,
   type NewTaskRow,
-  recurrences as recurrencesTable,
   type RecurrenceRow,
+  recurrences as recurrencesTable,
   tasks as tasksTable,
 } from '@mui-memo/shared/schema';
 import type {

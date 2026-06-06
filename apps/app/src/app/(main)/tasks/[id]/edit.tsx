@@ -1,9 +1,9 @@
 import {
   PLACE_LABEL,
   PLACES as SHARED_PLACES,
+  WINDOWS as SHARED_WINDOWS,
   type TaskView,
   WINDOW_LABEL,
-  WINDOWS as SHARED_WINDOWS,
 } from '@mui-memo/shared/logic';
 import type { RecurrenceFreq, TaskPlace, TaskWindow } from '@mui-memo/shared/validators';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
@@ -273,4 +273,3 @@ export default function TaskEditScreen() {
     </SafeAreaView>
   );
 }
-

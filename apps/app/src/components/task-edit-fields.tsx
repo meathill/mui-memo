@@ -71,13 +71,7 @@ function expectPresets(): { label: string; iso: string | null }[] {
  * 预期时间字段：常用预设 chip + 「设置具体时间」唤起原生 date picker。
  * iOS 走自定义底部弹窗（datetime spinner）；Android 走系统两步（先日期后时间）。
  */
-export function ExpectAtField({
-  value,
-  onChange,
-}: {
-  value: string | null;
-  onChange: (iso: string | null) => void;
-}) {
+export function ExpectAtField({ value, onChange }: { value: string | null; onChange: (iso: string | null) => void }) {
   const colors = useThemeHex();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showAndroidTimePicker, setShowAndroidTimePicker] = useState(false);
