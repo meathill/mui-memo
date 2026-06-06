@@ -120,17 +120,35 @@ describe('rerank', () => {
     expect(ranked[0].bucket).toBe('doing');
   });
 
-  it('now+可做 优先于 today_here 优先于 today_else 优先于 blocked 优先于 later', () => {
+  it('具体场景：now 优先于 today_here 优先于 later；不匹配场景的任务被隐藏', () => {
     const tasks = [
-      task({ id: 'later', text: 'z', window: 'later' }),
-      task({ id: 'blocked', text: 'y', window: 'now', place: 'work' }),
-      task({ id: 'today_else', text: 'x', window: 'today', place: 'work' }),
+      task({ id: 'later', text: 'z', window: 'later' }), // place:any → 可做
+      task({ id: 'work-now', text: 'y', window: 'now', place: 'work' }), // 隐藏
+      task({ id: 'work-today', text: 'x', window: 'today', place: 'work' }), // 隐藏
       task({ id: 'today_here', text: 'w', window: 'today', place: 'home' }),
       task({ id: 'now', text: 'v', window: 'now', place: 'home' }),
     ];
     const ranked = rerank(tasks, 'home');
-    expect(ranked.map((t) => t.id)).toEqual(['now', 'today_here', 'today_else', 'blocked', 'later']);
-    expect(ranked.map((t) => t.bucket)).toEqual(['now', 'today_here', 'today_else', 'blocked', 'later']);
+    expect(ranked.map((t) => t.id)).toEqual(['now', 'today_here', 'later']);
+    expect(ranked.map((t) => t.bucket)).toEqual(['now', 'today_here', 'later']);
+  });
+
+  it('具体场景是真·筛选：只留该场景能做的（含 place:any）', () => {
+    const tasks = [
+      task({ id: 'home', text: 'a', place: 'home', window: 'now' }),
+      task({ id: 'work', text: 'b', place: 'work', window: 'now' }),
+      task({ id: 'any', text: 'c', place: 'any', window: 'now' }),
+    ];
+    expect(
+      rerank(tasks, 'home')
+        .map((t) => t.id)
+        .sort(),
+    ).toEqual(['any', 'home']);
+    expect(
+      rerank(tasks, 'any')
+        .map((t) => t.id)
+        .sort(),
+    ).toEqual(['any', 'home', 'work']);
   });
 
   it('同一桶内按 priority 降序', () => {
@@ -150,7 +168,7 @@ describe('rerank', () => {
     expect(rerank([t], 'out')[0].bucket).toBe('now');
   });
 
-  it('ctxPlace=any（全部 tab）：场景不过滤，没有 today_else / blocked', () => {
+  it('ctxPlace=any（全部 tab）：场景不过滤，所有任务都展示', () => {
     const tasks = [
       task({ id: 'home-now', text: 'a', place: 'home', window: 'now' }),
       task({ id: 'work-today', text: 'b', place: 'work', window: 'today' }),
@@ -158,8 +176,7 @@ describe('rerank', () => {
       task({ id: 'any-today', text: 'd', place: 'any', window: 'today' }),
     ];
     const ranked = rerank(tasks, 'any');
-    expect(ranked.find((t) => t.bucket === 'today_else')).toBeUndefined();
-    expect(ranked.find((t) => t.bucket === 'blocked')).toBeUndefined();
+    expect(ranked).toHaveLength(4);
     expect(
       ranked
         .filter((t) => t.bucket === 'now')

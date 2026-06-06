@@ -68,7 +68,7 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
-      place: 'home',
+      place: 'any',
       tasks: [],
       ranked: [],
       lastEffects: [],
@@ -100,7 +100,14 @@ export const useAppStore = create<AppState>()(
     {
       name: 'mui-memo.app-state',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (s) => ({ tasks: s.tasks, place: s.place, theme: s.theme, queue: s.queue }),
+      partialize: (s) => ({ tasks: s.tasks, theme: s.theme, queue: s.queue }),
+      // place 是「当次场景上下文」，不跨重启保留：每次启动都回到默认「全部」。
+      // merge 兜旧安装——之前持久化过的 place 一律忽略，避免旧值盖回默认。
+      merge: (persisted, current) => ({
+        ...current,
+        ...(persisted as Partial<AppState>),
+        place: current.place,
+      }),
     },
   ),
 );

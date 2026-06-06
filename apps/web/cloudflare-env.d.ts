@@ -12,7 +12,7 @@ declare namespace Cloudflare {
     NEXT_PUBLIC_SITE_URL: 'https://muimemo.meathill.com';
     CF_ACCOUNT_ID: 'fdc63eeea83ae8f5234357308b9a638b';
     CF_AI_GATEWAY_ID: 'meathill';
-    AI_PROVIDER: 'openai';
+    AI_PROVIDER: 'auto';
     TIDB_DATABASE_URL: string;
     GEMINI_API_KEY: string;
     BETTER_AUTH_SECRET: string;

@@ -31,24 +31,20 @@ export interface TaskView {
   periodIndex?: number | null;
 }
 
-export type Bucket = 'doing' | 'now' | 'today_here' | 'today_else' | 'blocked' | 'later' | 'done_recurring';
+export type Bucket = 'doing' | 'now' | 'today_here' | 'later' | 'done_recurring';
 
 const BUCKET_ORDER: Record<Bucket, number> = {
   doing: -1,
   now: 0,
   today_here: 1,
-  today_else: 2,
-  blocked: 3,
-  later: 4,
-  done_recurring: 5,
+  later: 2,
+  done_recurring: 3,
 };
 
 export const BUCKET_LABEL: Record<Bucket, string> = {
   doing: '正在做',
   now: '此刻可做',
   today_here: '今天 · 这里',
-  today_else: '今天 · 别处',
-  blocked: '别处待办',
   later: '不急',
   done_recurring: '本轮已完成',
 };
@@ -63,18 +59,18 @@ export function rerank(tasks: TaskView[], ctxPlace: TaskPlace): Array<TaskView &
   const list = tasks.filter((t) => t.status !== 'linked' && (!t.done || Boolean(t.recurrenceId)));
   // ctxPlace='any' = 「全部」tab：不做场景过滤，所有任务都视为「这里可做」
   const canDoHere = (t: TaskView) => ctxPlace === 'any' || t.place === 'any' || t.place === ctxPlace;
+  // 选中具体场景时 chips 即真·筛选：只留该场景能做的；「正在做」跨场景始终展示
+  const visible = list.filter((t) => t.status === 'doing' || canDoHere(t));
 
   const bucket = (t: TaskView): Bucket => {
     if (t.done && t.recurrenceId) return 'done_recurring';
     if (t.status === 'doing') return 'doing';
-    if (!canDoHere(t) && t.window === 'now') return 'blocked';
     if (t.window === 'now') return 'now';
-    if (t.window === 'today' && canDoHere(t)) return 'today_here';
-    if (t.window === 'today') return 'today_else';
+    if (t.window === 'today') return 'today_here';
     return 'later';
   };
 
-  return list
+  return visible
     .map((t) => ({ ...t, bucket: bucket(t) }))
     .sort((a, b) => {
       if (BUCKET_ORDER[a.bucket] !== BUCKET_ORDER[b.bucket]) {

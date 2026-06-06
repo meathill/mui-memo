@@ -34,6 +34,8 @@ export async function POST(req: Request) {
   const audio = form.get('audio');
   const placeStr = String(form.get('place') ?? 'any');
   const tz = normalizeTz(typeof form.get('tz') === 'string' ? (form.get('tz') as string) : undefined);
+  // Cloudflare 边缘注入的来源地区码（ISO 3166-1 alpha-2），供 auto 模式选 provider；本地 dev 为 null。
+  const country = req.headers.get('cf-ipcountry');
   if (!(audio instanceof Blob)) {
     return NextResponse.json({ error: 'missing audio' }, { status: 400 });
   }
@@ -54,6 +56,7 @@ export async function POST(req: Request) {
       audioMimeType: mimeType,
       currentTasks: tasksBefore,
       now: { iso: anchor.iso, tz, weekday: anchor.weekday },
+      country,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';

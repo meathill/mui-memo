@@ -18,7 +18,7 @@ import { useSession } from '@/lib/session';
 import { useThemeHex } from '@/lib/use-theme-hex';
 import { useAppStore } from '@/store';
 
-const SECTION_ORDER: Bucket[] = ['now', 'today_here', 'today_else', 'blocked', 'later', 'done_recurring'];
+const SECTION_ORDER: Bucket[] = ['now', 'today_here', 'later', 'done_recurring'];
 
 export default function TodayScreen() {
   const user = useSession((s) => s.user);

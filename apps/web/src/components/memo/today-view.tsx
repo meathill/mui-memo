@@ -18,7 +18,7 @@ import { PullIndicator } from './pull-indicator';
 import { SectionHeader } from './section-header';
 import { TaskRow } from './task-row';
 
-const SECTION_ORDER: Bucket[] = ['now', 'today_here', 'today_else', 'blocked', 'later'];
+const SECTION_ORDER: Bucket[] = ['now', 'today_here', 'later'];
 
 interface IntentResponse {
   utterance: import('@mui-memo/shared/validators').Utterance;

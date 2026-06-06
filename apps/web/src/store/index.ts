@@ -38,7 +38,7 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  place: 'home',
+  place: 'any',
   tasks: [],
   ranked: [],
   lastEffects: [],
