@@ -1,5 +1,6 @@
 'use client';
 
+import type { CompletedTask } from '@mui-memo/shared/dto';
 import { CheckIcon, RotateCcwIcon, TrashIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -8,13 +9,6 @@ import { track } from '@/lib/analytics';
 import { ConfirmDialog } from './confirm-dialog';
 import { PullIndicator } from './pull-indicator';
 import { SectionHeader } from './section-header';
-
-interface CompletedTask {
-  id: string;
-  text: string;
-  tag: string | null;
-  completedAt: string | null;
-}
 
 function formatDay(iso: string | null): string {
   if (!iso) return '更早';

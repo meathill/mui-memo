@@ -1,30 +1,20 @@
 'use client';
 
-import { PLACES, PRIORITIES, STATUSES, WINDOWS } from '@mui-memo/shared/logic';
-import type { TaskStatus, TaskWindow } from '@mui-memo/shared/validators';
+import {
+  PLACES,
+  PRIORITIES,
+  PRIORITY_LABEL,
+  STATUS_LABEL,
+  STATUSES,
+  WINDOW_LABEL,
+  WINDOWS,
+} from '@mui-memo/shared/logic';
 import { useEffect, useRef, useState } from 'react';
 import { useNowTick } from '@/hooks/use-now-tick';
 import { formatDueAt, isOverdue, isoToLocalInput, localInputToISO, relativeTimeLabel } from '@/lib/time';
 import { cn } from '@/lib/utils';
 
-export { PLACES, PRIORITIES, STATUSES, WINDOWS };
-
-export const STATUS_LABEL: Record<TaskStatus, string> = {
-  pending: '待做',
-  doing: '正在做',
-  done: '已完成',
-  linked: '顺手做',
-};
-export const WINDOW_LABEL: Record<TaskWindow, string> = {
-  now: '此刻',
-  today: '今天',
-  later: '不急',
-};
-export const PRIORITY_LABEL: Record<number, string> = {
-  1: '低',
-  2: '中',
-  3: '高',
-};
+export { PLACES, PRIORITIES, PRIORITY_LABEL, STATUS_LABEL, STATUSES, WINDOW_LABEL, WINDOWS };
 
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

@@ -185,7 +185,7 @@ function DemoScene() {
     label: string;
   }> = [
     { v: 'home', icon: '🏠', label: '在家' },
-    { v: 'work', icon: '💼', label: '在公司' },
+    { v: 'work', icon: '💼', label: '工位' },
     { v: 'out', icon: '🚶', label: '在外' },
   ];
   return (

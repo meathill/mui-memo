@@ -35,7 +35,7 @@ test.describe('Today · 内存筛选', () => {
     const baseline = tasksCalls;
 
     // 切场景三次
-    await page.getByRole('button', { name: /在公司/ }).click();
+    await page.getByRole('button', { name: /工位/ }).click();
     await page.getByRole('button', { name: /在外/ }).click();
     await page.getByRole('button', { name: /在家/ }).click();
 

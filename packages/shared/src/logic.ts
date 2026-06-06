@@ -333,13 +333,31 @@ export function applyIntent(tasks: TaskView[], utterance: Utterance, now: Date =
 
 export const PLACE_LABEL: Record<TaskPlace, { label: string; icon: string }> = {
   home: { label: '在家', icon: '🏠' },
-  work: { label: '在公司', icon: '💼' },
+  work: { label: '工位', icon: '💼' },
   out: { label: '在外', icon: '🚶' },
-  any: { label: '任何地方', icon: '•' },
+  any: { label: '不限', icon: '•' },
 };
 
-// 任务字段的可选值列表，前后端共享。
-// label 文案保留在各端（web 与 app 措辞不同），这里只导出值列表。
+export const STATUS_LABEL: Record<TaskStatus, string> = {
+  pending: '待办',
+  doing: '进行中',
+  done: '已完成',
+  linked: '关联',
+};
+
+export const WINDOW_LABEL: Record<TaskWindow, string> = {
+  now: '马上',
+  today: '今天内',
+  later: '改天',
+};
+
+export const PRIORITY_LABEL: Record<number, string> = {
+  1: '低',
+  2: '中',
+  3: '高',
+};
+
+// 任务字段的可选值列表 + 展示文案，前后端共享：单一词汇（app 为准，web 对齐）。
 export const PLACES: TaskPlace[] = ['home', 'work', 'out', 'any'];
 export const WINDOWS: TaskWindow[] = ['now', 'today', 'later'];
 export const STATUSES: TaskStatus[] = ['pending', 'doing', 'done'];

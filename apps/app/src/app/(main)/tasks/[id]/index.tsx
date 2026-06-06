@@ -1,4 +1,4 @@
-import type { TaskView } from '@mui-memo/shared/logic';
+import { PLACE_LABEL, STATUS_LABEL, type TaskView, WINDOW_LABEL } from '@mui-memo/shared/logic';
 import Constants from 'expo-constants';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { CheckIcon, ChevronLeftIcon, PencilIcon, RotateCcwIcon, Trash2Icon } from 'lucide-react-native';
@@ -9,26 +9,6 @@ import { AudioPlayButton, AudioUrlPlayButton, isAudioMime } from '@/components/a
 import { ErrorBanner } from '@/components/error-banner';
 import { type Attachment, api } from '@/lib/api';
 import { useThemeHex } from '@/lib/use-theme-hex';
-
-const STATUS_LABEL: Record<string, string> = {
-  pending: '待办',
-  doing: '进行中',
-  done: '已完成',
-  linked: '关联',
-};
-
-const PLACE_LABEL: Record<string, string> = {
-  home: '在家',
-  work: '工位',
-  out: '在外',
-  any: '不限',
-};
-
-const WINDOW_LABEL: Record<string, string> = {
-  now: '马上',
-  today: '今天内',
-  later: '改天',
-};
 
 function formatDateTime(iso: string): string {
   const d = new Date(iso);
@@ -151,7 +131,7 @@ export default function TaskDetailScreen() {
           ) : null}
 
           <View className="mt-6 gap-2 rounded-2xl border border-rule/60 bg-paper-2/40 p-4">
-            <Row label="地点" value={PLACE_LABEL[task.place] ?? task.place} />
+            <Row label="地点" value={PLACE_LABEL[task.place]?.label ?? task.place} />
             <Row label="时段" value={WINDOW_LABEL[task.window] ?? task.window} />
             {task.expectAt ? <Row label="预计" value={formatDateTime(task.expectAt)} /> : null}
             {task.dueAt ? <Row label="截止" value={formatDateTime(task.dueAt)} /> : null}

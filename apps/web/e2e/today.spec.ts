@@ -116,8 +116,8 @@ test.describe('Today 页', () => {
     await page.getByRole('button', { name: /在家/ }).click();
     await expect(page.getByText(/今天\s·\s这里/)).toBeVisible();
 
-    await page.getByRole('button', { name: /在公司/ }).click();
-    // 「给花浇水」place=home，在公司场景应落入 today_else
+    await page.getByRole('button', { name: /工位/ }).click();
+    // 「给花浇水」place=home，工位场景应落入 today_else
     await expect(page.getByText(/今天\s·\s别处/)).toBeVisible();
   });
 });

@@ -19,6 +19,10 @@
     "./recurrence": {
       "types": "./dist/recurrence.d.ts",
       "import": "./dist/recurrence.js"
+    },
+    "./dto": {
+      "types": "./dist/dto.d.ts",
+      "import": "./dist/dto.js"
     }
   },
   "scripts": {

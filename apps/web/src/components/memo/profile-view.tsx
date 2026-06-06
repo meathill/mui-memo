@@ -98,7 +98,7 @@ export function ProfileView() {
         <StatCard label="今日已勾" value={data?.stats.doneToday ?? 0} accent />
         <StatCard label="累计完成" value={data?.stats.done ?? 0} />
         <StatCard label="清单待办" value={data?.stats.pending ?? 0} />
-        <StatCard label="正在做" value={data?.stats.doing ?? 0} />
+        <StatCard label="进行中" value={data?.stats.doing ?? 0} />
       </section>
 
       <TweaksPanel />

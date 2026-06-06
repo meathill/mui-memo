@@ -108,12 +108,12 @@ export function TaskRow({ task, onDone, onReopen }: Props) {
             hitSlop={10}
             className="relative h-6 w-6 items-center justify-center rounded-full active:bg-ink/10"
           >
-            <Animated.View style={[StyleSheet.absoluteFillObject, styles.iconCenter, circleStyle]} pointerEvents="none">
+            <Animated.View style={[StyleSheet.absoluteFill, styles.iconCenter, circleStyle]} pointerEvents="none">
               <CircleIcon size={18} color={colors.inkMute} />
             </Animated.View>
             <Animated.View
               style={[
-                StyleSheet.absoluteFillObject,
+                StyleSheet.absoluteFill,
                 styles.iconCenter,
                 { backgroundColor: colors.accentGood, borderRadius: 9999 },
                 checkStyle,

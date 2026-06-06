@@ -41,8 +41,8 @@ test.describe('任务详情 · 字段编辑', () => {
     await tagInput.fill('家务');
     await tagInput.blur();
 
-    // 改状态为 正在做
-    await page.getByRole('button', { name: '正在做', exact: true }).click();
+    // 改状态为 进行中
+    await page.getByRole('button', { name: '进行中', exact: true }).click();
 
     // 改优先级为 高
     await page.getByRole('button', { name: '高', exact: true }).click();
@@ -87,7 +87,7 @@ test.describe('任务详情 · 字段编辑', () => {
     await page.getByRole('button', { name: '重新启动', exact: true }).click();
 
     // 等待接口成功返回（通过界面重新出现“搞定了”或状态改变确认）
-    await expect(page.getByText('待做')).toBeVisible();
+    await expect(page.getByText('待办')).toBeVisible();
     await expect(page.getByRole('button', { name: '重新启动', exact: true })).toHaveCount(0);
 
     // API 端 completedAt 变回 null, status 回到 pending

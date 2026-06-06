@@ -1,14 +1,18 @@
-import { PLACES as SHARED_PLACES, WINDOWS as SHARED_WINDOWS, type TaskView } from '@mui-memo/shared/logic';
+import {
+  PLACE_LABEL,
+  PLACES as SHARED_PLACES,
+  type TaskView,
+  WINDOW_LABEL,
+  WINDOWS as SHARED_WINDOWS,
+} from '@mui-memo/shared/logic';
 import type { RecurrenceFreq, TaskPlace, TaskWindow } from '@mui-memo/shared/validators';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { CalendarIcon, CheckIcon, XIcon } from 'lucide-react-native';
+import { CheckIcon, XIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -17,29 +21,18 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ChipRow, ExpectAtField, Section } from '@/components/task-edit-fields';
 import { api, type RecurrenceInfo, type RecurrenceInput, type TaskPatch } from '@/lib/api';
 import { useThemeHex } from '@/lib/use-theme-hex';
 import { useAppStore } from '@/store';
 
-const PLACE_LABELS: Record<TaskPlace, string> = {
-  home: '在家',
-  work: '工位',
-  out: '在外',
-  any: '不限',
-};
 const PLACES: { value: TaskPlace; label: string }[] = SHARED_PLACES.map((value) => ({
   value,
-  label: PLACE_LABELS[value],
+  label: PLACE_LABEL[value].label,
 }));
-
-const WINDOW_LABELS: Record<TaskWindow, string> = {
-  now: '立刻',
-  today: '今天内',
-  later: '改天',
-};
 const WINDOWS: { value: TaskWindow; label: string }[] = SHARED_WINDOWS.map((value) => ({
   value,
-  label: WINDOW_LABELS[value],
+  label: WINDOW_LABEL[value],
 }));
 
 // 重复周期。锚点复用任务的 expectAt（星期/号数/时刻）。
@@ -75,33 +68,6 @@ function toFreqInterval(repeat: RepeatOption): { freq: RecurrenceFreq; interval:
   }
 }
 
-/**
- * Expect-at 预设：语音 app 的核心理念是「不强制管理时间」，所以这里不上
- * 完整 date picker，给几个常用预设 + 清空，需要精细调时间再靠语音。
- */
-function expectPresets(): { label: string; iso: string | null }[] {
-  const now = new Date();
-  const inAnHour = new Date(now.getTime() + 60 * 60 * 1000);
-  const tonight = new Date(now);
-  tonight.setHours(20, 0, 0, 0);
-  const tomorrow = new Date(now);
-  tomorrow.setDate(now.getDate() + 1);
-  tomorrow.setHours(9, 0, 0, 0);
-  const weekend = new Date(now);
-  const daysToSat = (6 - weekend.getDay() + 7) % 7 || 7;
-  weekend.setDate(weekend.getDate() + daysToSat);
-  weekend.setHours(10, 0, 0, 0);
-  // 今晚 / 明早 / 周末 是否已经过了「现在」，过了就不出，免得点完还是过期
-  const presets: { label: string; iso: string | null }[] = [{ label: '1 小时后', iso: inAnHour.toISOString() }];
-  if (tonight.getTime() > now.getTime()) presets.push({ label: '今晚', iso: tonight.toISOString() });
-  presets.push(
-    { label: '明早', iso: tomorrow.toISOString() },
-    { label: '周末', iso: weekend.toISOString() },
-    { label: '无', iso: null },
-  );
-  return presets;
-}
-
 export default function TaskEditScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useThemeHex();
@@ -117,44 +83,6 @@ export default function TaskEditScreen() {
   const [expectAt, setExpectAt] = useState<string | null>(null);
   const [repeat, setRepeat] = useState<RepeatOption>('none');
   const [loadedRecurrence, setLoadedRecurrence] = useState<RecurrenceInfo | null>(null);
-
-  // 时间选择器相关状态
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showAndroidTimePicker, setShowAndroidTimePicker] = useState(false);
-  const [tempDate, setTempDate] = useState<Date>(new Date());
-
-  function handleOpenPicker() {
-    const current = expectAt ? new Date(expectAt) : new Date();
-    setTempDate(current);
-    setShowDatePicker(true);
-  }
-
-  function handleConfirmIOS() {
-    setExpectAt(tempDate.toISOString());
-    setShowDatePicker(false);
-  }
-
-  function handleAndroidDateChange(event: DateTimePickerEvent, date?: Date) {
-    setShowDatePicker(false);
-    if (event.type === 'set' && date) {
-      setTempDate(date);
-      setTimeout(function () {
-        setShowAndroidTimePicker(true);
-      }, 100);
-    }
-  }
-
-  function handleAndroidTimeChange(event: DateTimePickerEvent, date?: Date) {
-    setShowAndroidTimePicker(false);
-    if (event.type === 'set' && date) {
-      const finalDate = new Date(tempDate);
-      finalDate.setHours(date.getHours());
-      finalDate.setMinutes(date.getMinutes());
-      finalDate.setSeconds(0);
-      finalDate.setMilliseconds(0);
-      setExpectAt(finalDate.toISOString());
-    }
-  }
 
   useEffect(() => {
     if (!id) return;
@@ -317,82 +245,7 @@ export default function TaskEditScreen() {
             </Section>
 
             <Section label="预期时间">
-              <View className="flex-row flex-wrap gap-2">
-                {expectPresets().map((preset) => {
-                  const active = expectAt === preset.iso;
-                  return (
-                    <Pressable
-                      key={preset.label}
-                      onPress={function () {
-                        setExpectAt(preset.iso);
-                      }}
-                      className={`rounded-full px-4 py-2 ${active ? 'bg-ink' : 'border border-rule bg-paper-2/50'}`}
-                    >
-                      <Text className={`text-sm ${active ? 'text-paper' : 'text-ink-soft'}`}>{preset.label}</Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-              <Pressable
-                onPress={handleOpenPicker}
-                className="mt-3 flex-row items-center gap-1.5 self-start py-1"
-                hitSlop={8}
-              >
-                <CalendarIcon size={14} color={expectAt ? colors.ink : colors.inkMute} />
-                <Text className={`font-mono text-xs ${expectAt ? 'text-ink underline' : 'text-ink-mute'}`}>
-                  {expectAt ? new Date(expectAt).toLocaleString() : '设置具体时间...'}
-                </Text>
-              </Pressable>
-
-              {/* iOS 日期时间选择弹窗 */}
-              {Platform.OS === 'ios' && showDatePicker && (
-                <Modal
-                  transparent={true}
-                  animationType="slide"
-                  visible={showDatePicker}
-                  onRequestClose={function () {
-                    setShowDatePicker(false);
-                  }}
-                >
-                  <View className="flex-1 justify-end bg-black/40">
-                    <View className="bg-paper rounded-t-2xl pb-8 px-4 pt-4">
-                      <View className="flex-row justify-between items-center mb-4">
-                        <Pressable
-                          onPress={function () {
-                            setShowDatePicker(false);
-                          }}
-                          hitSlop={8}
-                        >
-                          <Text className="text-ink-mute text-base">取消</Text>
-                        </Pressable>
-                        <Text className="font-serif text-ink text-base font-bold">选择时间</Text>
-                        <Pressable onPress={handleConfirmIOS} hitSlop={8}>
-                          <Text className="text-ink text-base font-bold">确定</Text>
-                        </Pressable>
-                      </View>
-                      <DateTimePicker
-                        value={tempDate}
-                        mode="datetime"
-                        display="spinner"
-                        onChange={function (_event, date) {
-                          if (date) setTempDate(date);
-                        }}
-                        textColor={colors.ink}
-                      />
-                    </View>
-                  </View>
-                </Modal>
-              )}
-
-              {/* Android 日期选择器 */}
-              {Platform.OS === 'android' && showDatePicker && (
-                <DateTimePicker value={tempDate} mode="date" display="default" onChange={handleAndroidDateChange} />
-              )}
-
-              {/* Android 时间选择器 */}
-              {Platform.OS === 'android' && showAndroidTimePicker && (
-                <DateTimePicker value={tempDate} mode="time" display="default" onChange={handleAndroidTimeChange} />
-              )}
+              <ExpectAtField value={expectAt} onChange={setExpectAt} />
             </Section>
 
             <Section label="重复">
@@ -421,38 +274,3 @@ export default function TaskEditScreen() {
   );
 }
 
-function Section({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <View className="mb-6">
-      <Text className="mb-2 font-mono text-ink-mute text-xs uppercase tracking-[2px]">{label}</Text>
-      {children}
-    </View>
-  );
-}
-
-function ChipRow<T extends string>({
-  options,
-  value,
-  onChange,
-}: {
-  options: { value: T; label: string }[];
-  value: T;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <View className="flex-row flex-wrap gap-2">
-      {options.map((o) => {
-        const active = o.value === value;
-        return (
-          <Pressable
-            key={o.value}
-            onPress={() => onChange(o.value)}
-            className={`rounded-full px-4 py-2 ${active ? 'bg-ink' : 'border border-rule bg-paper-2/50'}`}
-          >
-            <Text className={`text-sm ${active ? 'text-paper' : 'text-ink-soft'}`}>{o.label}</Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}

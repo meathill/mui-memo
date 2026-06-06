@@ -1,84 +1,14 @@
+import type { Attachment, CompletedTask, ProfileStats, RecurrenceInfo } from '@mui-memo/shared/dto';
 import type { IntentEffect, TaskView } from '@mui-memo/shared/logic';
 import type { RecurrenceFreq, TaskPlace, Utterance } from '@mui-memo/shared/validators';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import { getToken, type SessionUser, useSession } from './session';
+import { API_BASE, ApiError, request } from './http';
+import { type SessionUser, useSession } from './session';
 
-/**
- * API base URL。dev 从 app.json 的 extra.apiBase 注入（通常是局域网里电脑的
- * IP + :3000，不能用 localhost —— 真机 / 模拟器访问不到宿主 loopback）。
- */
-const API_BASE = (() => {
-  const fromExtra = (Constants.expoConfig?.extra as { apiBase?: string } | undefined)?.apiBase;
-  if (!fromExtra) {
-    throw new Error('app.json extra.apiBase 没配');
-  }
-  return fromExtra.replace(/\/$/, '');
-})();
-
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public detail?: unknown,
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
-}
-
-type JsonInit = Omit<RequestInit, 'body' | 'headers'> & {
-  body?: unknown;
-  headers?: Record<string, string>;
-};
-
-/** 统一 fetch：自动带 Authorization header，JSON 序列化，错误走 ApiError */
-async function request<T>(path: string, init: JsonInit = {}): Promise<T> {
-  const headers: Record<string, string> = {
-    Accept: 'application/json',
-    ...init.headers,
-  };
-  const token = getToken();
-  if (token) headers.Authorization = `Bearer ${token}`;
-
-  const method = (init.method ?? 'GET').toUpperCase();
-  let body: BodyInit | undefined;
-  if (init.body instanceof FormData) {
-    body = init.body;
-    // 不要手动设 Content-Type，让 fetch 自己加 boundary
-  } else if (init.body !== undefined) {
-    headers['Content-Type'] = 'application/json';
-    body = JSON.stringify(init.body);
-  } else if (method !== 'GET' && method !== 'HEAD') {
-    // Better-Auth 的 /sign-out 等无 body POST 也强制要求 Content-Type:
-    // application/json，否则 415 UNSUPPORTED_MEDIA_TYPE。空 body 用 '{}' 兜
-    headers['Content-Type'] = 'application/json';
-    body = '{}';
-  }
-
-  const res = await fetch(`${API_BASE}${path}`, { ...init, headers, body });
-  if (res.status === 401) {
-    await useSession.getState().clearSession();
-    throw new ApiError('未登录', 401);
-  }
-  const text = await res.text();
-  const data = text ? safeJson(text) : undefined;
-  if (!res.ok) {
-    const msg =
-      (data && typeof data === 'object' && 'error' in data ? String((data as { error?: unknown }).error) : text) ||
-      res.statusText;
-    throw new ApiError(msg, res.status, data);
-  }
-  return data as T;
-}
-
-function safeJson(text: string): unknown {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return text;
-  }
-}
+// HTTP 内核（API_BASE / ApiError / request）在 ./http；ApiError re-export 让
+// app 内 `@/lib/api` 的现有 import 不变。
+export { ApiError };
 
 // ─── 端点封装 ──────────────────────────────────────────────
 
@@ -366,13 +296,6 @@ export interface TaskPatch {
   status: 'pending' | 'doing' | 'done';
 }
 
-/** 周期任务定义。freq=daily/weekly/monthly/workday，interval 表达每 N（weekly=2 即每两周）。 */
-export interface RecurrenceInfo {
-  id: string;
-  freq: RecurrenceFreq;
-  interval: number;
-}
-
 /** 新建/编辑周期任务入参，对齐 web recurrenceCoreSchema。空字段省略（zod 用 default/optional）。 */
 export interface RecurrenceInput {
   text: string;
@@ -389,29 +312,5 @@ export interface RecurrenceInput {
   linkTaskId?: string;
 }
 
-export interface CompletedTask {
-  id: string;
-  text: string;
-  tag: string | null;
-  completedAt: string | null;
-}
-
-export interface Attachment {
-  id: string;
-  key: string;
-  mime: string | null;
-  size: number | null;
-  originalName: string | null;
-  createdAt: string;
-}
-
-export interface ProfileStats {
-  user: { name: string; email: string };
-  stats: {
-    total: number;
-    pending: number;
-    doing: number;
-    done: number;
-    doneToday: number;
-  };
-}
+// 响应 DTO 统一在 @mui-memo/shared/dto；re-export 让 app 内 `@/lib/api` 的现有 import 不变。
+export type { Attachment, CompletedTask, ProfileStats, RecurrenceInfo };

@@ -1,22 +1,16 @@
 'use client';
 
+import type { Attachment } from '@mui-memo/shared/dto';
 import { PaperclipIcon, TrashIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ASSETS_URL } from '@/lib/config';
 import { cn } from '@/lib/utils';
 
-export interface Attachment {
-  id: string;
-  key: string;
-  mime: string;
-  size: number;
-  originalName: string | null;
-  createdAt: string;
-}
+export type { Attachment };
 
-function isImage(mime: string) {
-  return mime.startsWith('image/');
+function isImage(mime: string | null) {
+  return mime?.startsWith('image/') ?? false;
 }
 
 function formatSize(bytes: number) {
@@ -55,7 +49,8 @@ function AttachmentItem({ att, onDelete }: { att: Attachment; onDelete: () => vo
           {name}
         </a>
         <p className="text-[11px] font-mono text-ink-mute">
-          {att.mime} · {formatSize(att.size)}
+          {att.mime ?? '?'}
+          {att.size != null ? ` · ${formatSize(att.size)}` : ''}
         </p>
       </div>
       <Button variant="ghost" size="icon" onClick={onDelete} aria-label="删除附件">

@@ -12,7 +12,7 @@ import type { Database } from './db';
 
 type NullableField<T> = T | null | undefined;
 
-function rowToView(row: TaskRow, linkedChildren: Array<{ id: string; text: string }> = []): TaskView {
+export function rowToView(row: TaskRow, linkedChildren: Array<{ id: string; text: string }> = []): TaskView {
   return {
     id: row.id,
     text: row.text,
@@ -126,16 +126,17 @@ function viewPatchToRow(patch: ViewPatch): Partial<NewTaskRow> {
   return out;
 }
 
+export interface PersistPlan {
+  inserts: NewTaskRow[];
+  updates: Array<{ id: string; patch: Partial<NewTaskRow> }>;
+}
+
 /**
- * 将 applyIntent 后的内存视图 diff 回数据库。embedding 是 TiDB 生成列，
- * INSERT / UPDATE 不要手动赋值。
+ * 纯函数：把 before→after 的内存视图 diff 成 DB 写入计划。
+ * after 里 before 没有的算新增（inserts）；同 id 的逐字段比对，有变化的算 patch（updates）；
+ * 完全没变的跳过。不碰 DB，便于单测。embedding 是 TiDB 生成列，这里不赋值。
  */
-export async function persistIntentResult(
-  db: Database,
-  userId: string,
-  before: TaskView[],
-  after: TaskView[],
-): Promise<void> {
+export function planPersist(userId: string, before: TaskView[], after: TaskView[]): PersistPlan {
   const beforeMap = new Map(before.map((t) => [t.id, t]));
 
   const inserts: NewTaskRow[] = [];
@@ -188,6 +189,21 @@ export async function persistIntentResult(
       updates.push({ id: a.id, patch: viewPatchToRow(diff) });
     }
   }
+
+  return { inserts, updates };
+}
+
+/**
+ * 将 applyIntent 后的内存视图 diff 回数据库。embedding 是 TiDB 生成列，
+ * INSERT / UPDATE 不要手动赋值。
+ */
+export async function persistIntentResult(
+  db: Database,
+  userId: string,
+  before: TaskView[],
+  after: TaskView[],
+): Promise<void> {
+  const { inserts, updates } = planPersist(userId, before, after);
 
   if (inserts.length) {
     await db.insert(tasksTable).values(inserts);

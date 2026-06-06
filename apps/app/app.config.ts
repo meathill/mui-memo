@@ -27,16 +27,7 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
   icon: './assets/icon.png',
-  splash: {
-    backgroundColor: '#f4ede0',
-    resizeMode: 'contain',
-    image: './assets/splash.png',
-    // 深色模式下用对应的深底色，避免启动一闪刺眼的浅色
-    dark: {
-      backgroundColor: '#1a1812',
-      image: './assets/splash.png',
-    },
-  },
+
   ios: {
     supportsTablet: false,
     bundleIdentifier: 'com.meathill.muimemo',
@@ -55,6 +46,19 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
     },
   },
   plugins: [
+    [
+      'expo-splash-screen',
+      {
+        backgroundColor: '#f4ede0',
+        resizeMode: 'contain',
+        image: './assets/splash.png',
+        dark: {
+          // 深色模式下用对应的深底色，避免启动一闪刺眼的浅色
+          backgroundColor: '#1a1812',
+          image: './assets/splash.png',
+        },
+      },
+    ],
     'expo-router',
     [
       'expo-audio',

@@ -5,6 +5,7 @@ packages:
 allowBuilds:
   dtrace-provider: false
   esbuild: false
+  msgpackr-extract: false
   protobufjs: false
   sharp: false
   workerd: false
