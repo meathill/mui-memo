@@ -2,6 +2,7 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import { CalendarIcon } from 'lucide-react-native';
 import { type ReactNode, useState } from 'react';
 import { Modal, Platform, Pressable, Text, View } from 'react-native';
+import { hapticSelection } from '@/lib/haptics';
 import { useThemeHex } from '@/lib/use-theme-hex';
 
 export function Section({ label, children }: { label: string; children: ReactNode }) {
@@ -29,7 +30,10 @@ export function ChipRow<T extends string>({
         return (
           <Pressable
             key={o.value}
-            onPress={() => onChange(o.value)}
+            onPress={() => {
+              hapticSelection();
+              onChange(o.value);
+            }}
             className={`rounded-full px-4 py-2 ${active ? 'bg-ink' : 'border border-rule bg-paper-2/50'}`}
           >
             <Text className={`text-sm ${active ? 'text-paper' : 'text-ink-soft'}`}>{o.label}</Text>
@@ -118,6 +122,7 @@ export function ExpectAtField({ value, onChange }: { value: string | null; onCha
             <Pressable
               key={preset.label}
               onPress={function () {
+                hapticSelection();
                 onChange(preset.iso);
               }}
               className={`rounded-full px-4 py-2 ${active ? 'bg-ink' : 'border border-rule bg-paper-2/50'}`}

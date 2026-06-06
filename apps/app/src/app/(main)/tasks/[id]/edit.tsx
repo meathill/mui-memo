@@ -8,7 +8,7 @@ import {
 import type { RecurrenceFreq, TaskPlace, TaskWindow } from '@mui-memo/shared/validators';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { CheckIcon, XIcon } from 'lucide-react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -83,6 +83,14 @@ export default function TaskEditScreen() {
   const [expectAt, setExpectAt] = useState<string | null>(null);
   const [repeat, setRepeat] = useState<RepeatOption>('none');
   const [loadedRecurrence, setLoadedRecurrence] = useState<RecurrenceInfo | null>(null);
+
+  // 已有标签快速选择：从全局任务里现算去重，点一下即填入下方输入框。
+  const storeTasks = useAppStore((s) => s.tasks);
+  const tagOptions = useMemo(
+    () =>
+      [...new Set(storeTasks.flatMap((t) => (t.tag ? [t.tag] : [])))].sort().map((value) => ({ value, label: value })),
+    [storeTasks],
+  );
 
   useEffect(() => {
     if (!id) return;
@@ -258,6 +266,11 @@ export default function TaskEditScreen() {
             </Section>
 
             <Section label="标签">
+              {tagOptions.length > 0 ? (
+                <View className="mb-2">
+                  <ChipRow options={tagOptions} value={tag} onChange={setTag} />
+                </View>
+              ) : null}
               <TextInput
                 value={tag}
                 onChangeText={setTag}

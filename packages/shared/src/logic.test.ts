@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { applyActions, applyIntent, type IntentEffect, rerank, type TaskView } from './logic.js';
+import {
+  applyActions,
+  applyIntent,
+  type BarChip,
+  DEFAULT_BAR_CHIPS,
+  filterByTag,
+  type IntentEffect,
+  normalizeBarChips,
+  rerank,
+  type TaskView,
+} from './logic.js';
 import type { Action, Dim, IntentKind, TaskCore, TaskStatus, Utterance } from './validators.js';
 
 // ──────────────────────────────────────────────
@@ -571,5 +581,93 @@ describe('IntentEffect modify 携带 patch + before', () => {
     if (e.kind !== 'modify') throw new Error();
     expect(e.patch.place).toBe('out');
     expect(e.before.place).toBe('home');
+  });
+});
+
+// ──────────────────────────────────────────────
+// filterByTag
+// ──────────────────────────────────────────────
+
+describe('filterByTag', () => {
+  it('只保留 tag 精确相等的任务', () => {
+    const tasks = [
+      task({ id: '1', text: 'a', tag: '网银' }),
+      task({ id: '2', text: 'b', tag: '采购' }),
+      task({ id: '3', text: 'c', tag: '网银' }),
+    ];
+    expect(filterByTag(tasks, '网银').map((t) => t.id)).toEqual(['1', '3']);
+  });
+
+  it('tag 为 null / undefined 的任务被排除', () => {
+    const tasks = [
+      task({ id: '1', text: 'a', tag: null }),
+      task({ id: '2', text: 'b' }), // tag undefined
+      task({ id: '3', text: 'c', tag: '网银' }),
+    ];
+    expect(filterByTag(tasks, '网银').map((t) => t.id)).toEqual(['3']);
+  });
+
+  it('无匹配时返回空数组', () => {
+    const tasks = [task({ id: '1', text: 'a', tag: '采购' })];
+    expect(filterByTag(tasks, '网银')).toEqual([]);
+  });
+
+  it('配合 rerank(..., "any") 时跨地点任务都保留', () => {
+    const tasks = [
+      task({ id: 'home', text: 'a', tag: '网银', place: 'home', window: 'now' }),
+      task({ id: 'work', text: 'b', tag: '网银', place: 'work', window: 'now' }),
+      task({ id: 'other', text: 'c', tag: '采购', place: 'home', window: 'now' }),
+    ];
+    const ranked = rerank(filterByTag(tasks, '网银'), 'any');
+    expect(ranked.map((t) => t.id).sort()).toEqual(['home', 'work']);
+  });
+});
+
+// ──────────────────────────────────────────────
+// normalizeBarChips
+// ──────────────────────────────────────────────
+
+describe('normalizeBarChips', () => {
+  const fallback: BarChip[] = DEFAULT_BAR_CHIPS;
+
+  it('undefined → fallback', () => {
+    expect(normalizeBarChips(undefined, fallback)).toBe(fallback);
+  });
+
+  it('非数组 → fallback', () => {
+    expect(normalizeBarChips({ kind: 'place', place: 'home' }, fallback)).toBe(fallback);
+    expect(normalizeBarChips('home', fallback)).toBe(fallback);
+  });
+
+  it('空数组 → fallback', () => {
+    expect(normalizeBarChips([], fallback)).toBe(fallback);
+  });
+
+  it('合法数组透传', () => {
+    const chips: BarChip[] = [
+      { kind: 'place', place: 'work' },
+      { kind: 'tag', tag: '网银' },
+    ];
+    expect(normalizeBarChips(chips, fallback)).toEqual(chips);
+  });
+
+  it('丢掉非法项，保留合法项', () => {
+    const input = [
+      { kind: 'place', place: 'home' }, // 合法
+      { kind: 'place', place: 'mars' }, // 非法 place
+      { kind: 'tag', tag: '' }, // 空 tag 非法
+      { kind: 'tag', tag: '采购' }, // 合法
+      { kind: 'bogus' }, // 非法 kind
+      null,
+    ];
+    expect(normalizeBarChips(input, fallback)).toEqual([
+      { kind: 'place', place: 'home' },
+      { kind: 'tag', tag: '采购' },
+    ]);
+  });
+
+  it('全部非法 → fallback', () => {
+    const input = [{ kind: 'place', place: 'mars' }, { foo: 1 }];
+    expect(normalizeBarChips(input, fallback)).toBe(fallback);
   });
 });

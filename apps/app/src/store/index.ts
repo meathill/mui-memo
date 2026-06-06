@@ -1,4 +1,11 @@
-import type { Bucket, IntentEffect, TaskView } from '@mui-memo/shared/logic';
+import {
+  type BarChip,
+  type Bucket,
+  DEFAULT_BAR_CHIPS,
+  type IntentEffect,
+  normalizeBarChips,
+  type TaskView,
+} from '@mui-memo/shared/logic';
 import type { TaskPlace, Utterance } from '@mui-memo/shared/validators';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
@@ -35,6 +42,10 @@ export interface QueueItem {
 
 interface AppState {
   place: TaskPlace;
+  /** 当前选中的标签过滤；null = 未按标签过滤。瞬时态，不跨重启保留。 */
+  activeTag: string | null;
+  /** 自定义筛选栏的芯片列表（场景 + 标签），持久化到本地。 */
+  barChips: BarChip[];
   tasks: TaskView[];
   ranked: RankedTask[];
   lastEffects: IntentEffect[];
@@ -45,6 +56,8 @@ interface AppState {
   theme: ThemePreference;
 
   setPlace: (p: TaskPlace) => void;
+  setActiveTag: (tag: string | null) => void;
+  setBarChips: (chips: BarChip[]) => void;
   hydrate: (payload: { tasks: TaskView[]; ranked: RankedTask[]; place?: TaskPlace }) => void;
   setRecording: (v: boolean) => void;
   setLastEffects: (effects: IntentEffect[], u?: Utterance | null) => void;
@@ -69,6 +82,8 @@ export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       place: 'any',
+      activeTag: null,
+      barChips: DEFAULT_BAR_CHIPS,
       tasks: [],
       ranked: [],
       lastEffects: [],
@@ -78,7 +93,10 @@ export const useAppStore = create<AppState>()(
       isRecording: false,
       theme: 'system',
 
-      setPlace: (p) => set({ place: p }),
+      // 选场景即清空 tag 过滤，保证筛选栏单选互斥
+      setPlace: (p) => set({ place: p, activeTag: null }),
+      setActiveTag: (tag) => set({ activeTag: tag }),
+      setBarChips: (chips) => set({ barChips: chips }),
       hydrate: ({ tasks, ranked, place }) => set((s) => ({ tasks, ranked, place: place ?? s.place })),
       setRecording: (v) => set({ isRecording: v }),
       setLastEffects: (effects, u) => set({ lastEffects: effects, lastUtterance: u ?? null }),
@@ -100,14 +118,20 @@ export const useAppStore = create<AppState>()(
     {
       name: 'mui-memo.app-state',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (s) => ({ tasks: s.tasks, theme: s.theme, queue: s.queue }),
-      // place 是「当次场景上下文」，不跨重启保留：每次启动都回到默认「全部」。
-      // merge 兜旧安装——之前持久化过的 place 一律忽略，避免旧值盖回默认。
-      merge: (persisted, current) => ({
-        ...current,
-        ...(persisted as Partial<AppState>),
-        place: current.place,
-      }),
+      partialize: (s) => ({ tasks: s.tasks, theme: s.theme, queue: s.queue, barChips: s.barChips }),
+      // place / activeTag 是「当次场景上下文」，不跨重启保留：每次启动都回到默认「全部」。
+      // merge 兜旧安装——之前持久化过的 place 一律忽略；barChips 经 normalize 兜底
+      // （旧装机无此字段、或损坏存储 → 回退默认 4 个场景）。
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<AppState>;
+        return {
+          ...current,
+          ...p,
+          place: current.place,
+          activeTag: current.activeTag,
+          barChips: normalizeBarChips(p.barChips, current.barChips),
+        };
+      },
     },
   ),
 );

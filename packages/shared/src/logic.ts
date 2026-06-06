@@ -80,6 +80,11 @@ export function rerank(tasks: TaskView[], ctxPlace: TaskPlace): Array<TaskView &
     });
 }
 
+/** 按标签精确过滤任务列表（用于自定义筛选栏选中某个 tag 芯片时）。 */
+export function filterByTag(tasks: TaskView[], tag: string): TaskView[] {
+  return tasks.filter((t) => (t.tag ?? null) === tag);
+}
+
 // ──────────────────────────────────────────────
 // applyActions：把 actions[] 合并到当前任务列表
 // ──────────────────────────────────────────────
@@ -358,3 +363,35 @@ export const PLACES: TaskPlace[] = ['home', 'work', 'out', 'any'];
 export const WINDOWS: TaskWindow[] = ['now', 'today', 'later'];
 export const STATUSES: TaskStatus[] = ['pending', 'doing', 'done'];
 export const PRIORITIES = [1, 2, 3] as const;
+
+// ──────────────────────────────────────────────
+// 自定义筛选栏：芯片可以是内置场景 place，或用户自定义标签 tag
+// ──────────────────────────────────────────────
+
+export type BarChip = { kind: 'place'; place: TaskPlace } | { kind: 'tag'; tag: string };
+
+/** 默认筛选栏 = 原来的 4 个场景，保证未自定义过的用户行为不变。 */
+export const DEFAULT_BAR_CHIPS: BarChip[] = [
+  { kind: 'place', place: 'home' },
+  { kind: 'place', place: 'work' },
+  { kind: 'place', place: 'out' },
+  { kind: 'place', place: 'any' },
+];
+
+function isValidBarChip(c: unknown): c is BarChip {
+  if (!c || typeof c !== 'object') return false;
+  const chip = c as Record<string, unknown>;
+  if (chip.kind === 'place') return typeof chip.place === 'string' && (PLACES as string[]).includes(chip.place);
+  if (chip.kind === 'tag') return typeof chip.tag === 'string' && chip.tag.length > 0;
+  return false;
+}
+
+/**
+ * 兜底持久化里读出的 barChips：丢掉非法项；若不是数组或过滤后为空，回退到 fallback。
+ * 防止旧装机 / 损坏存储把筛选栏搞坏。
+ */
+export function normalizeBarChips(persisted: unknown, fallback: BarChip[]): BarChip[] {
+  if (!Array.isArray(persisted)) return fallback;
+  const valid = persisted.filter(isValidBarChip);
+  return valid.length > 0 ? valid : fallback;
+}

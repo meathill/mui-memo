@@ -1,5 +1,5 @@
 import type { Bucket, TaskView } from '@mui-memo/shared/logic';
-import { BUCKET_LABEL, rerank } from '@mui-memo/shared/logic';
+import { BUCKET_LABEL, filterByTag, rerank } from '@mui-memo/shared/logic';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -13,6 +13,7 @@ import { MicButton } from '@/components/memo/mic-button';
 import { QueueSection } from '@/components/memo/queue-section';
 import { TaskRow } from '@/components/memo/task-row';
 import { api } from '@/lib/api';
+import { hapticLight, hapticSuccess } from '@/lib/haptics';
 import { cancelTaskReminder } from '@/lib/notifications';
 import { useSession } from '@/lib/session';
 import { useThemeHex } from '@/lib/use-theme-hex';
@@ -24,7 +25,20 @@ export default function TodayScreen() {
   const user = useSession((s) => s.user);
   const colors = useThemeHex();
 
-  const { place, tasks, hydrate, setPlace, lastEffects, lastUtterance, queue, enqueueAudio } = useAppStore();
+  const {
+    place,
+    activeTag,
+    barChips,
+    tasks,
+    hydrate,
+    setPlace,
+    setActiveTag,
+    setBarChips,
+    lastEffects,
+    lastUtterance,
+    queue,
+    enqueueAudio,
+  } = useAppStore();
 
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -53,7 +67,12 @@ export default function TodayScreen() {
   );
 
   const doing = useMemo(() => tasks.find((t) => t.status === 'doing') ?? null, [tasks]);
-  const ranked = useMemo(() => rerank(tasks, place), [tasks, place]);
+  // 选了标签 → 按标签筛、用 'any' 排序（不限地点看全部该标签任务）；否则按场景排。
+  const ranked = useMemo(
+    () => (activeTag ? rerank(filterByTag(tasks, activeTag), 'any') : rerank(tasks, place)),
+    [tasks, place, activeTag],
+  );
+  const allTags = useMemo(() => [...new Set(tasks.flatMap((t) => (t.tag ? [t.tag] : [])))].sort(), [tasks]);
 
   const fade = useSharedValue(1);
   const fadeStyle = useAnimatedStyle(() => ({ opacity: fade.value }));
@@ -64,7 +83,7 @@ export default function TodayScreen() {
       return;
     }
     fade.value = withSequence(withTiming(0.55, { duration: 90 }), withTiming(1, { duration: 220 }));
-  }, [place, fade]);
+  }, [place, activeTag, fade]);
   const grouped = useMemo(() => {
     const buckets = new Map<Bucket, TaskView[]>();
     for (const t of ranked) {
@@ -78,6 +97,7 @@ export default function TodayScreen() {
 
   const handleDone = useCallback(
     async (id: string) => {
+      hapticSuccess();
       const current = useAppStore.getState().tasks;
       const original = current.find((t) => t.id === id);
       hydrate({
@@ -113,6 +133,7 @@ export default function TodayScreen() {
   // 周期任务「本轮已完成」可点回恢复成待办
   const handleReopen = useCallback(
     async (id: string) => {
+      hapticLight();
       const current = useAppStore.getState().tasks;
       const original = current.find((t) => t.id === id);
       hydrate({
@@ -155,7 +176,15 @@ export default function TodayScreen() {
         </View>
 
         <View className="mt-5">
-          <ContextStrip value={place} onChange={setPlace} />
+          <ContextStrip
+            chips={barChips}
+            place={place}
+            activeTag={activeTag}
+            allTags={allTags}
+            onSelectPlace={setPlace}
+            onSelectTag={setActiveTag}
+            onSaveChips={setBarChips}
+          />
         </View>
 
         {loadError ? (
@@ -199,6 +228,11 @@ export default function TodayScreen() {
                 按住下面的麦克风说一句，比如：{'\n'}
                 「下午三点前给老张转五百」
               </Text>
+            </View>
+          ) : ranked.length === 0 && !doing ? (
+            <View className="mt-10 items-center rounded-2xl border border-rule/60 border-dashed px-6 py-10">
+              <Text className="font-serif text-ink text-lg">这个筛选下暂时没有事</Text>
+              <Text className="mt-1 text-center text-ink-soft text-sm">换个筛选看看，或按住麦克风记一条</Text>
             </View>
           ) : null}
         </Animated.View>
