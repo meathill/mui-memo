@@ -6,6 +6,7 @@ import {
   DEFAULT_BAR_CHIPS,
   filterByTag,
   type IntentEffect,
+  moveBarChip,
   normalizeBarChips,
   rerank,
   type TaskView,
@@ -669,5 +670,51 @@ describe('normalizeBarChips', () => {
   it('全部非法 → fallback', () => {
     const input = [{ kind: 'place', place: 'mars' }, { foo: 1 }];
     expect(normalizeBarChips(input, fallback)).toBe(fallback);
+  });
+});
+
+// ──────────────────────────────────────────────
+// moveBarChip
+// ──────────────────────────────────────────────
+
+describe('moveBarChip', () => {
+  const chips: BarChip[] = [
+    { kind: 'place', place: 'home' },
+    { kind: 'tag', tag: '网银' },
+    { kind: 'tag', tag: '采购' },
+    { kind: 'place', place: 'any' },
+  ];
+  const swapped: BarChip[] = [
+    { kind: 'place', place: 'home' },
+    { kind: 'tag', tag: '采购' },
+    { kind: 'tag', tag: '网银' },
+    { kind: 'place', place: 'any' },
+  ];
+
+  it('下移：与后一项交换', () => {
+    expect(moveBarChip(chips, 1, 1)).toEqual(swapped);
+  });
+
+  it('上移：与前一项交换', () => {
+    expect(moveBarChip(chips, 2, -1)).toEqual(swapped);
+  });
+
+  it('首项上移 → 原样返回', () => {
+    expect(moveBarChip(chips, 0, -1)).toBe(chips);
+  });
+
+  it('末项下移 → 原样返回', () => {
+    expect(moveBarChip(chips, chips.length - 1, 1)).toBe(chips);
+  });
+
+  it('index 越界 → 原样返回', () => {
+    expect(moveBarChip(chips, -1, 1)).toBe(chips);
+    expect(moveBarChip(chips, 99, -1)).toBe(chips);
+  });
+
+  it('纯函数：不改原数组', () => {
+    const snapshot = chips.map((c) => ({ ...c }));
+    moveBarChip(chips, 1, 1);
+    expect(chips).toEqual(snapshot);
   });
 });

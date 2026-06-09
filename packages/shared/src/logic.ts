@@ -395,3 +395,16 @@ export function normalizeBarChips(persisted: unknown, fallback: BarChip[]): BarC
   const valid = persisted.filter(isValidBarChip);
   return valid.length > 0 ? valid : fallback;
 }
+
+/**
+ * 在筛选栏数组内把 index 处的芯片移动 delta 格（-1 上移 / +1 下移）。
+ * 越界（首项上移 / 末项下移 / index 非法）一律原样返回，调用方无需自己兜边界。
+ */
+export function moveBarChip(chips: BarChip[], index: number, delta: number): BarChip[] {
+  const target = index + delta;
+  if (index < 0 || index >= chips.length || target < 0 || target >= chips.length) return chips;
+  const next = chips.slice();
+  const [moved] = next.splice(index, 1);
+  next.splice(target, 0, moved);
+  return next;
+}
