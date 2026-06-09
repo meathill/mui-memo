@@ -171,7 +171,7 @@ export function CompletedView() {
                         {t.text}
                       </p>
                       <div className="mt-0.5 flex gap-x-2 text-[11px] font-mono text-ink-mute">
-                        {t.tag ? <span>🏷 {t.tag}</span> : null}
+                        {t.tags?.length ? <span>🏷 {t.tags.join(' ')}</span> : null}
                         {t.completedAt ? <span>· {formatTime(t.completedAt)}</span> : null}
                       </div>
                     </div>

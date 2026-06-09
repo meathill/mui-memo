@@ -87,7 +87,7 @@ export function TaskRow({ task, onDone }: Props) {
             <span>
               {PLACE_LABEL[task.place].icon} {PLACE_LABEL[task.place].label}
             </span>
-            {task.tag ? <span>· 🏷 {task.tag}</span> : null}
+            {task.tags?.length ? <span>· 🏷 {task.tags.join(' ')}</span> : null}
             {displayLabel ? (
               <span className={cn(overdue && 'text-red-600 font-semibold', !overdue && 'text-ink-mute')}>
                 · ⏱ {displayLabel}

@@ -12,7 +12,7 @@ export interface TaskView {
   window: TaskWindow;
   energy: number;
   priority: number;
-  tag?: string | null;
+  tags?: string[];
   deadline?: string | null;
   expectAt?: string | null;
   dueAt?: string | null;
@@ -80,9 +80,9 @@ export function rerank(tasks: TaskView[], ctxPlace: TaskPlace): Array<TaskView &
     });
 }
 
-/** 按标签精确过滤任务列表（用于自定义筛选栏选中某个 tag 芯片时）。 */
+/** 过滤出 tags 含某标签的任务（自定义筛选栏选中某个 tag 芯片时用）。 */
 export function filterByTag(tasks: TaskView[], tag: string): TaskView[] {
-  return tasks.filter((t) => (t.tag ?? null) === tag);
+  return tasks.filter((t) => (t.tags ?? []).includes(tag));
 }
 
 // ──────────────────────────────────────────────
@@ -95,7 +95,7 @@ export type ModifyPatch = Partial<TaskCore> & { status?: TaskStatus };
 export type TaskSnapshot = Partial<
   Pick<
     TaskView,
-    'text' | 'place' | 'window' | 'energy' | 'priority' | 'tag' | 'deadline' | 'expectAt' | 'dueAt' | 'status'
+    'text' | 'place' | 'window' | 'energy' | 'priority' | 'tags' | 'deadline' | 'expectAt' | 'dueAt' | 'status'
   >
 >;
 
@@ -156,7 +156,7 @@ function snapshotForPatch(t: TaskView, patch: ModifyPatch): TaskSnapshot {
   if (patch.window !== undefined) snap.window = t.window;
   if (patch.energy !== undefined) snap.energy = t.energy;
   if (patch.priority !== undefined) snap.priority = t.priority;
-  if (patch.tag !== undefined) snap.tag = t.tag ?? undefined;
+  if (patch.tags !== undefined) snap.tags = t.tags ?? undefined;
   if (patch.deadline !== undefined) snap.deadline = t.deadline ?? undefined;
   if (patch.expectAt !== undefined) snap.expectAt = t.expectAt ?? undefined;
   if (patch.dueAt !== undefined) snap.dueAt = t.dueAt ?? undefined;
@@ -180,7 +180,7 @@ function applyAction(tasks: TaskView[], action: Action, raw: string): ApplyResul
       window: core.window ?? 'today',
       energy: core.energy ?? 2,
       priority: core.priority ?? 2,
-      tag: core.tag,
+      tags: core.tags ?? [],
       deadline: core.deadline,
       expectAt: core.expectAt,
       dueAt: core.dueAt,
@@ -236,7 +236,7 @@ function applyAction(tasks: TaskView[], action: Action, raw: string): ApplyResul
         window: core.window ?? 'now',
         energy: core.energy ?? 2,
         priority: core.priority ?? 2,
-        tag: core.tag,
+        tags: core.tags ?? [],
         deadline: core.deadline,
         expectAt: core.expectAt,
         dueAt: core.dueAt,

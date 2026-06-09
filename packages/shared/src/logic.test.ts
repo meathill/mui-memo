@@ -274,12 +274,12 @@ describe('applyIntent · ADD', () => {
       raw: '晚上下班带点水',
       aiVerb: '新增',
       aiReason: '下班路上顺路',
-      task: { text: '带水', place: 'out', window: 'today', tag: '采购' },
+      task: { text: '带水', place: 'out', window: 'today', tags: ['采购'] },
     });
     const { tasks, effect } = applyIntent(before, u, FIXED_NOW);
     expect(tasks[0].text).toBe('带水');
     expect(tasks[0].place).toBe('out');
-    expect(tasks[0].tag).toBe('采购');
+    expect(tasks[0].tags).toEqual(['采购']);
     expect(tasks[0].aiReason).toBe('下班路上顺路');
     expect(tasks[0].status).toBe('pending');
     expect(tasks).toHaveLength(2);
@@ -371,7 +371,7 @@ describe('applyIntent · DONE', () => {
       intent: 'DONE',
       aiVerb: '已完成',
       aiReason: '补记',
-      createIfMissing: { text: '发货给 A', tag: '工作' },
+      createIfMissing: { text: '发货给 A', tags: ['工作'] },
     });
     const { tasks, effect } = applyIntent([], u, FIXED_NOW);
     expect(tasks).toHaveLength(1);
@@ -590,34 +590,35 @@ describe('IntentEffect modify 携带 patch + before', () => {
 // ──────────────────────────────────────────────
 
 describe('filterByTag', () => {
-  it('只保留 tag 精确相等的任务', () => {
+  it('只保留 tags 含该标签的任务（含多标签命中）', () => {
     const tasks = [
-      task({ id: '1', text: 'a', tag: '网银' }),
-      task({ id: '2', text: 'b', tag: '采购' }),
-      task({ id: '3', text: 'c', tag: '网银' }),
+      task({ id: '1', text: 'a', tags: ['网银'] }),
+      task({ id: '2', text: 'b', tags: ['采购'] }),
+      task({ id: '3', text: 'c', tags: ['网银', '采购'] }),
     ];
     expect(filterByTag(tasks, '网银').map((t) => t.id)).toEqual(['1', '3']);
+    expect(filterByTag(tasks, '采购').map((t) => t.id)).toEqual(['2', '3']);
   });
 
-  it('tag 为 null / undefined 的任务被排除', () => {
+  it('tags 为空 / 不含该标签的任务被排除', () => {
     const tasks = [
-      task({ id: '1', text: 'a', tag: null }),
-      task({ id: '2', text: 'b' }), // tag undefined
-      task({ id: '3', text: 'c', tag: '网银' }),
+      task({ id: '1', text: 'a', tags: [] }),
+      task({ id: '2', text: 'b' }), // tags undefined
+      task({ id: '3', text: 'c', tags: ['网银'] }),
     ];
     expect(filterByTag(tasks, '网银').map((t) => t.id)).toEqual(['3']);
   });
 
   it('无匹配时返回空数组', () => {
-    const tasks = [task({ id: '1', text: 'a', tag: '采购' })];
+    const tasks = [task({ id: '1', text: 'a', tags: ['采购'] })];
     expect(filterByTag(tasks, '网银')).toEqual([]);
   });
 
   it('配合 rerank(..., "any") 时跨地点任务都保留', () => {
     const tasks = [
-      task({ id: 'home', text: 'a', tag: '网银', place: 'home', window: 'now' }),
-      task({ id: 'work', text: 'b', tag: '网银', place: 'work', window: 'now' }),
-      task({ id: 'other', text: 'c', tag: '采购', place: 'home', window: 'now' }),
+      task({ id: 'home', text: 'a', tags: ['网银'], place: 'home', window: 'now' }),
+      task({ id: 'work', text: 'b', tags: ['网银'], place: 'work', window: 'now' }),
+      task({ id: 'other', text: 'c', tags: ['采购'], place: 'home', window: 'now' }),
     ];
     const ranked = rerank(filterByTag(tasks, '网银'), 'any');
     expect(ranked.map((t) => t.id).sort()).toEqual(['home', 'work']);

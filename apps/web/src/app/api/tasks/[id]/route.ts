@@ -49,7 +49,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       window: row.taskWindow as TaskWindow,
       energy: row.energy,
       priority: row.priority,
-      tag: row.tag,
+      tags: row.tags ?? (row.tag ? [row.tag] : []),
       deadline: row.deadline,
       expectAt: row.expectAt ? row.expectAt.toISOString() : null,
       dueAt: row.dueAt ? row.dueAt.toISOString() : null,
@@ -91,7 +91,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (p.window !== undefined) update.taskWindow = p.window;
   if (p.energy !== undefined) update.energy = p.energy;
   if (p.priority !== undefined) update.priority = p.priority;
-  if (p.tag !== undefined) update.tag = p.tag ?? null;
+  if (p.tags !== undefined) update.tags = p.tags;
   if (p.deadline !== undefined) update.deadline = p.deadline ?? null;
   if (p.expectAt !== undefined) update.expectAt = p.expectAt ? new Date(p.expectAt) : null;
   if (p.dueAt !== undefined) update.dueAt = p.dueAt ? new Date(p.dueAt) : null;

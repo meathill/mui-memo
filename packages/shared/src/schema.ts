@@ -117,7 +117,10 @@ export const tasks = mysqlTable(
     taskWindow: varchar('task_window', { length: 10 }).notNull().default('today'),
     energy: int('energy').notNull().default(2),
     priority: int('priority').notNull().default(2),
+    /** @deprecated 单标签旧列：保留作回填源 + 回滚，新代码不再读写。 */
     tag: varchar('tag', { length: 32 }),
+    /** 多标签：读时 tags ?? (tag ? [tag] : [])，写只写 tags（始终数组）。 */
+    tags: json('tags').$type<string[]>(),
     deadline: varchar('deadline', { length: 64 }),
     /**
      * 预期完成时间：用户原话里「打算做的时间」，如「明天下午三点」。
@@ -178,7 +181,10 @@ export const recurrences = mysqlTable('recurrences', {
   taskWindow: varchar('task_window', { length: 10 }).notNull().default('today'),
   energy: int('energy').notNull().default(2),
   priority: int('priority').notNull().default(2),
+  /** @deprecated 单标签旧列：保留作回填源 + 回滚，新代码不再读写。 */
   tag: varchar('tag', { length: 32 }),
+  /** 多标签：读时 tags ?? (tag ? [tag] : [])，写只写 tags（始终数组）。 */
+  tags: json('tags').$type<string[]>(),
   freq: varchar('freq', { length: 10 }).notNull().default('weekly'),
   // `interval` 是 SQL 保留字，列名用 repeat_interval；TS 字段保持语义 interval
   interval: int('repeat_interval').notNull().default(1),

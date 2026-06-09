@@ -281,7 +281,7 @@ export const api = {
 
 /**
  * 手动编辑可传的字段。对齐 apps/web PATCH 的 patchSchema（taskCoreSchema.partial + status）。
- * tag / deadline 允许传 null 代表清空。
+ * tags 传空数组代表清空；deadline 允许传 null 代表清空。
  */
 export interface TaskPatch {
   text: string;
@@ -289,7 +289,7 @@ export interface TaskPatch {
   window: 'now' | 'today' | 'later';
   energy: number;
   priority: number;
-  tag: string | null;
+  tags: string[];
   deadline: string | null;
   expectAt: string | null;
   dueAt: string | null;
@@ -303,7 +303,7 @@ export interface RecurrenceInput {
   window: 'now' | 'today' | 'later';
   energy?: number;
   priority?: number;
-  tag?: string;
+  tags?: string[];
   freq: RecurrenceFreq;
   interval: number;
   anchorAt?: string;

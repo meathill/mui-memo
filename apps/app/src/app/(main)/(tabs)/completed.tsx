@@ -318,7 +318,7 @@ function CompletedRow({ task, onReopen, onDelete, onRowVanished, onLaunchBall }:
       <View className="min-w-0 flex-1">
         <Text className="text-ink-soft text-base line-through">{task.text}</Text>
         <Text className="mt-1 font-mono text-ink-mute text-sm">
-          {task.tag ? `🏷 ${task.tag} · ` : ''}
+          {task.tags.length ? `🏷 ${task.tags.join(' ')} · ` : ''}
           {formatTime(task.completedAt)}
         </Text>
       </View>

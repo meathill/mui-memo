@@ -76,10 +76,11 @@ export function SortableChipList({ chips, pinnedKey, onReorder, onRemove, onDrag
 
   return (
     <View style={{ height: chips.length * SLOT }}>
-      {chips.map((c) => (
+      {chips.map((c, index) => (
         <SortableRow
           key={chipKey(c)}
           chip={c}
+          index={index}
           positions={positions}
           count={chips.length}
           removable={chipKey(c) !== pinnedKey}
@@ -95,6 +96,7 @@ export function SortableChipList({ chips, pinnedKey, onReorder, onRemove, onDrag
 
 interface RowProps {
   chip: BarChip;
+  index: number;
   positions: SharedValue<Positions>;
   count: number;
   removable: boolean;
@@ -104,10 +106,21 @@ interface RowProps {
   onDragEnd: () => void;
 }
 
-function SortableRow({ chip, positions, count, removable, onRemove, onCommit, onDragStart, onDragEnd }: RowProps) {
+function SortableRow({
+  chip,
+  index,
+  positions,
+  count,
+  removable,
+  onRemove,
+  onCommit,
+  onDragStart,
+  onDragEnd,
+}: RowProps) {
   const colors = useThemeHex();
   const id = chipKey(chip);
-  const top = useSharedValue(positions.value[id] * SLOT);
+  // 新加入的芯片，positions 这一帧还没收录它（靠 useEffect 补），用 index 兜底，避免 NaN 导致整行空白。
+  const top = useSharedValue((positions.value[id] ?? index) * SLOT);
   const startTop = useSharedValue(0);
   const active = useSharedValue(false);
 

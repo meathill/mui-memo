@@ -32,7 +32,7 @@ interface Task {
   window: TaskWindow;
   energy: number;
   priority: number;
-  tag: string | null;
+  tags: string[];
   deadline: string | null;
   expectAt: string | null;
   dueAt: string | null;
@@ -53,6 +53,7 @@ export function TaskDetailView({ id }: { id: string }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [tagDraft, setTagDraft] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function handleDeleteTask() {
@@ -96,7 +97,7 @@ export function TaskDetailView({ id }: { id: string }) {
       if (fields.place !== undefined) body.place = fields.place;
       if (fields.window !== undefined) body.window = fields.window;
       if (fields.priority !== undefined) body.priority = fields.priority;
-      if (fields.tag !== undefined) body.tag = fields.tag || undefined;
+      if (fields.tags !== undefined) body.tags = fields.tags;
       if (fields.deadline !== undefined) body.deadline = fields.deadline || undefined;
       if (fields.expectAt !== undefined) body.expectAt = fields.expectAt ?? null;
       if (fields.dueAt !== undefined) body.dueAt = fields.dueAt ?? null;
@@ -114,6 +115,18 @@ export function TaskDetailView({ id }: { id: string }) {
     },
     [id, task],
   );
+
+  function addTag(value: string) {
+    if (!task) return;
+    const v = value.trim();
+    if (!v || task.tags.includes(v) || task.tags.length >= 12) return;
+    patch({ tags: [...task.tags, v] });
+    setTagDraft('');
+  }
+  function removeTag(value: string) {
+    if (!task) return;
+    patch({ tags: task.tags.filter((t) => t !== value) });
+  }
 
   const uploadOne = useCallback(
     async (file: File) => {
@@ -263,16 +276,53 @@ export function TaskDetailView({ id }: { id: string }) {
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="标签">
-            <Input
-              aria-label="标签"
-              defaultValue={task.tag ?? ''}
-              onBlur={(e) => {
-                const v = e.target.value.trim();
-                if (v !== (task.tag ?? '')) patch({ tag: v });
-              }}
-              placeholder="工作 / 家务 / …"
-              size="default"
-            />
+            <div className="space-y-2">
+              {task.tags.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {task.tags.map((t) => (
+                    <span
+                      key={t}
+                      className="inline-flex items-center gap-1 rounded-full bg-ink px-2.5 py-1 text-paper text-xs"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTagDraft(t);
+                          removeTag(t);
+                        }}
+                        className="hover:opacity-80"
+                      >
+                        {t}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeTag(t)}
+                        aria-label={`移除 ${t}`}
+                        className="leading-none hover:opacity-70"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+              <Input
+                aria-label="标签"
+                value={tagDraft}
+                onChange={(e) => setTagDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTag(tagDraft);
+                  }
+                }}
+                onBlur={() => {
+                  if (tagDraft.trim()) addTag(tagDraft);
+                }}
+                placeholder="加标签，回车确认"
+                size="default"
+              />
+            </div>
           </Field>
           <Field label="时间">
             <Input

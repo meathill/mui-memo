@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     if (patch.window !== undefined) set.taskWindow = patch.window;
     if (patch.energy !== undefined) set.energy = patch.energy;
     if (patch.priority !== undefined) set.priority = patch.priority;
-    if (patch.tag !== undefined) set.tag = patch.tag ?? null;
+    if (patch.tags !== undefined) set.tags = patch.tags;
     if (patch.deadline !== undefined) set.deadline = patch.deadline ?? null;
     if (patch.expectAt !== undefined) set.expectAt = patch.expectAt ? new Date(patch.expectAt) : null;
     if (patch.dueAt !== undefined) set.dueAt = patch.dueAt ? new Date(patch.dueAt) : null;
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
       taskWindow: t.window ?? 'today',
       energy: t.energy ?? 2,
       priority: t.priority ?? 2,
-      tag: t.tag ?? null,
+      tags: t.tags ?? [],
       deadline: t.deadline ?? null,
       expectAt: t.expectAt ? new Date(t.expectAt) : null,
       dueAt: t.dueAt ? new Date(t.dueAt) : null,

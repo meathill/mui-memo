@@ -21,7 +21,8 @@ export function rowToView(row: TaskRow, linkedChildren: Array<{ id: string; text
     window: row.taskWindow as TaskWindow,
     energy: row.energy,
     priority: row.priority,
-    tag: row.tag,
+    // 读回退：迁移回填前 tags 列可能为 null，退回旧单标签 tag。
+    tags: row.tags ?? (row.tag ? [row.tag] : []),
     deadline: row.deadline,
     expectAt: row.expectAt ? row.expectAt.toISOString() : null,
     dueAt: row.dueAt ? row.dueAt.toISOString() : null,
@@ -59,6 +60,7 @@ export async function listTasksForUser(db: Database, userId: string): Promise<Ta
       energy: tasksTable.energy,
       priority: tasksTable.priority,
       tag: tasksTable.tag,
+      tags: tasksTable.tags,
       deadline: tasksTable.deadline,
       expectAt: tasksTable.expectAt,
       dueAt: tasksTable.dueAt,
@@ -96,7 +98,7 @@ interface ViewPatch {
   window?: NullableField<TaskWindow>;
   energy?: NullableField<number>;
   priority?: NullableField<number>;
-  tag?: NullableField<string>;
+  tags?: string[];
   deadline?: NullableField<string>;
   expectAt?: NullableField<Date>;
   dueAt?: NullableField<Date>;
@@ -114,7 +116,7 @@ function viewPatchToRow(patch: ViewPatch): Partial<NewTaskRow> {
   if (patch.window !== undefined && patch.window !== null) out.taskWindow = patch.window;
   if (patch.energy !== undefined && patch.energy !== null) out.energy = patch.energy;
   if (patch.priority !== undefined && patch.priority !== null) out.priority = patch.priority;
-  if (patch.tag !== undefined) out.tag = patch.tag ?? null;
+  if (patch.tags !== undefined) out.tags = patch.tags;
   if (patch.deadline !== undefined) out.deadline = patch.deadline ?? null;
   if (patch.expectAt !== undefined) out.expectAt = patch.expectAt ?? null;
   if (patch.dueAt !== undefined) out.dueAt = patch.dueAt ?? null;
@@ -154,7 +156,7 @@ export function planPersist(userId: string, before: TaskView[], after: TaskView[
         taskWindow: a.window,
         energy: a.energy,
         priority: a.priority,
-        tag: a.tag ?? null,
+        tags: a.tags ?? [],
         deadline: a.deadline ?? null,
         expectAt: a.expectAt ? new Date(a.expectAt) : null,
         dueAt: a.dueAt ? new Date(a.dueAt) : null,
@@ -171,7 +173,7 @@ export function planPersist(userId: string, before: TaskView[], after: TaskView[
     if (b.window !== a.window) diff.window = a.window;
     if (b.energy !== a.energy) diff.energy = a.energy;
     if (b.priority !== a.priority) diff.priority = a.priority;
-    if ((b.tag ?? null) !== (a.tag ?? null)) diff.tag = a.tag ?? null;
+    if (JSON.stringify(b.tags ?? []) !== JSON.stringify(a.tags ?? [])) diff.tags = a.tags ?? [];
     if ((b.deadline ?? null) !== (a.deadline ?? null)) diff.deadline = a.deadline ?? null;
     if ((b.expectAt ?? null) !== (a.expectAt ?? null)) {
       diff.expectAt = a.expectAt ? new Date(a.expectAt) : null;

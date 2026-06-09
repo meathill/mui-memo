@@ -9,7 +9,7 @@ import type { RecurrenceFreq } from './validators.js';
 export interface CompletedTask {
   id: string;
   text: string;
-  tag: string | null;
+  tags: string[];
   completedAt: string | null;
 }
 

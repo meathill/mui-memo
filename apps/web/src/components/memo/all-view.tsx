@@ -57,10 +57,13 @@ export function AllView() {
   const grouped = useMemo(() => {
     const map = new Map<string, TaskView[]>();
     for (const t of pending) {
-      const key = t.tag || UNTAGGED;
-      const arr = map.get(key) ?? [];
-      arr.push(t);
-      map.set(key, arr);
+      // 多标签：一件事进它每个标签的分组；没标签的进「未分类」。
+      const keys = t.tags?.length ? t.tags : [UNTAGGED];
+      for (const key of keys) {
+        const arr = map.get(key) ?? [];
+        arr.push(t);
+        map.set(key, arr);
+      }
     }
     return Array.from(map.entries()).sort((a, b) => b[1].length - a[1].length);
   }, [pending]);

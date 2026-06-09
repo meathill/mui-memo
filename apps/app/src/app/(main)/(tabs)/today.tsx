@@ -72,7 +72,7 @@ export default function TodayScreen() {
     () => (activeTag ? rerank(filterByTag(tasks, activeTag), 'any') : rerank(tasks, place)),
     [tasks, place, activeTag],
   );
-  const allTags = useMemo(() => [...new Set(tasks.flatMap((t) => (t.tag ? [t.tag] : [])))].sort(), [tasks]);
+  const allTags = useMemo(() => [...new Set(tasks.flatMap((t) => t.tags ?? []))].sort(), [tasks]);
 
   const fade = useSharedValue(1);
   const fadeStyle = useAnimatedStyle(() => ({ opacity: fade.value }));

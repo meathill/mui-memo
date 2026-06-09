@@ -7,7 +7,7 @@ import {
 } from '@mui-memo/shared/logic';
 import type { RecurrenceFreq, TaskPlace, TaskWindow } from '@mui-memo/shared/validators';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { CheckIcon, XIcon } from 'lucide-react-native';
+import { CheckIcon, PlusIcon, XIcon } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -79,18 +79,33 @@ export default function TaskEditScreen() {
   const [text, setText] = useState('');
   const [place, setPlace] = useState<TaskPlace>('any');
   const [taskWindow, setTaskWindow] = useState<TaskWindow>('today');
-  const [tag, setTag] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagDraft, setTagDraft] = useState('');
   const [expectAt, setExpectAt] = useState<string | null>(null);
   const [repeat, setRepeat] = useState<RepeatOption>('none');
   const [loadedRecurrence, setLoadedRecurrence] = useState<RecurrenceInfo | null>(null);
 
-  // 已有标签快速选择：从全局任务里现算去重，点一下即填入下方输入框。
+  // 已有标签建议：从全局任务里现算去重，排除已选的，点一下即加入。
   const storeTasks = useAppStore((s) => s.tasks);
-  const tagOptions = useMemo(
-    () =>
-      [...new Set(storeTasks.flatMap((t) => (t.tag ? [t.tag] : [])))].sort().map((value) => ({ value, label: value })),
-    [storeTasks],
+  const tagSuggestions = useMemo(
+    () => [...new Set(storeTasks.flatMap((t) => t.tags ?? []))].filter((s) => !tags.includes(s)).sort(),
+    [storeTasks, tags],
   );
+
+  function addTag(value: string) {
+    const v = value.trim();
+    if (!v || tags.includes(v) || tags.length >= 12) return;
+    setTags((prev) => [...prev, v]);
+    setTagDraft('');
+  }
+  function removeTag(value: string) {
+    setTags((prev) => prev.filter((t) => t !== value));
+  }
+  // 点芯片改文字：放回输入框 + 从已选里移除，改完再回车加回去。
+  function editTag(value: string) {
+    setTagDraft(value);
+    removeTag(value);
+  }
 
   useEffect(() => {
     if (!id) return;
@@ -103,7 +118,7 @@ export default function TaskEditScreen() {
         setText(task.text);
         setPlace(task.place);
         setTaskWindow(task.window);
-        setTag(task.tag ?? '');
+        setTags(task.tags ?? []);
         setExpectAt(task.expectAt ?? null);
         setLoadedRecurrence(recurrence);
         setRepeat(recurrence ? toRepeat(recurrence.freq, recurrence.interval) : 'none');
@@ -129,9 +144,10 @@ export default function TaskEditScreen() {
     if (trimmedText !== task.text) patch.text = trimmedText;
     if (place !== task.place) patch.place = place;
     if (taskWindow !== task.window) patch.window = taskWindow;
-    const trimmedTag = tag.trim();
-    const normalizedTag = trimmedTag.length > 0 ? trimmedTag : null;
-    if (normalizedTag !== (task.tag ?? null)) patch.tag = normalizedTag;
+    // 把没回车确认的草稿也并进去，避免用户输了一半没保存
+    const draft = tagDraft.trim();
+    const finalTags = draft && !tags.includes(draft) && tags.length < 12 ? [...tags, draft] : tags;
+    if (JSON.stringify(finalTags) !== JSON.stringify(task.tags ?? [])) patch.tags = finalTags;
     if (expectAt !== (task.expectAt ?? null)) patch.expectAt = expectAt;
 
     const desired = toFreqInterval(repeat);
@@ -155,7 +171,7 @@ export default function TaskEditScreen() {
         window: taskWindow,
         energy: task?.energy ?? 2,
         priority: task?.priority ?? 2,
-        ...(normalizedTag ? { tag: normalizedTag } : {}),
+        tags: finalTags,
         freq: spec.freq,
         interval: spec.interval,
         ...(expectAt ? { anchorAt: expectAt } : {}),
@@ -183,7 +199,7 @@ export default function TaskEditScreen() {
             text: trimmedText,
             place,
             window: taskWindow,
-            ...(normalizedTag ? { tag: normalizedTag } : {}),
+            tags: finalTags,
           });
         }
       }
@@ -201,7 +217,7 @@ export default function TaskEditScreen() {
     } finally {
       setSaving(false);
     }
-  }, [task, saving, text, place, taskWindow, tag, expectAt, repeat, loadedRecurrence]);
+  }, [task, saving, text, place, taskWindow, tags, tagDraft, expectAt, repeat, loadedRecurrence]);
 
   return (
     <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
@@ -266,19 +282,56 @@ export default function TaskEditScreen() {
             </Section>
 
             <Section label="标签">
-              {tagOptions.length > 0 ? (
-                <View className="mb-2">
-                  <ChipRow options={tagOptions} value={tag} onChange={setTag} />
+              {tags.length > 0 ? (
+                <View className="mb-2 flex-row flex-wrap gap-2">
+                  {tags.map((t) => (
+                    <View key={t} className="flex-row items-center gap-1 rounded-full bg-ink py-1.5 pr-2 pl-3">
+                      <Pressable onPress={() => editTag(t)} hitSlop={4} accessibilityLabel={`编辑标签 ${t}`}>
+                        <Text className="text-paper text-sm">{t}</Text>
+                      </Pressable>
+                      <Pressable onPress={() => removeTag(t)} hitSlop={6} accessibilityLabel={`移除标签 ${t}`}>
+                        <XIcon size={14} color={colors.paper} />
+                      </Pressable>
+                    </View>
+                  ))}
                 </View>
               ) : null}
-              <TextInput
-                value={tag}
-                onChangeText={setTag}
-                placeholder="可选，比如「网银」「采购」"
-                placeholderTextColor={colors.inkMute}
-                maxLength={32}
-                className="rounded-lg border border-rule bg-paper-2/50 px-4 py-3 text-base text-ink"
-              />
+              <View className="flex-row items-center gap-2">
+                <TextInput
+                  value={tagDraft}
+                  onChangeText={setTagDraft}
+                  onSubmitEditing={() => addTag(tagDraft)}
+                  blurOnSubmit={false}
+                  returnKeyType="done"
+                  placeholder="加标签，回车确认，比如「网银」"
+                  placeholderTextColor={colors.inkMute}
+                  maxLength={32}
+                  className="flex-1 rounded-lg border border-rule bg-paper-2/50 px-4 py-3 text-base text-ink"
+                />
+                {tagDraft.trim() ? (
+                  <Pressable
+                    onPress={() => addTag(tagDraft)}
+                    hitSlop={6}
+                    accessibilityLabel="添加标签"
+                    className="h-10 w-10 items-center justify-center rounded-full bg-ink active:opacity-70"
+                  >
+                    <PlusIcon size={18} color={colors.paper} />
+                  </Pressable>
+                ) : null}
+              </View>
+              {tagSuggestions.length > 0 ? (
+                <View className="mt-2 flex-row flex-wrap gap-2">
+                  {tagSuggestions.map((s) => (
+                    <Pressable
+                      key={s}
+                      onPress={() => addTag(s)}
+                      className="rounded-full border border-rule bg-paper-2/50 px-3 py-1.5 active:opacity-60"
+                    >
+                      <Text className="text-ink-soft text-sm">＋ {s}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              ) : null}
             </Section>
           </ScrollView>
         </KeyboardAvoidingView>

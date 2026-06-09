@@ -30,8 +30,8 @@ function tagLine(out: string): string {
 describe('buildUserPrompt · 已有标签注入', () => {
   it('有带标签的任务时，输出包含「用户已有的标签」及各标签', () => {
     const tasks = [
-      task({ id: '1', text: '查网银流水', tag: '网银' }),
-      task({ id: '2', text: '买打印纸', tag: '采购' }),
+      task({ id: '1', text: '查网银流水', tags: ['网银'] }),
+      task({ id: '2', text: '买打印纸', tags: ['采购'] }),
     ];
     const line = tagLine(buildUserPrompt(tasks, NOW, '记一笔'));
     expect(line).toContain('用户已有的标签');
@@ -41,9 +41,9 @@ describe('buildUserPrompt · 已有标签注入', () => {
 
   it('标签去重，重复只出现一次', () => {
     const tasks = [
-      task({ id: '1', text: 'a', tag: '网银' }),
-      task({ id: '2', text: 'b', tag: '网银' }),
-      task({ id: '3', text: 'c', tag: '采购' }),
+      task({ id: '1', text: 'a', tags: ['网银'] }),
+      task({ id: '2', text: 'b', tags: ['网银'] }),
+      task({ id: '3', text: 'c', tags: ['采购'] }),
     ];
     const line = tagLine(buildUserPrompt(tasks, NOW));
     expect(line.match(/网银/g)?.length).toBe(1);
@@ -51,14 +51,20 @@ describe('buildUserPrompt · 已有标签注入', () => {
 
   it('done / linked 任务的标签不计入', () => {
     const tasks = [
-      task({ id: '1', text: '已完成', tag: '旧标签', done: true, status: 'done' }),
-      task({ id: '2', text: '子任务', tag: '关联标签', status: 'linked' }),
-      task({ id: '3', text: '活跃', tag: '网银' }),
+      task({ id: '1', text: '已完成', tags: ['旧标签'], done: true, status: 'done' }),
+      task({ id: '2', text: '子任务', tags: ['关联标签'], status: 'linked' }),
+      task({ id: '3', text: '活跃', tags: ['网银'] }),
     ];
     const line = tagLine(buildUserPrompt(tasks, NOW));
     expect(line).toContain('网银');
     expect(line).not.toContain('旧标签');
     expect(line).not.toContain('关联标签');
+  });
+
+  it('单个任务的多个标签都注入', () => {
+    const line = tagLine(buildUserPrompt([task({ id: '1', text: 'x', tags: ['网银', '报销'] })], NOW));
+    expect(line).toContain('网银');
+    expect(line).toContain('报销');
   });
 
   it('没有任何带标签任务时，不出现该行', () => {

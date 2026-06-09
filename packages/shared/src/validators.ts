@@ -33,7 +33,7 @@ export const taskCoreSchema = z.object({
   window: taskWindowEnum.default('today'),
   energy: z.number().int().min(1).max(3).default(2),
   priority: z.number().int().min(1).max(3).default(2),
-  tag: z.string().max(32).optional(),
+  tags: z.array(z.string().min(1).max(32)).max(12).optional(),
   deadline: z.string().max(64).optional(),
   /**
    * 预期完成时间（用户「打算做」的时刻）。ISO 8601 带时区偏移。
@@ -98,7 +98,7 @@ export const recurrenceCoreSchema = z.object({
   window: taskWindowEnum.default('today'),
   energy: z.number().int().min(1).max(3).default(2),
   priority: z.number().int().min(1).max(3).default(2),
-  tag: z.string().max(32).optional(),
+  tags: z.array(z.string().min(1).max(32)).max(12).optional(),
   freq: recurrenceFreqEnum.default('weekly'),
   interval: z.number().int().min(1).max(52).default(1),
   anchorAt: z

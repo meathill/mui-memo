@@ -30,7 +30,7 @@ function rowToDef(r: RecurrenceRow): RecurrenceDef {
     window: r.taskWindow as TaskWindow,
     energy: r.energy,
     priority: r.priority,
-    tag: r.tag,
+    tags: r.tags ?? (r.tag ? [r.tag] : []),
     freq: r.freq as RecurrenceFreq,
     interval: r.interval,
     anchorAt: r.anchorAt.toISOString(),
@@ -63,7 +63,7 @@ export async function createRecurrence(
     taskWindow: input.window,
     energy: input.energy,
     priority: input.priority,
-    tag: input.tag ?? null,
+    tags: input.tags ?? [],
     freq: input.freq,
     interval: input.interval,
     anchorAt,
@@ -98,7 +98,7 @@ export async function updateRecurrence(
   if (patch.window !== undefined) update.taskWindow = patch.window;
   if (patch.energy !== undefined) update.energy = patch.energy;
   if (patch.priority !== undefined) update.priority = patch.priority;
-  if (patch.tag !== undefined) update.tag = patch.tag ?? null;
+  if (patch.tags !== undefined) update.tags = patch.tags;
   if (patch.freq !== undefined) update.freq = patch.freq;
   if (patch.interval !== undefined) update.interval = patch.interval;
   if (patch.anchorAt !== undefined) update.anchorAt = new Date(patch.anchorAt);
@@ -172,7 +172,7 @@ export async function applyRecurrenceReconcile(
       taskWindow: spec.window,
       energy: spec.energy,
       priority: spec.priority,
-      tag: spec.tag ?? null,
+      tags: spec.tags ?? [],
       status: 'pending',
       expectAt: new Date(spec.expectAt),
       recurrenceId: spec.recurrenceId,

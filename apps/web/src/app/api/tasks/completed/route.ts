@@ -29,6 +29,7 @@ export async function GET(req: Request) {
       id: tasksTable.id,
       text: tasksTable.text,
       tag: tasksTable.tag,
+      tags: tasksTable.tags,
       completedAt: tasksTable.completedAt,
     })
     .from(tasksTable)
@@ -40,7 +41,7 @@ export async function GET(req: Request) {
   const tasks = rows.slice(0, limit).map((r) => ({
     id: r.id,
     text: r.text,
-    tag: r.tag,
+    tags: r.tags ?? (r.tag ? [r.tag] : []),
     completedAt: r.completedAt ? r.completedAt.toISOString() : null,
   }));
   const nextCursor = hasMore ? (tasks[tasks.length - 1]?.completedAt ?? null) : null;

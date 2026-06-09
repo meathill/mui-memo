@@ -117,7 +117,7 @@ export default function TaskDetailScreen() {
         <ScrollView contentContainerClassName="px-5 pb-10">
           <Text className="font-mono text-ink-mute text-sm uppercase tracking-[2px]">
             {STATUS_LABEL[task.status] ?? task.status}
-            {task.tag ? ` · 🏷 ${task.tag}` : ''}
+            {task.tags?.length ? ` · 🏷 ${task.tags.join(' ')}` : ''}
           </Text>
           <Text className="mt-2 font-serif text-ink text-3xl leading-snug">{task.text}</Text>
           {task.rawText && task.rawText !== task.text ? (

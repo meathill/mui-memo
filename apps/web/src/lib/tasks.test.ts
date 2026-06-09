@@ -15,6 +15,7 @@ function makeRow(overrides: Partial<TaskRow> = {}): TaskRow {
     energy: 2,
     priority: 2,
     tag: null,
+    tags: null,
     deadline: null,
     expectAt: null,
     dueAt: null,
@@ -73,6 +74,12 @@ describe('rowToView', () => {
     const view = rowToView(makeRow(), [{ id: 'c1', text: '顺手买面包' }]);
     expect(view.linked).toEqual([{ id: 'c1', text: '顺手买面包' }]);
   });
+
+  it('tags：优先用 tags 列，为空时回退旧 tag 单标签', () => {
+    expect(rowToView(makeRow({ tags: ['网银', '报销'] })).tags).toEqual(['网银', '报销']);
+    expect(rowToView(makeRow({ tags: null, tag: '采购' })).tags).toEqual(['采购']);
+    expect(rowToView(makeRow({ tags: null, tag: null })).tags).toEqual([]);
+  });
 });
 
 describe('planPersist', () => {
@@ -104,10 +111,15 @@ describe('planPersist', () => {
     expect(updates[0].patch.updatedAt).toBeInstanceOf(Date);
   });
 
-  it('tag 由有值改成空 → patch.tag = null（清空语义）', () => {
-    const { updates } = planPersist('u1', [makeView({ tag: '采购' })], [makeView({ tag: null })]);
+  it('tags 由有值改成空 → patch.tags = []（清空语义）', () => {
+    const { updates } = planPersist('u1', [makeView({ tags: ['采购'] })], [makeView({ tags: [] })]);
     expect(updates).toHaveLength(1);
-    expect(updates[0].patch.tag).toBeNull();
+    expect(updates[0].patch.tags).toEqual([]);
+  });
+
+  it('tags 增删 → patch.tags 为新数组', () => {
+    const { updates } = planPersist('u1', [makeView({ tags: ['采购'] })], [makeView({ tags: ['采购', '报销'] })]);
+    expect(updates[0].patch.tags).toEqual(['采购', '报销']);
   });
 
   it('一批里混合 新增 / 改动 / 不变', () => {

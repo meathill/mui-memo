@@ -21,7 +21,7 @@ export interface RecurrenceDef {
   window: TaskWindow;
   energy: number;
   priority: number;
-  tag?: string | null;
+  tags?: string[];
   freq: RecurrenceFreq;
   interval: number;
   anchorAt: string;
@@ -45,7 +45,7 @@ export interface NewInstanceSpec {
   window: TaskWindow;
   energy: number;
   priority: number;
-  tag?: string | null;
+  tags?: string[];
   /** = 本期 periodStart 的 ISO，复用现有本地通知到点提醒 */
   expectAt: string;
 }
@@ -168,7 +168,7 @@ export function reconcileRecurrences(
         window: def.window,
         energy: def.energy,
         priority: def.priority,
-        tag: def.tag ?? null,
+        tags: def.tags ?? [],
         expectAt: periodStart(anchor, k, def.freq, def.interval, def.tzOffset).toISOString(),
       });
     }
