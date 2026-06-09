@@ -2,7 +2,7 @@ import type { BarChip } from '@mui-memo/shared/logic';
 import { PLACES } from '@mui-memo/shared/logic';
 import { PlusIcon } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { hapticSelection, hapticSuccess } from '@/lib/haptics';
 import { useThemeHex } from '@/lib/use-theme-hex';
@@ -31,6 +31,8 @@ const PINNED_KEY = chipKey(PINNED);
 export function BarEditorModal({ visible, chips, allTags, onSave, onClose }: Props) {
   const [draft, setDraft] = useState<BarChip[]>(chips);
   const [dragging, setDragging] = useState(false);
+  // 面板高度随屏幕走：标签多时也有足够空间操作，不再被固定矮高度卡住。
+  const { height } = useWindowDimensions();
 
   // 每次打开都用当前 chips 重置草稿，丢弃上次未保存的改动。
   useEffect(() => {
@@ -78,7 +80,11 @@ export function BarEditorModal({ visible, chips, allTags, onSave, onClose }: Pro
             </View>
 
             {/* 拖拽时禁掉外层滚动，避免与拖拽抢手势 */}
-            <ScrollView className="max-h-96" showsVerticalScrollIndicator={false} scrollEnabled={!dragging}>
+            <ScrollView
+              style={{ maxHeight: Math.round(height * 0.72) }}
+              showsVerticalScrollIndicator={false}
+              scrollEnabled={!dragging}
+            >
               <Text className="mb-2 font-mono text-ink-mute text-xs uppercase tracking-[2px]">
                 显示中 · 长按拖动排序
               </Text>
