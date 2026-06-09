@@ -1,11 +1,13 @@
 import type { BarChip } from '@mui-memo/shared/logic';
-import { moveBarChip, PLACES } from '@mui-memo/shared/logic';
-import { ChevronDownIcon, ChevronUpIcon, PlusIcon, XIcon } from 'lucide-react-native';
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { PLACES } from '@mui-memo/shared/logic';
+import { PlusIcon } from 'lucide-react-native';
+import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { hapticSelection, hapticSuccess } from '@/lib/haptics';
 import { useThemeHex } from '@/lib/use-theme-hex';
 import { chipKey, chipLabel, sameChip } from './bar-chip';
+import { SortableChipList } from './sortable-chip-list';
 
 interface Props {
   visible: boolean;
@@ -16,17 +18,19 @@ interface Props {
 }
 
 const PLACE_CANDIDATES: BarChip[] = PLACES.map((place) => ({ kind: 'place', place }));
-// 「全部」常开：始终保留清空筛选的退路，不允许移除（但允许调整位置）。
+// 「全部」常开：始终保留清空筛选的退路，不允许移除（但允许拖动调整位置）。
 const PINNED: BarChip = { kind: 'place', place: 'any' };
+const PINNED_KEY = chipKey(PINNED);
 
 /**
  * 筛选栏编辑弹窗：底部抽屉。
- * - 「显示中」按实际展示顺序排列，可上 / 下移动、移除（「全部」不可移除）。
+ * - 「显示中」长按拖动排序、点 ✕ 移除（「全部」不可移除）。
  * - 「可添加」列出还没进栏的场景 / 标签，点 + 加到末尾。
  * 草稿改完点「完成」一次性保存，取消则丢弃。
  */
 export function BarEditorModal({ visible, chips, allTags, onSave, onClose }: Props) {
   const [draft, setDraft] = useState<BarChip[]>(chips);
+  const [dragging, setDragging] = useState(false);
 
   // 每次打开都用当前 chips 重置草稿，丢弃上次未保存的改动。
   useEffect(() => {
@@ -38,11 +42,6 @@ export function BarEditorModal({ visible, chips, allTags, onSave, onClose }: Pro
     const tagCandidates = allTags.map((tag): BarChip => ({ kind: 'tag', tag }));
     return [...PLACE_CANDIDATES, ...tagCandidates].filter((c) => !draft.some((d) => sameChip(d, c)));
   }, [allTags, draft]);
-
-  function move(index: number, delta: number) {
-    hapticSelection();
-    setDraft((d) => moveBarChip(d, index, delta));
-  }
 
   function remove(c: BarChip) {
     if (sameChip(c, PINNED)) return; // 全部 不可移除
@@ -64,92 +63,53 @@ export function BarEditorModal({ visible, chips, allTags, onSave, onClose }: Pro
 
   return (
     <Modal transparent animationType="slide" visible={visible} onRequestClose={onClose}>
-      <View className="flex-1 justify-end bg-black/40">
-        <View className="rounded-t-2xl bg-paper px-4 pt-4 pb-8">
-          <View className="mb-4 flex-row items-center justify-between">
-            <Pressable onPress={onClose} hitSlop={8}>
-              <Text className="text-base text-ink-mute">取消</Text>
-            </Pressable>
-            <Text className="font-serif font-bold text-base text-ink">筛选栏</Text>
-            <Pressable onPress={handleSave} hitSlop={8}>
-              <Text className="font-bold text-base text-ink">完成</Text>
-            </Pressable>
-          </View>
-
-          <ScrollView className="max-h-96" showsVerticalScrollIndicator={false}>
-            <Text className="mb-2 font-mono text-ink-mute text-xs uppercase tracking-[2px]">显示中 · 上下调整顺序</Text>
-            <View className="gap-2">
-              {draft.map((c, i) => (
-                <SelectedRow
-                  key={chipKey(c)}
-                  chip={c}
-                  isFirst={i === 0}
-                  isLast={i === draft.length - 1}
-                  pinned={sameChip(c, PINNED)}
-                  onUp={() => move(i, -1)}
-                  onDown={() => move(i, 1)}
-                  onRemove={() => remove(c)}
-                />
-              ))}
+      {/* Modal 内容在独立视图层，手势必须自带 GestureHandlerRootView，否则拖拽收不到事件 */}
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View className="flex-1 justify-end bg-black/40">
+          <View className="rounded-t-2xl bg-paper px-4 pt-4 pb-8">
+            <View className="mb-4 flex-row items-center justify-between">
+              <Pressable onPress={onClose} hitSlop={8}>
+                <Text className="text-base text-ink-mute">取消</Text>
+              </Pressable>
+              <Text className="font-serif font-bold text-base text-ink">筛选栏</Text>
+              <Pressable onPress={handleSave} hitSlop={8}>
+                <Text className="font-bold text-base text-ink">完成</Text>
+              </Pressable>
             </View>
 
-            {addable.length > 0 ? (
-              <>
-                <Text className="mt-5 mb-2 font-mono text-ink-mute text-xs uppercase tracking-[2px]">可添加</Text>
-                <View className="gap-2">
-                  {addable.map((c) => (
-                    <AddRow key={chipKey(c)} chip={c} onAdd={() => add(c)} />
-                  ))}
-                </View>
-              </>
-            ) : null}
+            {/* 拖拽时禁掉外层滚动，避免与拖拽抢手势 */}
+            <ScrollView className="max-h-96" showsVerticalScrollIndicator={false} scrollEnabled={!dragging}>
+              <Text className="mb-2 font-mono text-ink-mute text-xs uppercase tracking-[2px]">
+                显示中 · 长按拖动排序
+              </Text>
+              <SortableChipList
+                chips={draft}
+                pinnedKey={PINNED_KEY}
+                onReorder={setDraft}
+                onRemove={remove}
+                onDragStart={() => setDragging(true)}
+                onDragEnd={() => setDragging(false)}
+              />
 
-            {allTags.length === 0 ? (
-              <Text className="mt-4 px-1 text-ink-mute text-xs">还没有标签。给任务加上标签后，这里就能选了。</Text>
-            ) : null}
-          </ScrollView>
+              {addable.length > 0 ? (
+                <>
+                  <Text className="mt-5 mb-2 font-mono text-ink-mute text-xs uppercase tracking-[2px]">可添加</Text>
+                  <View className="gap-2">
+                    {addable.map((c) => (
+                      <AddRow key={chipKey(c)} chip={c} onAdd={() => add(c)} />
+                    ))}
+                  </View>
+                </>
+              ) : null}
+
+              {allTags.length === 0 ? (
+                <Text className="mt-4 px-1 text-ink-mute text-xs">还没有标签。给任务加上标签后，这里就能选了。</Text>
+              ) : null}
+            </ScrollView>
+          </View>
         </View>
-      </View>
+      </GestureHandlerRootView>
     </Modal>
-  );
-}
-
-function SelectedRow({
-  chip,
-  isFirst,
-  isLast,
-  pinned,
-  onUp,
-  onDown,
-  onRemove,
-}: {
-  chip: BarChip;
-  isFirst: boolean;
-  isLast: boolean;
-  pinned: boolean;
-  onUp: () => void;
-  onDown: () => void;
-  onRemove: () => void;
-}) {
-  const colors = useThemeHex();
-  return (
-    <View className="flex-row items-center justify-between rounded-2xl border border-ink/30 bg-paper-2/60 px-4 py-2.5">
-      <Text className="flex-1 text-base text-ink" numberOfLines={1}>
-        {chipLabel(chip)}
-        {pinned ? ' · 始终显示' : ''}
-      </Text>
-      <View className="flex-row items-center gap-1">
-        <IconButton disabled={isFirst} onPress={onUp} label="上移">
-          <ChevronUpIcon size={18} color={colors.ink} />
-        </IconButton>
-        <IconButton disabled={isLast} onPress={onDown} label="下移">
-          <ChevronDownIcon size={18} color={colors.ink} />
-        </IconButton>
-        <IconButton disabled={pinned} onPress={onRemove} label="移除">
-          <XIcon size={18} color={colors.ink} />
-        </IconButton>
-      </View>
-    </View>
   );
 }
 
@@ -165,30 +125,6 @@ function AddRow({ chip, onAdd }: { chip: BarChip; onAdd: () => void }) {
         {chipLabel(chip)}
       </Text>
       <PlusIcon size={18} color={colors.inkSoft} />
-    </Pressable>
-  );
-}
-
-function IconButton({
-  children,
-  onPress,
-  disabled,
-  label,
-}: {
-  children: ReactNode;
-  onPress: () => void;
-  disabled?: boolean;
-  label: string;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      hitSlop={6}
-      accessibilityLabel={label}
-      className={`h-8 w-8 items-center justify-center rounded-full ${disabled ? 'opacity-25' : 'active:opacity-50'}`}
-    >
-      {children}
     </Pressable>
   );
 }
