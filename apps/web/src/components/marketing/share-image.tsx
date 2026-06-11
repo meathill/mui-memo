@@ -106,7 +106,7 @@ export function ShareImage() {
                   color: 'rgba(29, 26, 18, 0.48)',
                 }}
               >
-                Speak · Understand · Surface
+                Now on App Store · iOS 0.4.0
               </span>
               <span
                 style={{
@@ -116,7 +116,7 @@ export function ShareImage() {
                   letterSpacing: '-0.04em',
                 }}
               >
-                说一句话，AI 就把小事收成待办。
+                一句话，整理整张清单。
               </span>
             </div>
           </div>
@@ -138,7 +138,7 @@ export function ShareImage() {
               }}
             >
               <span style={{ fontSize: '28px', lineHeight: 1.5, color: 'rgba(29, 26, 18, 0.76)' }}>
-                意图驱动的 AI 语音轻量任务调度。
+                叨叨记已上架 App Store。长按说话，AI 帮你记下、修改、完成，再用标签筛出来。
               </span>
               <span
                 style={{
@@ -148,7 +148,7 @@ export function ShareImage() {
                   color: 'rgba(29, 26, 18, 0.54)',
                 }}
               >
-                paper, deliberate, calm
+                voice todo, tags, contexts
               </span>
             </div>
 
@@ -166,7 +166,7 @@ export function ShareImage() {
                 color: '#5f4522',
               }}
             >
-              muimemo.meathill.com
+              App Store 搜：叨叨记
             </div>
           </div>
         </div>

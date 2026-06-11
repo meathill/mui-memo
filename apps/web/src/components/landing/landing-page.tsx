@@ -8,6 +8,7 @@ import {
   ROADMAP,
   SCENES,
   type Scene,
+  UPDATE_POINTS,
 } from '@/components/landing/landing-content';
 import { CenteredSectionHead, SectionHead } from '@/components/landing/landing-section-head';
 import { MarketingHeroActions } from '@/components/marketing/marketing-auth-links';
@@ -37,7 +38,7 @@ function Hero() {
     <section className="grid gap-10 pt-2 pb-16 sm:grid-cols-[minmax(0,1.05fr)_minmax(23rem,0.95fr)] sm:gap-12 sm:pb-22 lg:gap-14 lg:items-start">
       <div>
         <p className="font-mono text-[0.72rem] tracking-[0.24em] text-ink-mute uppercase sm:text-[0.8rem]">
-          00 · 语音清单
+          00 · 已上架 App Store
         </p>
         <h1 className="font-serif mt-5 max-w-[11.5ch] text-balance text-[clamp(3.25rem,6vw,5.5rem)] leading-[1.02] tracking-tight text-ink">
           一句话，整理整张
@@ -47,7 +48,7 @@ function Hero() {
           不只是记下。说一句就能改时间、勾完成、把堆久的事捞回来。整个 todo 生命周期，全靠语音。
         </p>
         <p className="mt-5 max-w-[42rem] font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.82rem]">
-          记下 → 拆分 → 修改 → 完成 → 找回 → 派给身边人
+          iOS 0.4.0 · 记下 → 拆分 → 修改 → 完成 → 标签筛选 → 场景过滤
         </p>
 
         <div className="mt-8 flex flex-wrap items-center gap-4 sm:mt-9">
@@ -83,6 +84,22 @@ function ExplainSection() {
             </div>
           </article>
         ))}
+      </div>
+      <div className="mt-12 border-t border-rule/60 pt-6 sm:mt-14 sm:pt-7">
+        <p className="font-mono text-[0.72rem] tracking-[0.18em] text-accent-warm uppercase sm:text-[0.82rem]">
+          0.4.0 · App Store 版本
+        </p>
+        <h3 className="font-serif mt-3 max-w-[18ch] text-[2rem] leading-tight text-ink sm:text-[2.35rem]">
+          标签终于能认真用了。
+        </h3>
+        <div className="mt-6 grid gap-5 sm:grid-cols-3 sm:gap-6">
+          {UPDATE_POINTS.map((item) => (
+            <article key={item.title} className="border-t border-rule/60 pt-4">
+              <h4 className="text-[1rem] font-bold text-ink sm:text-[1.06rem]">{item.title}</h4>
+              <p className="mt-2 text-[0.95rem] leading-[1.68] text-ink-soft">{item.body}</p>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -222,7 +239,7 @@ function Rule() {
 }
 
 function PhaseTag({ phase }: { phase: Phase }) {
-  const label = phase === 'done' ? '已交付' : phase === 'active' ? '进行中' : '规划中';
+  const label = phase === 'done' ? '已上线' : phase === 'active' ? '进行中' : '规划中';
   const className =
     phase === 'done'
       ? 'border-rule/70 text-ink-mute'

@@ -23,13 +23,13 @@ interface Preset {
 const TOPIC_PRESETS: Record<string, Preset> = {
   'team-waitlist': {
     eyebrow: 'Team 候补',
-    title: 'Team 协作功能 · 候补名单',
+    title: 'Team 多人场景 · 候补名单',
     description:
-      '点下面的按钮，会用你默认邮件 app 打开一封模板信，主题和正文都已填好。把团队规模、典型用法补上发出来即可。Team 上线时会优先通知到你。',
+      '点下面的按钮，会用你默认邮件 app 打开一封模板信，主题和正文都已填好。把人数、典型用法补上发出来即可。Team 开放试用时会优先通知到你。',
     subject: '叨叨记 Team 候补名单',
     body:
       '你好 meathill，\n\n' +
-      '我想加入 Team 协作功能的候补名单。\n\n' +
+      '我想加入 Team 多人场景的候补名单。\n\n' +
       '- 团队 / 家庭 / 店铺人数：\n' +
       '- 典型用法（家务分工 / 项目协作 / 班次接力 / 其他）：\n' +
       '- 联系邮箱（如果跟当前发件邮箱不一致）：\n' +

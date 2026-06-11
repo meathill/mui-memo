@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { MARKETING_HEADER_LINKS } from '@/lib/site';
+import { APP_STORE_URL, MARKETING_HEADER_LINKS } from '@/lib/site';
 import { MarketingShell } from './marketing-shell';
 
 type Tier = {
@@ -12,6 +12,7 @@ type Tier = {
   features: string[];
   ctaLabel: string;
   ctaHref: string;
+  ctaExternal?: boolean;
   status?: 'current' | 'recommended' | 'coming-soon';
 };
 
@@ -29,8 +30,9 @@ const TIERS: Tier[] = [
       '4 档主题、深浅自动跟随',
       '免费下载 iOS App',
     ],
-    ctaLabel: '免费注册',
-    ctaHref: '/register',
+    ctaLabel: '下载 iOS App',
+    ctaHref: APP_STORE_URL,
+    ctaExternal: true,
     status: 'current',
   },
   {
@@ -43,9 +45,9 @@ const TIERS: Tier[] = [
     features: [
       '上面免费版全部',
       '无限 AI 操作',
-      '优先 endpoint：识别更快、更稳',
+      '优先 AI 识别线路：识别更快、更稳',
       '语音原声归档无限期保留',
-      '协作功能内测优先邀请',
+      '后续新功能优先邀请',
     ],
     ctaLabel: '升级 Pro',
     ctaHref: '/register?upgrade=pro',
@@ -53,19 +55,11 @@ const TIERS: Tier[] = [
   },
   {
     id: 'team',
-    name: 'Team',
-    tagline: '小团队 / 家庭 / 店铺并肩干活',
-    price: '¥18',
-    priceSub: '/人/月',
-    altPrice: '或 ¥168/人/年',
-    features: [
-      '上面 Pro 全部',
-      '@ 联系人把任务派给伙伴',
-      '共享清单（家庭群、项目组、班次）',
-      '任务转交、确认、活动看板',
-      '后续支持桌面客户端、Webhook',
-    ],
-    ctaLabel: '加入候补名单',
+    name: 'Team 候补',
+    tagline: '暂不开放，先收集真实需求',
+    price: '未开放',
+    features: ['个人版稳定后再评估', '不会影响免费 / Pro 当前功能', '候补用户优先收到开放通知', '真实需求明确后再定价'],
+    ctaLabel: '留下邮箱',
     ctaHref: '/contact?topic=team-waitlist',
     status: 'coming-soon',
   },
@@ -80,10 +74,10 @@ export function PricingPageView() {
             Pricing
           </p>
           <h1 className="font-serif mt-5 text-[clamp(2.75rem,5.5vw,4.5rem)] leading-[1.04] tracking-tight text-ink">
-            按使用量分档，团队功能压轴。
+            先免费用，量大再升级。
           </h1>
           <p className="mt-5 max-w-[36rem] text-[1.05rem] leading-[1.72] text-ink-soft sm:text-[1.18rem]">
-            个人记事免费够用。AI 用得猛升级 Pro。等协作功能上线，小团队 / 家庭 / 店铺最值得 Team。
+            个人记事免费够用。AI 用得猛升级 Pro。Team 先不作为当前主推，等个人版稳定后再开放候补。
           </p>
         </header>
       </section>
@@ -118,14 +112,14 @@ export function PricingPageView() {
 
         <div className="mt-10 max-w-[48rem]">
           <p className="font-mono text-[0.72rem] tracking-[0.2em] text-ink-mute uppercase sm:text-[0.8rem]">
-            Q.03 · 团队功能什么时候上？
+            Q.03 · Team 什么时候开放？
           </p>
           <p className="mt-3 text-[1rem] leading-[1.78] text-ink-soft sm:text-[1.06rem]">
-            正在做。在路线图的 Phase 5：「@ 联系人、把任务派给伙伴」。可以先在{' '}
+            短期不作为当前主推。叨叨记会先把个人语音录入、标签筛选和订阅体验打磨稳定；如果你确实想跟进多人场景，可以先在{' '}
             <Link href="/contact?topic=team-waitlist" className="text-accent-warm underline-offset-4 hover:underline">
               候补名单
             </Link>{' '}
-            留个邮箱，准备开放内测时第一批通知到你。Pro 订阅用户优先。
+            留个邮箱，准备开放试用时第一批通知到你。
           </p>
         </div>
 
@@ -183,16 +177,31 @@ function PricingCard({ tier }: { tier: Tier }) {
         ))}
       </ul>
 
-      <Link
-        href={tier.ctaHref}
-        className={
-          isRecommended
-            ? 'mt-7 inline-flex items-center justify-center rounded-full bg-accent-warm px-5 py-3 text-center font-mono text-[0.78rem] tracking-[0.16em] text-paper uppercase transition-opacity hover:opacity-85'
-            : 'mt-7 inline-flex items-center justify-center rounded-full border border-rule/70 px-5 py-3 text-center font-mono text-[0.78rem] tracking-[0.16em] text-ink uppercase transition-colors hover:border-accent-warm/60 hover:text-accent-warm'
-        }
-      >
-        {tier.ctaLabel}
-      </Link>
+      {tier.ctaExternal ? (
+        <a
+          href={tier.ctaHref}
+          target="_blank"
+          rel="noreferrer"
+          className={
+            isRecommended
+              ? 'mt-7 inline-flex items-center justify-center rounded-full bg-accent-warm px-5 py-3 text-center font-mono text-[0.78rem] tracking-[0.16em] text-paper uppercase transition-opacity hover:opacity-85'
+              : 'mt-7 inline-flex items-center justify-center rounded-full border border-rule/70 px-5 py-3 text-center font-mono text-[0.78rem] tracking-[0.16em] text-ink uppercase transition-colors hover:border-accent-warm/60 hover:text-accent-warm'
+          }
+        >
+          {tier.ctaLabel}
+        </a>
+      ) : (
+        <Link
+          href={tier.ctaHref}
+          className={
+            isRecommended
+              ? 'mt-7 inline-flex items-center justify-center rounded-full bg-accent-warm px-5 py-3 text-center font-mono text-[0.78rem] tracking-[0.16em] text-paper uppercase transition-opacity hover:opacity-85'
+              : 'mt-7 inline-flex items-center justify-center rounded-full border border-rule/70 px-5 py-3 text-center font-mono text-[0.78rem] tracking-[0.16em] text-ink uppercase transition-colors hover:border-accent-warm/60 hover:text-accent-warm'
+          }
+        >
+          {tier.ctaLabel}
+        </Link>
+      )}
     </article>
   );
 }

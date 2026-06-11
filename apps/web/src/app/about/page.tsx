@@ -4,9 +4,9 @@ import { createMarketingMetadata } from '@/lib/site';
 
 export const metadata = createMarketingMetadata({
   title: '关于',
-  description: '了解叨叨记想解决的问题、当前阶段，以及这个个人项目接下来会怎么推进。',
+  description: '了解叨叨记为什么从语音录入出发，以及网页版和已上架 App Store 的 iOS App 现在能解决什么问题。',
   path: '/about',
-  keywords: ['关于叨叨记', '产品定位'],
+  keywords: ['关于叨叨记', '产品定位', 'App Store', 'iOS App'],
 });
 
 export default function AboutPage() {

@@ -3,9 +3,9 @@ import { createMarketingMetadata } from '@/lib/site';
 
 export const metadata = createMarketingMetadata({
   title: '一句话，整理整张清单',
-  description: '叨叨记是语音操控的 todo：说一句就能记下、拆分、改时间、勾完成、找回，未来还能 @ 联系人把事派出去。',
+  description: '叨叨记已上架 App Store：说一句就能记下、拆分、改时间、勾完成，再用标签和场景筛出当前能做的事。',
   path: '/',
-  keywords: ['语音待办', '语音清单', 'AI 任务管理', '意图驱动任务'],
+  keywords: ['语音待办', '语音清单', 'AI 任务管理', 'App Store', 'iOS App', '标签筛选'],
 });
 
 export default async function LandingPage() {

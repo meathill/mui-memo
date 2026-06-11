@@ -10,12 +10,13 @@ export const SITE_NAME = '叨叨记';
 export const SITE_TAGLINE = '语音清单';
 export const SITE_TITLE = `${SITE_NAME} · ${SITE_TAGLINE}`;
 export const SITE_DESCRIPTION =
-  '叨叨记是一个语音操控的清单工具：一句话就能记下、修改、勾完成、找回；未来还能 @ 联系人把事派给伙伴。';
+  '叨叨记是已上架 App Store 的语音待办清单：一句话就能记下、拆分、改时间、勾完成，再用场景和标签把当前能做的事筛出来。';
 export const SITE_URL = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL);
+export const APP_STORE_URL = 'https://apps.apple.com/cn/app/id6763317433';
 export const SITE_EMAIL = 'meathill@gmail.com';
 export const OG_IMAGE_PATH = '/opengraph-image';
 export const TWITTER_IMAGE_PATH = '/twitter-image';
-export const SHARE_IMAGE_ALT = '叨叨记：说一句话，AI 就把小事收成待办。';
+export const SHARE_IMAGE_ALT = '叨叨记已上架 App Store：一句话，整理整张清单。';
 
 export type MarketingLink = {
   href: string;
@@ -58,7 +59,8 @@ const DEFAULT_KEYWORDS = [
   '语音待办',
   'AI 任务管理',
   '语音记录',
-  '团队协作',
+  'App Store',
+  'iOS App',
   '生产力工具',
 ];
 

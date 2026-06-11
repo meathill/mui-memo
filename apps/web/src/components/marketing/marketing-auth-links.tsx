@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button-variants';
 import { useSession } from '@/lib/auth-client';
+import { APP_STORE_URL } from '@/lib/site';
 
 export function MarketingHeaderAuthLink() {
   const { data } = useSession();
@@ -37,15 +38,20 @@ export function MarketingHeroActions() {
 
   return (
     <>
-      <Link href="/register" className={`${buttonVariants({ size: 'lg' })} px-6`}>
-        免费注册
-      </Link>
-      <Link
-        href="/login"
-        className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-soft uppercase underline-offset-4 hover:text-ink hover:underline sm:text-[0.8rem]"
-      >
-        已有账号 · 登录
-      </Link>
+      <a href={APP_STORE_URL} target="_blank" rel="noreferrer" className={`${buttonVariants({ size: 'lg' })} px-6`}>
+        App Store 下载
+      </a>
+      <span className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-[0.72rem] tracking-[0.16em] text-ink-soft uppercase sm:text-[0.8rem]">
+        <Link href="/register" className="underline-offset-4 hover:text-ink hover:underline">
+          网页版试用
+        </Link>
+        <span aria-hidden className="text-rule-strong">
+          /
+        </span>
+        <Link href="/login" className="underline-offset-4 hover:text-ink hover:underline">
+          登录
+        </Link>
+      </span>
     </>
   );
 }

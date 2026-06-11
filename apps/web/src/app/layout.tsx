@@ -45,7 +45,7 @@ export const metadata: Metadata = {
   creator: 'meathill',
   publisher: 'meathill',
   category: 'productivity',
-  keywords: ['叨叨记', 'MuiMemo', '语音清单', '语音待办', 'AI 任务管理', '团队协作', '生产力工具'],
+  keywords: ['叨叨记', 'MuiMemo', '语音清单', '语音待办', 'AI 任务管理', 'App Store', 'iOS App', '生产力工具'],
   alternates: {
     canonical: '/',
   },
