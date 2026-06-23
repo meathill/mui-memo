@@ -2,6 +2,7 @@ import type { Attachment, CompletedTask, ProfileStats, RecurrenceInfo } from '@m
 import type { IntentEffect, TaskView } from '@mui-memo/shared/logic';
 import type { RecurrenceFreq, TaskPlace, Utterance } from '@mui-memo/shared/validators';
 import Constants from 'expo-constants';
+import { File } from 'expo-file-system';
 import { Platform } from 'react-native';
 import { API_BASE, ApiError, request } from './http';
 import { type SessionUser, useSession } from './session';
@@ -198,18 +199,22 @@ export const api = {
 
   intent: {
     /**
-     * 提交录音走 multipart。RN 的 FormData 对 `{ uri, name, type }` 三元组
-     * 有特殊处理（原生层直接把本地文件流上传），不需要先 readAsBlob。
+     * 提交录音走 multipart。
+     *
+     * Expo SDK 56 起默认把全局 `fetch` 换成 expo 自家的 winter fetch，它把 FormData 交给
+     * `convertFormDataAsync`，只认 string / Blob / 带 `bytes()` 的对象——RN 专有的
+     * `{ uri, name, type }` 文件分片会直接 throw `Unsupported FormDataPart implementation`。
+     * 所以这里改成提供 `name`/`type`（生成分片头）+ `bytes()`（取字节），与旧版上线格式一致
+     * （filename=utterance.<ext>、content-type=mimeType），服务端无需改动。
      */
     async submit(opts: { audioUri: string; mimeType: string; place: TaskPlace; tz: string }) {
       const fd = new FormData();
-      // RN FormData 的 file 字段类型比标准 DOM 多一层 uri，官方 TS 声明里没带，
-      // 但运行时必须按这个形状传
       const ext = opts.mimeType.includes('wav') ? 'wav' : opts.mimeType.includes('webm') ? 'webm' : 'm4a';
+      const file = new File(opts.audioUri);
       fd.append('audio', {
-        uri: opts.audioUri,
         name: `utterance.${ext}`,
         type: opts.mimeType,
+        bytes: async () => new Uint8Array(await file.arrayBuffer()),
       } as unknown as Blob);
       fd.append('place', opts.place);
       fd.append('tz', opts.tz);
