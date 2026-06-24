@@ -1,7 +1,7 @@
 import type { TaskView } from '@mui-memo/shared/logic';
 import type { TaskRow } from '@mui-memo/shared/schema';
 import { describe, expect, it } from 'vitest';
-import { planPersist, rowToView } from './tasks';
+import { collectRecentTagCandidates, mergeTagCandidates, planPersist, rowToView } from './tasks';
 
 // 有代表性的 task 行。embedding 是 TiDB 生成列、测试不关心，用断言绕过其类型。
 function makeRow(overrides: Partial<TaskRow> = {}): TaskRow {
@@ -79,6 +79,45 @@ describe('rowToView', () => {
     expect(rowToView(makeRow({ tags: ['网银', '报销'] })).tags).toEqual(['网银', '报销']);
     expect(rowToView(makeRow({ tags: null, tag: '采购' })).tags).toEqual(['采购']);
     expect(rowToView(makeRow({ tags: null, tag: null })).tags).toEqual([]);
+  });
+});
+
+describe('collectRecentTagCandidates', () => {
+  it('按输入顺序去重，tags 列优先于旧 tag 列', () => {
+    const out = collectRecentTagCandidates([
+      { tags: ['网银', '报销'], tag: '旧标签' },
+      { tags: [' 网银 ', '采购'] },
+      { tags: null, tag: '家务' },
+    ]);
+    expect(out).toEqual(['网银', '报销', '采购', '家务']);
+  });
+
+  it('丢掉空标签，并按 limit 截断', () => {
+    const out = collectRecentTagCandidates([{ tags: ['', '  ', 'A'] }, { tags: ['B', 'C'] }, { tags: ['D'] }], 3);
+    expect(out).toEqual(['A', 'B', 'C']);
+  });
+
+  it('默认最多返回 100 个标签', () => {
+    const rows = Array.from({ length: 105 }, (_, i) => ({ tags: [`标签${i}`] }));
+    const out = collectRecentTagCandidates(rows);
+    expect(out).toHaveLength(100);
+    expect(out.at(-1)).toBe('标签99');
+  });
+});
+
+describe('mergeTagCandidates', () => {
+  it('本地候选优先，远程候选补足，并去重 trim', () => {
+    expect(mergeTagCandidates([' 网银 ', '采购'], ['网银', '报销'])).toEqual(['网银', '采购', '报销']);
+  });
+
+  it('最多保留 limit 个候选', () => {
+    const primary = Array.from({ length: 80 }, (_, i) => `本地${i}`);
+    const secondary = Array.from({ length: 80 }, (_, i) => `远程${i}`);
+    const out = mergeTagCandidates(primary, secondary, 100);
+    expect(out).toHaveLength(100);
+    expect(out[79]).toBe('本地79');
+    expect(out[80]).toBe('远程0');
+    expect(out.at(-1)).toBe('远程19');
   });
 });
 

@@ -48,6 +48,9 @@ interface AppState {
   barChips: BarChip[];
   tasks: TaskView[];
   ranked: RankedTask[];
+  lastTasksSyncedAt: number | null;
+  isTasksSyncing: boolean;
+  tasksSyncError: string | null;
   lastEffects: IntentEffect[];
   lastUtterance: Utterance | null;
   pendingConfirms: PendingConfirm[];
@@ -59,6 +62,10 @@ interface AppState {
   setActiveTag: (tag: string | null) => void;
   setBarChips: (chips: BarChip[]) => void;
   hydrate: (payload: { tasks: TaskView[]; ranked: RankedTask[]; place?: TaskPlace }) => void;
+  setTasksSyncState: (
+    patch: Partial<Pick<AppState, 'lastTasksSyncedAt' | 'isTasksSyncing' | 'tasksSyncError'>>,
+  ) => void;
+  clearTaskSnapshot: () => void;
   setRecording: (v: boolean) => void;
   setLastEffects: (effects: IntentEffect[], u?: Utterance | null) => void;
   pushPendingConfirms: (list: PendingConfirm[]) => void;
@@ -73,10 +80,9 @@ interface AppState {
 /**
  * 全局应用状态。
  *
- * **持久化策略**：把 `tasks`、`place`、`theme`、`queue` 存到 AsyncStorage，杀 app
- * 再开能立刻看到上次列表（避免白屏等 API）、上次的主题选择，以及没来得及处理完的
- * 待处理录音队列。`lastEffects` / `pendingConfirms` / `ranked` / recording 是当次
- * 会话瞬时信息，不存。
+ * **持久化策略**：轻量 UI 状态仍放 AsyncStorage（theme / queue / barChips）。
+ * 任务读模型放 SQLite，启动后由本地库 hydrate 回内存；`lastEffects` /
+ * `pendingConfirms` / `ranked` / recording 是当次会话瞬时信息，不存。
  */
 export const useAppStore = create<AppState>()(
   persist(
@@ -86,6 +92,9 @@ export const useAppStore = create<AppState>()(
       barChips: DEFAULT_BAR_CHIPS,
       tasks: [],
       ranked: [],
+      lastTasksSyncedAt: null,
+      isTasksSyncing: false,
+      tasksSyncError: null,
       lastEffects: [],
       lastUtterance: null,
       pendingConfirms: [],
@@ -98,6 +107,18 @@ export const useAppStore = create<AppState>()(
       setActiveTag: (tag) => set({ activeTag: tag }),
       setBarChips: (chips) => set({ barChips: chips }),
       hydrate: ({ tasks, ranked, place }) => set((s) => ({ tasks, ranked, place: place ?? s.place })),
+      setTasksSyncState: (patch) => set(patch),
+      clearTaskSnapshot: () =>
+        set({
+          tasks: [],
+          ranked: [],
+          lastTasksSyncedAt: null,
+          isTasksSyncing: false,
+          tasksSyncError: null,
+          lastEffects: [],
+          lastUtterance: null,
+          pendingConfirms: [],
+        }),
       setRecording: (v) => set({ isRecording: v }),
       setLastEffects: (effects, u) => set({ lastEffects: effects, lastUtterance: u ?? null }),
       pushPendingConfirms: (list) => set((s) => ({ pendingConfirms: [...s.pendingConfirms, ...list] })),
@@ -118,7 +139,7 @@ export const useAppStore = create<AppState>()(
     {
       name: 'mui-memo.app-state',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (s) => ({ tasks: s.tasks, theme: s.theme, queue: s.queue, barChips: s.barChips }),
+      partialize: (s) => ({ theme: s.theme, queue: s.queue, barChips: s.barChips }),
       // place / activeTag 是「当次场景上下文」，不跨重启保留：每次启动都回到默认「全部」。
       // merge 兜旧安装——之前持久化过的 place 一律忽略；barChips 经 normalize 兜底
       // （旧装机无此字段、或损坏存储 → 回退默认 4 个场景）。
@@ -127,6 +148,11 @@ export const useAppStore = create<AppState>()(
         return {
           ...current,
           ...p,
+          tasks: current.tasks,
+          ranked: current.ranked,
+          lastTasksSyncedAt: current.lastTasksSyncedAt,
+          isTasksSyncing: current.isTasksSyncing,
+          tasksSyncError: current.tasksSyncError,
           place: current.place,
           activeTag: current.activeTag,
           barChips: normalizeBarChips(p.barChips, current.barChips),

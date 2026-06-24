@@ -1,5 +1,8 @@
 import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
+import { shouldClearTaskSnapshotForUserChange } from '@/lib/local-cache-model';
+import { clearLocalCache, prepareLocalCacheForUser } from '@/lib/local-db';
+import { useAppStore } from '@/store';
 
 const TOKEN_KEY = 'mui-memo.session';
 const USER_KEY = 'mui-memo.user';
@@ -22,11 +25,22 @@ interface SessionState {
   hydrate: () => Promise<void>;
 }
 
-export const useSession = create<SessionState>((set) => ({
+export const useSession = create<SessionState>((set, get) => ({
   token: null,
   user: null,
   hydrating: true,
   async setSession(token, user) {
+    const previousUserId = get().user?.id ?? null;
+    const didResetLocalCache = await prepareLocalCacheForUser(user.id);
+    if (
+      shouldClearTaskSnapshotForUserChange({
+        previousUserId,
+        nextUserId: user.id,
+        didResetLocalCache,
+      })
+    ) {
+      useAppStore.getState().clearTaskSnapshot();
+    }
     await Promise.all([
       SecureStore.setItemAsync(TOKEN_KEY, token),
       SecureStore.setItemAsync(USER_KEY, JSON.stringify(user)),
@@ -35,6 +49,8 @@ export const useSession = create<SessionState>((set) => ({
   },
   async clearSession() {
     await Promise.all([SecureStore.deleteItemAsync(TOKEN_KEY), SecureStore.deleteItemAsync(USER_KEY)]);
+    await clearLocalCache().catch(() => undefined);
+    useAppStore.getState().clearTaskSnapshot();
     set({ token: null, user: null, hydrating: false });
   },
   async hydrate() {

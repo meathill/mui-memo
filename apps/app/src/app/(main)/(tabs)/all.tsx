@@ -6,29 +6,36 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ErrorBanner } from '@/components/error-banner';
 import { TaskRow } from '@/components/memo/task-row';
 import { api } from '@/lib/api';
+import {
+  hydrateTasksFromLocalCache,
+  patchTaskEverywhere,
+  refreshTasksFromRemote,
+  restoreTaskEverywhere,
+} from '@/lib/task-sync';
 import { useThemeHex } from '@/lib/use-theme-hex';
 import { useAppStore } from '@/store';
 
 const UNTAGGED = '（未分类）';
 
 export default function AllScreen() {
-  const { tasks, hydrate } = useAppStore();
+  const { tasks } = useAppStore();
   const colors = useThemeHex();
   const [loading, setLoading] = useState(tasks.length === 0);
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (force = false) => {
     try {
-      const { tasks } = await api.tasks.list();
-      hydrate({ tasks, ranked: [] });
+      await hydrateTasksFromLocalCache();
+      setLoading(false);
+      await refreshTasksFromRemote({ force });
       setLoadError(null);
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : '请求失败');
     } finally {
       setLoading(false);
     }
-  }, [hydrate]);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -39,45 +46,26 @@ export default function AllScreen() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await load();
+      await load(true);
     } finally {
       setRefreshing(false);
     }
   }, [load]);
 
-  const handleDone = useCallback(
-    async (id: string) => {
-      const current = useAppStore.getState().tasks;
-      const original = current.find((t) => t.id === id);
-      hydrate({
-        tasks: current.map((t) =>
-          t.id === id
-            ? {
-                ...t,
-                status: 'done',
-                done: true,
-                completedAt: new Date().toISOString(),
-              }
-            : t,
-        ),
-        ranked: [],
-      });
-      try {
-        await api.tasks.done(id);
-      } catch {
-        // 失败时只回滚单条；load() 全表覆盖会让 TaskRow 退场动画结束后
-        // 因 task ref 批量变化而被全部重建（视觉「复位」）。
-        if (original) {
-          const latest = useAppStore.getState().tasks;
-          hydrate({
-            tasks: latest.map((t) => (t.id === id ? original : t)),
-            ranked: [],
-          });
-        }
+  const handleDone = useCallback(async (id: string) => {
+    const current = useAppStore.getState().tasks;
+    const original = current.find((t) => t.id === id);
+    await patchTaskEverywhere(id, { status: 'done', completedAt: new Date().toISOString() });
+    try {
+      await api.tasks.done(id);
+    } catch {
+      // 失败时只回滚单条；load() 全表覆盖会让 TaskRow 退场动画结束后
+      // 因 task ref 批量变化而被全部重建（视觉「复位」）。
+      if (original) {
+        await restoreTaskEverywhere(original);
       }
-    },
-    [hydrate],
-  );
+    }
+  }, []);
 
   const pending = useMemo(() => tasks.filter((t) => !t.done && t.status !== 'linked'), [tasks]);
   const grouped = useMemo(() => {

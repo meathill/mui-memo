@@ -23,6 +23,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChipRow, ExpectAtField, Section } from '@/components/task-edit-fields';
 import { api, type RecurrenceInfo, type RecurrenceInput, type TaskPatch } from '@/lib/api';
+import { loadCachedTaskDetail, saveCachedTaskDetail } from '@/lib/local-db';
+import { patchTaskEverywhere, restoreTaskEverywhere, taskPatchToLocalPatch } from '@/lib/task-sync';
 import { useThemeHex } from '@/lib/use-theme-hex';
 import { useAppStore } from '@/store';
 
@@ -107,21 +109,38 @@ export default function TaskEditScreen() {
     removeTag(value);
   }
 
+  function fillForm(nextTask: TaskView, recurrence: RecurrenceInfo | null) {
+    setTask(nextTask);
+    setText(nextTask.text);
+    setPlace(nextTask.place);
+    setTaskWindow(nextTask.window);
+    setTags(nextTask.tags ?? []);
+    setExpectAt(nextTask.expectAt ?? null);
+    setLoadedRecurrence(recurrence);
+    setRepeat(recurrence ? toRepeat(recurrence.freq, recurrence.interval) : 'none');
+  }
+
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
     (async () => {
       try {
-        const { task, recurrence } = await api.tasks.detail(id);
+        const cached = await loadCachedTaskDetail(id);
+        if (!cancelled && cached) {
+          fillForm(cached.task, cached.recurrence);
+          setLoading(false);
+        } else if (!cancelled) {
+          const localTask = useAppStore.getState().tasks.find((item) => item.id === id);
+          if (localTask) {
+            fillForm(localTask, null);
+            setLoading(false);
+          }
+        }
+
+        const { task, recurrence, attachments } = await api.tasks.detail(id);
         if (cancelled) return;
-        setTask(task);
-        setText(task.text);
-        setPlace(task.place);
-        setTaskWindow(task.window);
-        setTags(task.tags ?? []);
-        setExpectAt(task.expectAt ?? null);
-        setLoadedRecurrence(recurrence);
-        setRepeat(recurrence ? toRepeat(recurrence.freq, recurrence.interval) : 'none');
+        fillForm(task, recurrence);
+        await saveCachedTaskDetail({ task, recurrence, attachments });
       } catch (err) {
         if (err instanceof Error) Alert.alert('加载失败', err.message);
       } finally {
@@ -181,7 +200,13 @@ export default function TaskEditScreen() {
     }
 
     setSaving(true);
+    let localPatched = false;
     try {
+      if (taskChanged) {
+        const next = await patchTaskEverywhere(task.id, taskPatchToLocalPatch(patch));
+        localPatched = Boolean(next);
+      }
+
       if (taskChanged) await api.tasks.patch(task.id, patch);
 
       // 开/关/换周期。频率或间隔变了用「删+建」重置周期序号，避免出现重复实例。
@@ -204,15 +229,9 @@ export default function TaskEditScreen() {
         }
       }
 
-      // 刷全局 tasks，reconciler 会立即看到新 expectAt 并注册通知，不用等回到 today
-      try {
-        const { tasks } = await api.tasks.list();
-        useAppStore.getState().hydrate({ tasks, ranked: [] });
-      } catch {
-        // 列表拉失败不阻塞保存，通知 reconcile 下次 focus 时补上
-      }
       router.back();
     } catch (err) {
+      if (localPatched) await restoreTaskEverywhere(task);
       if (err instanceof Error) Alert.alert('保存失败', err.message);
     } finally {
       setSaving(false);

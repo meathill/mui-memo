@@ -207,7 +207,7 @@ export const api = {
      * 所以这里改成提供 `name`/`type`（生成分片头）+ `bytes()`（取字节），与旧版上线格式一致
      * （filename=utterance.<ext>、content-type=mimeType），服务端无需改动。
      */
-    async submit(opts: { audioUri: string; mimeType: string; place: TaskPlace; tz: string }) {
+    async submit(opts: { audioUri: string; mimeType: string; place: TaskPlace; tz: string; tagCandidates?: string[] }) {
       const fd = new FormData();
       const ext = opts.mimeType.includes('wav') ? 'wav' : opts.mimeType.includes('webm') ? 'webm' : 'm4a';
       const file = new File(opts.audioUri);
@@ -218,6 +218,7 @@ export const api = {
       } as unknown as Blob);
       fd.append('place', opts.place);
       fd.append('tz', opts.tz);
+      if (opts.tagCandidates?.length) fd.append('tagCandidates', JSON.stringify(opts.tagCandidates));
       return request<{
         utterance: Utterance;
         effects: IntentEffect[];

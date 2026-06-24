@@ -16,6 +16,12 @@ import { api } from '@/lib/api';
 import { hapticLight, hapticSuccess } from '@/lib/haptics';
 import { cancelTaskReminder } from '@/lib/notifications';
 import { useSession } from '@/lib/session';
+import {
+  hydrateTasksFromLocalCache,
+  patchTaskEverywhere,
+  refreshTasksFromRemote,
+  restoreTaskEverywhere,
+} from '@/lib/task-sync';
 import { useThemeHex } from '@/lib/use-theme-hex';
 import { useAppStore } from '@/store';
 
@@ -30,7 +36,6 @@ export default function TodayScreen() {
     activeTag,
     barChips,
     tasks,
-    hydrate,
     setPlace,
     setActiveTag,
     setBarChips,
@@ -42,19 +47,19 @@ export default function TodayScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const loadTasks = useCallback(async () => {
+  const loadTasks = useCallback(async (force = false) => {
     try {
-      const { tasks } = await api.tasks.list();
-      hydrate({ tasks, ranked: [] });
+      await hydrateTasksFromLocalCache();
+      await refreshTasksFromRemote({ force });
       setLoadError(null);
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : '请求失败');
     }
-  }, [hydrate]);
+  }, []);
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await loadTasks();
+      await loadTasks(true);
     } finally {
       setRefreshing(false);
     }
@@ -95,63 +100,37 @@ export default function TodayScreen() {
     return buckets;
   }, [ranked]);
 
-  const handleDone = useCallback(
-    async (id: string) => {
-      hapticSuccess();
-      const current = useAppStore.getState().tasks;
-      const original = current.find((t) => t.id === id);
-      hydrate({
-        tasks: current.map((t) =>
-          t.id === id
-            ? {
-                ...t,
-                status: 'done',
-                done: true,
-                completedAt: new Date().toISOString(),
-              }
-            : t,
-        ),
-        ranked: [],
-      });
-      cancelTaskReminder(id).catch(() => undefined);
-      try {
-        await api.tasks.done(id);
-      } catch (err) {
-        if (err instanceof Error) Alert.alert('标记失败', err.message);
-        if (original) {
-          const latest = useAppStore.getState().tasks;
-          hydrate({
-            tasks: latest.map((t) => (t.id === id ? original : t)),
-            ranked: [],
-          });
-        }
+  const handleDone = useCallback(async (id: string) => {
+    hapticSuccess();
+    const current = useAppStore.getState().tasks;
+    const original = current.find((t) => t.id === id);
+    await patchTaskEverywhere(id, { status: 'done', completedAt: new Date().toISOString() });
+    cancelTaskReminder(id).catch(() => undefined);
+    try {
+      await api.tasks.done(id);
+    } catch (err) {
+      if (err instanceof Error) Alert.alert('标记失败', err.message);
+      if (original) {
+        await restoreTaskEverywhere(original);
       }
-    },
-    [hydrate],
-  );
+    }
+  }, []);
 
   // 周期任务「本轮已完成」可点回恢复成待办
-  const handleReopen = useCallback(
-    async (id: string) => {
-      hapticLight();
-      const current = useAppStore.getState().tasks;
-      const original = current.find((t) => t.id === id);
-      hydrate({
-        tasks: current.map((t) => (t.id === id ? { ...t, status: 'pending', done: false, completedAt: null } : t)),
-        ranked: [],
-      });
-      try {
-        await api.tasks.reopen(id);
-      } catch (err) {
-        if (err instanceof Error) Alert.alert('恢复失败', err.message);
-        if (original) {
-          const latest = useAppStore.getState().tasks;
-          hydrate({ tasks: latest.map((t) => (t.id === id ? original : t)), ranked: [] });
-        }
+  const handleReopen = useCallback(async (id: string) => {
+    hapticLight();
+    const current = useAppStore.getState().tasks;
+    const original = current.find((t) => t.id === id);
+    await patchTaskEverywhere(id, { status: 'pending', completedAt: null });
+    try {
+      await api.tasks.reopen(id);
+    } catch (err) {
+      if (err instanceof Error) Alert.alert('恢复失败', err.message);
+      if (original) {
+        await restoreTaskEverywhere(original);
       }
-    },
-    [hydrate],
-  );
+    }
+  }, []);
 
   // 录完即入队，不再同步等 AI 处理。后台 pump（根 layout 挂载）逐条顺序处理，
   // 录音永不被处理状态挡住。

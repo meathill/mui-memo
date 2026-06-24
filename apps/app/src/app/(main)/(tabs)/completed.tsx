@@ -13,6 +13,8 @@ import Animated, {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ErrorBanner } from '@/components/error-banner';
 import { api, type CompletedTask } from '@/lib/api';
+import { loadCachedCompletedFirstPage, replaceCachedCompletedFirstPage } from '@/lib/local-db';
+import { removeTaskEverywhere, reopenCompletedTaskLocally } from '@/lib/task-sync';
 import { useThemeHex } from '@/lib/use-theme-hex';
 
 function formatDay(iso: string | null): string {
@@ -63,11 +65,17 @@ export default function CompletedScreen() {
   }, [insets.bottom]);
 
   const refresh = useCallback(async () => {
+    const cached = await loadCachedCompletedFirstPage();
+    if (cached.length) {
+      setTasks(cached);
+      setLoading(false);
+    }
     try {
       const data = await api.tasks.completed();
       setTasks(data.tasks);
       setNextCursor(data.nextCursor);
       setHasMore(data.hasMore);
+      await replaceCachedCompletedFirstPage(data.tasks);
       setLoadError(null);
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : '请求失败');
@@ -121,34 +129,43 @@ export default function CompletedScreen() {
 
   const handleReopen = useCallback(
     async (task: CompletedTask) => {
+      await reopenCompletedTaskLocally(task);
       try {
         await api.tasks.reopen(task.id);
       } catch (err) {
         // 失败回滚：重新插回列表 + 提示
         restoreTask(task);
+        await replaceCachedCompletedFirstPage([task, ...tasks.filter((x) => x.id !== task.id)]);
         if (err instanceof Error) Alert.alert('恢复失败', err.message);
       }
     },
-    [restoreTask],
+    [restoreTask, tasks],
   );
 
-  const handleDelete = useCallback((t: CompletedTask) => {
-    Alert.alert('删除这条完成记录？', `「${t.text}」将被彻底删除。`, [
-      { text: '取消', style: 'cancel' },
-      {
-        text: '删除',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await api.tasks.delete(t.id);
+  const handleDelete = useCallback(
+    (t: CompletedTask) => {
+      Alert.alert('删除这条完成记录？', `「${t.text}」将被彻底删除。`, [
+        { text: '取消', style: 'cancel' },
+        {
+          text: '删除',
+          style: 'destructive',
+          onPress: async () => {
+            const before = tasks;
             setTasks((prev) => prev.filter((x) => x.id !== t.id));
-          } catch (err) {
-            if (err instanceof Error) Alert.alert('删除失败', err.message);
-          }
+            await removeTaskEverywhere(t.id);
+            try {
+              await api.tasks.delete(t.id);
+            } catch (err) {
+              setTasks(before);
+              await replaceCachedCompletedFirstPage(before);
+              if (err instanceof Error) Alert.alert('删除失败', err.message);
+            }
+          },
         },
-      },
-    ]);
-  }, []);
+      ]);
+    },
+    [tasks],
+  );
 
   const grouped = useMemo(() => {
     const map = new Map<string, CompletedTask[]>();

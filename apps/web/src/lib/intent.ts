@@ -22,6 +22,7 @@ interface ParseArgs {
   audio: ArrayBuffer;
   audioMimeType: string;
   currentTasks: TaskView[];
+  tagCandidates?: string[];
   now: TimeAnchor;
   /** 来源国家/地区码（ISO 3166-1 alpha-2，来自 cf-ipcountry）；auto 模式据此选 provider。 */
   country?: string | null;

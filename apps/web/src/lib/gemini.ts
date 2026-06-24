@@ -35,6 +35,7 @@ interface ParseOptions {
   audio: ArrayBuffer;
   audioMimeType: string;
   currentTasks: TaskView[];
+  tagCandidates?: string[];
   /** 时区锚点，AI 以此推算 dueAt */
   now: TimeAnchor;
 }
@@ -44,7 +45,7 @@ interface ParseOptions {
  */
 export async function parseVoiceIntent(opts: ParseOptions): Promise<Utterance> {
   const base64 = await audioToBase64(opts.audio);
-  const userText = buildUserPrompt(opts.currentTasks, opts.now);
+  const userText = buildUserPrompt(opts.currentTasks, opts.now, undefined, opts.tagCandidates);
 
   const response = await opts.genai.models.generateContent({
     model: CHAT_MODEL,
@@ -76,9 +77,10 @@ export async function parseTextIntent(opts: {
   genai: GoogleGenAI;
   text: string;
   currentTasks: TaskView[];
+  tagCandidates?: string[];
   now: TimeAnchor;
 }): Promise<Utterance> {
-  const userText = buildUserPrompt(opts.currentTasks, opts.now, opts.text);
+  const userText = buildUserPrompt(opts.currentTasks, opts.now, opts.text, opts.tagCandidates);
   const response = await opts.genai.models.generateContent({
     model: CHAT_MODEL,
     contents: [{ role: 'user', parts: [{ text: userText }] }],

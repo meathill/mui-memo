@@ -8,7 +8,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AudioPlayButton, AudioUrlPlayButton, isAudioMime } from '@/components/audio-play-button';
 import { ErrorBanner } from '@/components/error-banner';
 import { type Attachment, api } from '@/lib/api';
+import { loadCachedTaskDetail, saveCachedTaskDetail } from '@/lib/local-db';
+import { patchTaskEverywhere, removeTaskEverywhere, restoreTaskEverywhere } from '@/lib/task-sync';
 import { useThemeHex } from '@/lib/use-theme-hex';
+import { useAppStore } from '@/store';
 
 function formatDateTime(iso: string): string {
   const d = new Date(iso);
@@ -32,10 +35,24 @@ export default function TaskDetailScreen() {
   const load = useCallback(async () => {
     if (!id) return;
     setLoading(true);
+    const cached = await loadCachedTaskDetail(id);
+    if (cached) {
+      setTask(cached.task);
+      setAttachments(cached.attachments);
+      setLoading(false);
+    } else {
+      const localTask = useAppStore.getState().tasks.find((item) => item.id === id);
+      if (localTask) {
+        setTask(localTask);
+        setAttachments([]);
+        setLoading(false);
+      }
+    }
     try {
-      const { task, attachments } = await api.tasks.detail(id);
+      const { task, recurrence, attachments } = await api.tasks.detail(id);
       setTask(task);
       setAttachments(attachments);
+      await saveCachedTaskDetail({ task, recurrence, attachments });
       setLoadError(null);
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : '请求失败');
@@ -59,10 +76,13 @@ export default function TaskDetailScreen() {
         text: '删除',
         style: 'destructive',
         onPress: async () => {
+          const original = task;
+          await removeTaskEverywhere(task.id);
           try {
             await api.tasks.delete(task.id);
             router.back();
           } catch (err) {
+            await restoreTaskEverywhere(original);
             if (err instanceof Error) Alert.alert('删除失败', err.message);
           }
         },
@@ -182,10 +202,18 @@ export default function TaskDetailScreen() {
           {task.status !== 'done' ? (
             <Pressable
               onPress={async () => {
+                const original = task;
+                const next = await patchTaskEverywhere(task.id, {
+                  status: 'done',
+                  completedAt: new Date().toISOString(),
+                });
+                if (next) setTask(next);
                 try {
                   await api.tasks.done(task.id);
                   router.back();
                 } catch (err) {
+                  await restoreTaskEverywhere(original);
+                  setTask(original);
                   if (err instanceof Error) Alert.alert('标记失败', err.message);
                 }
               }}
@@ -197,10 +225,15 @@ export default function TaskDetailScreen() {
           ) : (
             <Pressable
               onPress={async () => {
+                const original = task;
+                const next = await patchTaskEverywhere(task.id, { status: 'pending', completedAt: null });
+                if (next) setTask(next);
                 try {
                   await api.tasks.reopen(task.id);
                   router.back();
                 } catch (err) {
+                  await restoreTaskEverywhere(original);
+                  setTask(original);
                   if (err instanceof Error) Alert.alert('重启失败', err.message);
                 }
               }}

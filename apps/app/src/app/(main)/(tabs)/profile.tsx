@@ -20,6 +20,7 @@ import { ActivityIndicator, Alert, Platform, Pressable, RefreshControl, ScrollVi
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ErrorBanner } from '@/components/error-banner';
 import { api, type ProfileStats } from '@/lib/api';
+import { clearLocalCache } from '@/lib/local-db';
 import { getPermissionStatus, type PermStatus, requestPermission } from '@/lib/notifications';
 import type { ThemePreference } from '@/lib/theme';
 import { useThemeHex } from '@/lib/use-theme-hex';
@@ -122,6 +123,8 @@ export default function ProfileScreen() {
           try {
             await api.auth.signOut();
           } finally {
+            await clearLocalCache();
+            useAppStore.getState().clearTaskSnapshot();
             router.replace('/login');
           }
         },
@@ -147,6 +150,8 @@ export default function ProfileScreen() {
                 setDeleting(true);
                 try {
                   await api.account.deleteAccount();
+                  await clearLocalCache();
+                  useAppStore.getState().clearTaskSnapshot();
                   router.replace('/login');
                 } catch (err) {
                   setDeleting(false);

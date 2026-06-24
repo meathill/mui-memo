@@ -77,4 +77,20 @@ describe('buildUserPrompt · 已有标签注入', () => {
     expect(out).toContain('当前清单：空');
     expect(out).not.toContain('用户已有的标签');
   });
+
+  it('显式 tagCandidates 优先于当前未完成任务标签，并最多注入 100 个', () => {
+    const tasks = [task({ id: '1', text: '活跃', tags: ['当前标签'] })];
+    const candidates = Array.from({ length: 105 }, (_, i) => `标签${i}`);
+    const line = tagLine(buildUserPrompt(tasks, NOW, '记一笔', candidates));
+    expect(line).toContain('标签0');
+    expect(line).toContain('标签99');
+    expect(line).not.toContain('标签100');
+    expect(line).not.toContain('当前标签');
+  });
+
+  it('显式 tagCandidates 会 trim、去重、丢掉空字符串', () => {
+    const line = tagLine(buildUserPrompt([], NOW, '记一笔', [' 网银 ', '', '网银', '采购']));
+    expect(line.match(/网银/g)?.length).toBe(1);
+    expect(line).toContain('采购');
+  });
 });

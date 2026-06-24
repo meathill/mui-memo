@@ -38,6 +38,40 @@ export function rowToView(row: TaskRow, linkedChildren: Array<{ id: string; text
   };
 }
 
+export interface RecentTagSource {
+  tag?: string | null;
+  tags?: string[] | null;
+}
+
+export function collectRecentTagCandidates(rows: RecentTagSource[], limit = 100): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const row of rows) {
+    const candidates = row.tags?.length ? row.tags : row.tag ? [row.tag] : [];
+    for (const tag of candidates) {
+      const normalized = tag.trim();
+      if (!normalized || seen.has(normalized)) continue;
+      seen.add(normalized);
+      out.push(normalized);
+      if (out.length >= limit) return out;
+    }
+  }
+  return out;
+}
+
+export function mergeTagCandidates(primary: string[], secondary: string[], limit = 100): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const tag of [...primary, ...secondary]) {
+    const normalized = tag.trim();
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    out.push(normalized);
+    if (out.length >= limit) return out;
+  }
+  return out;
+}
+
 /**
  * 把一个已经写入 R2 的音频 key 关联到任务行（ADD / DONE-backfill 路径用）。
  */
@@ -89,6 +123,20 @@ export async function listTasksForUser(db: Database, userId: string): Promise<Ta
     }
   }
   return rows.map((r) => rowToView(r as TaskRow, linkedMap.get(r.id) ?? []));
+}
+
+export async function listRecentTagCandidatesForUser(db: Database, userId: string): Promise<string[]> {
+  const rows = await db
+    .select({
+      tag: tasksTable.tag,
+      tags: tasksTable.tags,
+    })
+    .from(tasksTable)
+    .where(eq(tasksTable.userId, userId))
+    .orderBy(desc(tasksTable.updatedAt), desc(tasksTable.createdAt))
+    .limit(500);
+
+  return collectRecentTagCandidates(rows);
 }
 
 interface ViewPatch {

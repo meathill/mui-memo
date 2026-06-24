@@ -5,7 +5,14 @@ import { R2_PREFIX } from '@/lib/config';
 import { resolveAndParseVoiceIntent } from '@/lib/intent';
 import { requireAuthDb } from '@/lib/route';
 import { resolveTargetTask } from '@/lib/search';
-import { linkAudioKey, listTasksForUser, logUtterance, persistIntentResult } from '@/lib/tasks';
+import {
+  linkAudioKey,
+  listRecentTagCandidatesForUser,
+  listTasksForUser,
+  logUtterance,
+  mergeTagCandidates,
+  persistIntentResult,
+} from '@/lib/tasks';
 import { describeNow, normalizeTz } from '@/lib/time';
 
 const RESOLVE_INTENTS = new Set<Action['intent']>(['STATUS', 'DONE', 'MODIFY', 'LINK']);
@@ -34,6 +41,7 @@ export async function POST(req: Request) {
   const audio = form.get('audio');
   const placeStr = String(form.get('place') ?? 'any');
   const tz = normalizeTz(typeof form.get('tz') === 'string' ? (form.get('tz') as string) : undefined);
+  const localTagCandidates = parseTagCandidates(form.get('tagCandidates'));
   // Cloudflare 边缘注入的来源地区码（ISO 3166-1 alpha-2），供 auto 模式选 provider；本地 dev 为 null。
   const country = req.headers.get('cf-ipcountry');
   if (!(audio instanceof Blob)) {
@@ -43,7 +51,11 @@ export async function POST(req: Request) {
   const placeParsed = taskPlaceEnum.safeParse(placeStr);
   const ctxPlace = placeParsed.success ? placeParsed.data : 'any';
 
-  const tasksBefore = await listTasksForUser(db, userId);
+  const [tasksBefore, dbTagCandidates] = await Promise.all([
+    listTasksForUser(db, userId),
+    listRecentTagCandidatesForUser(db, userId),
+  ]);
+  const tagCandidates = mergeTagCandidates(localTagCandidates, dbTagCandidates);
 
   const audioBuffer = await audio.arrayBuffer();
   const mimeType = audio.type || 'audio/webm';
@@ -56,6 +68,7 @@ export async function POST(req: Request) {
       audioMimeType: mimeType,
       currentTasks: tasksBefore,
       now: { iso: anchor.iso, tz, weekday: anchor.weekday },
+      tagCandidates,
       country,
     });
   } catch (err) {
@@ -140,4 +153,14 @@ export async function POST(req: Request) {
     ranked,
     pendingConfirms,
   });
+}
+
+function parseTagCandidates(value: FormDataEntryValue | null): string[] {
+  if (typeof value !== 'string') return [];
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return Array.isArray(parsed) ? parsed.filter((tag): tag is string => typeof tag === 'string') : [];
+  } catch {
+    return [];
+  }
 }

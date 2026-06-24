@@ -1,35 +1,39 @@
 # WIP · MuiMemo
 
-## 当前迭代：单标签 → 多标签（tags: string[]）
+## 当前迭代：SQLite 本地读模型 + 语音标签增强
 
 ### 目标
-任务从单个 `tag` 改为多个 `tags`。编辑页支持标签芯片增 / 删 / 点击改。
-筛选栏仍单选（按某 tag 过滤 = 任务 `tags` 包含该 tag）——BarChip/activeTag 不动，只改 `filterByTag` 为 `.includes`。
 
-### 数据与兼容策略
-- DB(TiDB)：tasks / recurrences 加 `tags json`，**保留旧 `tag` 列**（弃用，作回填源 + 回滚）。
-- 读：`tags ?? (tag ? [tag] : [])`（回填前也能读，不炸）。写：只写 `tags`（始终是数组，含空 `[]`）。
-- 迁移：drizzle 加列 + 回填 `UPDATE ... SET tags = JSON_ARRAY(tag) WHERE tag <> ''`。我生成，你跑 `db:migrate`。
+- App 以本地 SQLite 读模型为主：任务列表、已完成首屏、任务详情先读本地，再后台刷新远程。
+- 远程 API 仍是权威数据源；本轮不做离线 mutation outbox。
+- 语音解析带上 app 本地 + 服务端最近使用过的标签候选，最多 100 个，引导 AI 复用接近标签。
 
-### 状态：✅ 代码完成（shared 96 + web 73 单测全过，app/web typecheck 全绿），待跑迁移 + 部署
-1. ✅ **shared**：validators(`tags` 数组)、logic(`TaskView.tags` / `filterByTag` includes / applyAction / snapshot)、dto、recurrence、schema(json 列)、tests。
-2. ✅ **web 后端**：lib/tasks.ts / recurrences.ts（读回退 + 写 tags）、api routes、intent-shared(AI schema + prompt)、tests。
-3. ✅ **app**：edit.tsx 多标签芯片编辑器、today allTags、all 分组(按每个 tag)、index/completed 展示、lib/api.ts。
-4. ✅ **web 前端**：all-view 分组、task-row/completed-view 展示、task-detail-view 多标签编辑。
-5. ✅ **迁移**：`apps/web/drizzle/0011_keen_storm.sql`（加 `tags` json 列 + 从旧 `tag` 回填 `JSON_ARRAY`）。
+### 状态：✅ 代码完成，验证通过
 
-### ⏳ 待你执行（需 `.env`）：跑迁移 + 部署
-**顺序**：先跑 DB 迁移（加列 + 回填）→ 部署 web（读有回退，迁移前后都安全）→ 发 app。
+1. ✅ **语音标签候选**：app 上传本地标签候选，服务端再合并 TiDB 最近标签候选；prompt 最多注入 100 个标签，并要求近义/同义/上下位时复用原标签。
+2. ✅ **App 本地缓存**：新增 `expo-sqlite` + `local-db.ts`，建 `local_tasks` / `local_completed_tasks` / `local_task_details` / `sync_meta`。
+3. ✅ **同步辅助层**：新增 `task-sync.ts`，集中处理 SQLite hydrate、60 秒 TTL 后台刷新、远程结果写回 SQLite + Zustand。
+4. ✅ **页面改造**：Today / All / Completed / Detail / Edit 改为缓存优先；完成、恢复、删除、编辑先本地乐观更新，远程失败回滚。
+5. ✅ **账号隔离 + 存量迁移**：启动时按用户准备本地缓存；旧 AsyncStorage tasks 一次性迁入 SQLite；退出/注销时清 SQLite 缓存和内存任务快照。
+
+### 已跑验证
+
+```bash
+pnpm --config.store-dir=/Users/meathill/Library/pnpm/store/v11 -F @mui-memo/app check-types
+pnpm --config.store-dir=/Users/meathill/Library/pnpm/store/v11 -F @mui-memo/app test
+pnpm --config.store-dir=/Users/meathill/Library/pnpm/store/v11 -F @mui-memo/web test
+pnpm --config.store-dir=/Users/meathill/Library/pnpm/store/v11 -F @mui-memo/shared test
+pnpm --config.store-dir=/Users/meathill/Library/pnpm/store/v11 run format
+pnpm --config.store-dir=/Users/meathill/Library/pnpm/store/v11 run build
 ```
-pnpm -F @mui-memo/web db:migrate   # 应用 0010(若没跑过) + 0011
-```
-
----
 
 ## ⚠️ 历史遗留待办（需 `.env`，由你执行）
-迁移 0010 —— `pnpm -F @mui-memo/web db:migrate`
-（`apps/web/drizzle/0010_small_rictor.sql`：建 `recurrences` 表 + 给 `tasks` 加 `recurrence_id/period_index` + 唯一约束。
-若已应用过可忽略。多标签的新迁移会排在它之后。）
+
+迁移 0010 / 0011 若生产库尚未应用，仍需执行：
+
+```bash
+pnpm -F @mui-memo/web db:migrate
+```
 
 ## 已完成的里程碑
 

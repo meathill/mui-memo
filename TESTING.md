@@ -17,6 +17,8 @@ pnpm test
 pnpm -F @mui-memo/shared test         # 共享层 logic / validators 测试
 pnpm -F @mui-memo/web test            # web 单测
 pnpm -F @mui-memo/web test:watch      # web watch 模式
+pnpm -F @mui-memo/app test            # app 纯逻辑单测（SQLite/native 不直接跑）
+pnpm -F @mui-memo/app check-types     # app 类型检查
 
 # Web e2e（启动本地 next + Playwright）
 pnpm -F @mui-memo/web e2e
@@ -49,6 +51,14 @@ apps/web/e2e/intent.spec.ts
 - `setupFiles: ['./src/test/setup.ts']` — 全局 setup
 
 `src/test/setup.ts` 给 `matchMedia` / `ResizeObserver` / `IntersectionObserver` 补了最小 stub。要测响应式或 observer 行为时，在具体测试里用 `vi.spyOn(window, 'matchMedia').mockImplementation(...)` 覆盖。
+
+## App 端测试环境
+
+`apps/app/vitest.config.ts` 用 Node 环境，只跑 `src/**/*.test.ts` 的纯逻辑测试。
+
+- 不直接 import / mock `expo-sqlite`、`expo-audio` 等 native runtime。
+- 本地缓存、迁移、TTL、标签候选这类策略先抽到纯函数再测。
+- 需要模拟器或真机验证的页面行为，先写清验收步骤，不要把 native 模块硬塞进 Vitest。
 
 ## Shared 包测试
 

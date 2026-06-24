@@ -10,9 +10,11 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RecordingIndicator } from '@/components/recording-indicator';
 import { api } from '@/lib/api';
 import { applyConfirm, showConfirm } from '@/lib/intent-confirm';
+import { prepareLocalCacheForUser } from '@/lib/local-db';
 import { Notifications, reconcileTaskReminders, type TaskNotificationData } from '@/lib/notifications';
 import { startQueuePump } from '@/lib/queue-pump';
 import { useSession } from '@/lib/session';
+import { hydrateTasksFromLocalCache, migrateLegacyTasksFromAsyncStorage } from '@/lib/task-sync';
 import { resolveTheme, statusBarStyle, THEME_BG_HEX, THEME_TOKENS } from '@/lib/theme';
 import { useAppStore } from '@/store';
 
@@ -36,14 +38,23 @@ export default function RootLayout() {
       } finally {
         SplashScreen.hideAsync().catch(() => undefined);
       }
-      const token = useSession.getState().token;
+      const { token, user: cachedUser } = useSession.getState();
       if (!token) return;
+      if (cachedUser?.id) {
+        await prepareLocalCacheForUser(cachedUser.id);
+        await migrateLegacyTasksFromAsyncStorage().catch(() => undefined);
+        await hydrateTasksFromLocalCache().catch(() => undefined);
+      }
       try {
         const user = await api.auth.getSession();
         if (user) {
+          await prepareLocalCacheForUser(user.id);
+          await migrateLegacyTasksFromAsyncStorage().catch(() => undefined);
+          await hydrateTasksFromLocalCache().catch(() => undefined);
           await useSession.getState().setSession(token, user);
         } else {
           await useSession.getState().clearSession();
+          useAppStore.getState().clearTaskSnapshot();
         }
       } catch {
         // 网络错误不清 session，后续请求会自己重试

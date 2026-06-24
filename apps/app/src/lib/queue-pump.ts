@@ -1,6 +1,8 @@
 import { AppState } from 'react-native';
 import { api } from '@/lib/api';
+import { collectLocalTagCandidates } from '@/lib/local-cache-model';
 import { useSession } from '@/lib/session';
+import { replaceTasksEverywhere } from '@/lib/task-sync';
 import { useAppStore } from '@/store';
 
 /**
@@ -47,8 +49,9 @@ async function tick(): Promise<void> {
       mimeType: head.mimeType,
       place: head.place,
       tz: head.tz,
+      tagCandidates: collectLocalTagCandidates(useAppStore.getState().tasks),
     });
-    useAppStore.getState().hydrate({ tasks, ranked: [] });
+    await replaceTasksEverywhere(tasks);
     useAppStore.getState().setLastEffects(effects, utterance);
     if (pendingConfirms?.length) {
       useAppStore

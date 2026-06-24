@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { api } from '@/lib/api';
+import { replaceTasksEverywhere } from '@/lib/task-sync';
 import type { PendingConfirm } from '@/store';
-import { useAppStore } from '@/store';
 
 /**
  * MODIFY / DONE 命中时的确认逻辑。原本内联在今天页，现抽成纯逻辑放全局：
@@ -47,9 +47,9 @@ export async function applyConfirm(pc: PendingConfirm, choice: ConfirmChoice): P
             aiReason: effect.reason,
           };
     const { tasks } = await api.intent.confirm(body);
-    useAppStore.getState().hydrate({ tasks, ranked: [] });
+    await replaceTasksEverywhere(tasks);
   } else if (effect.kind === 'done' && choice === 'confirm') {
     const { tasks } = await api.intent.confirm({ kind: 'done', taskId: effect.id });
-    useAppStore.getState().hydrate({ tasks, ranked: [] });
+    await replaceTasksEverywhere(tasks);
   }
 }
