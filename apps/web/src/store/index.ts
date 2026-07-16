@@ -1,6 +1,6 @@
-import type { Bucket, IntentEffect, TaskView } from '@mui-memo/shared/logic';
-import type { TaskPlace, Utterance } from '@mui-memo/shared/validators';
-import { create } from 'zustand';
+import type { Bucket, IntentEffect, TaskView } from "@mui-memo/shared/logic";
+import type { TaskPlace, Utterance } from "@mui-memo/shared/validators";
+import { create } from "zustand";
 
 type RankedTask = TaskView & { bucket: Bucket };
 
@@ -28,7 +28,11 @@ interface AppState {
   isRecording: boolean;
 
   setPlace: (p: TaskPlace) => void;
-  hydrate: (payload: { tasks: TaskView[]; ranked: RankedTask[]; place?: TaskPlace }) => void;
+  hydrate: (payload: {
+    tasks: TaskView[];
+    ranked: RankedTask[];
+    place?: TaskPlace;
+  }) => void;
   setRecording: (v: boolean) => void;
   setProcessing: (v: boolean) => void;
   setLastEffects: (effects: IntentEffect[], u?: Utterance | null) => void;
@@ -38,7 +42,7 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  place: 'any',
+  place: "any",
   tasks: [],
   ranked: [],
   lastEffects: [],
@@ -48,11 +52,15 @@ export const useAppStore = create<AppState>((set) => ({
   isRecording: false,
 
   setPlace: (p) => set({ place: p }),
-  hydrate: ({ tasks, ranked, place }) => set((s) => ({ tasks, ranked, place: place ?? s.place })),
+  hydrate: ({ tasks, ranked, place }) =>
+    set((s) => ({ tasks, ranked, place: place ?? s.place })),
   setRecording: (v) => set({ isRecording: v }),
   setProcessing: (v) => set({ isProcessing: v }),
-  setLastEffects: (effects, u) => set({ lastEffects: effects, lastUtterance: u ?? null }),
-  pushPendingConfirms: (list) => set((s) => ({ pendingConfirms: [...s.pendingConfirms, ...list] })),
-  shiftPendingConfirm: () => set((s) => ({ pendingConfirms: s.pendingConfirms.slice(1) })),
+  setLastEffects: (effects, u) =>
+    set({ lastEffects: effects, lastUtterance: u ?? null }),
+  pushPendingConfirms: (list) =>
+    set((s) => ({ pendingConfirms: [...s.pendingConfirms, ...list] })),
+  shiftPendingConfirm: () =>
+    set((s) => ({ pendingConfirms: s.pendingConfirms.slice(1) })),
   clearPendingConfirms: () => set({ pendingConfirms: [] }),
 }));

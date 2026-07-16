@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   PLACES,
@@ -8,18 +8,40 @@ import {
   STATUSES,
   WINDOW_LABEL,
   WINDOWS,
-} from '@mui-memo/shared/logic';
-import { useEffect, useRef, useState } from 'react';
-import { useNowTick } from '@/hooks/use-now-tick';
-import { formatDueAt, isOverdue, isoToLocalInput, localInputToISO, relativeTimeLabel } from '@/lib/time';
-import { cn } from '@/lib/utils';
+} from "@mui-memo/shared/logic";
+import { useEffect, useRef, useState } from "react";
+import { useNowTick } from "@/hooks/use-now-tick";
+import {
+  formatDueAt,
+  isOverdue,
+  isoToLocalInput,
+  localInputToISO,
+  relativeTimeLabel,
+} from "@/lib/time";
+import { cn } from "@/lib/utils";
 
-export { PLACES, PRIORITIES, PRIORITY_LABEL, STATUS_LABEL, STATUSES, WINDOW_LABEL, WINDOWS };
+export {
+  PLACES,
+  PRIORITIES,
+  PRIORITY_LABEL,
+  STATUS_LABEL,
+  STATUSES,
+  WINDOW_LABEL,
+  WINDOWS,
+};
 
-export function Field({ label, children }: { label: string; children: React.ReactNode }) {
+export function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="block space-y-1.5">
-      <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">{label}</div>
+      <div className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">
+        {label}
+      </div>
       {children}
     </div>
   );
@@ -42,8 +64,10 @@ export function Segmented({
           type="button"
           onClick={() => onChange(o.value)}
           className={cn(
-            'flex-1 rounded-lg px-2 py-1.5 text-center text-xs transition-colors whitespace-nowrap',
-            value === o.value ? 'bg-ink text-paper' : 'text-ink-soft hover:text-ink',
+            "flex-1 rounded-lg px-2 py-1.5 text-center text-xs transition-colors whitespace-nowrap",
+            value === o.value
+              ? "bg-ink text-paper"
+              : "text-ink-soft hover:text-ink",
           )}
         >
           {o.label}
@@ -92,15 +116,15 @@ export function TimeRow({
           if (iso !== value) onChange(iso);
         }}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-          if (e.key === 'Escape') setEditing(false);
+          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+          if (e.key === "Escape") setEditing(false);
         }}
       />
     );
   }
 
-  const rel = value ? relativeTimeLabel(value, now) : '';
-  const abs = value ? formatDueAt(value) : '';
+  const rel = value ? relativeTimeLabel(value, now) : "";
+  const abs = value ? formatDueAt(value) : "";
   const overdue = overdueHint && isOverdue(value, now);
 
   return (
@@ -108,8 +132,8 @@ export function TimeRow({
       type="button"
       onClick={() => setEditing(true)}
       className={cn(
-        'mt-1 flex w-full items-baseline gap-2 text-left font-mono text-[10px] hover:text-ink-soft',
-        overdue ? 'text-red-600 font-semibold' : 'text-ink-mute',
+        "mt-1 flex w-full items-baseline gap-2 text-left font-mono text-[10px] hover:text-ink-soft",
+        overdue ? "text-red-600 font-semibold" : "text-ink-mute",
       )}
       aria-label={`编辑 ${label}`}
     >

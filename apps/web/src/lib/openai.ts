@@ -1,8 +1,17 @@
-import type { TaskView } from '@mui-memo/shared/logic';
-import { parseUtteranceFlexible, type Utterance } from '@mui-memo/shared/validators';
-import OpenAI, { APIError } from 'openai';
-import type { ChatCompletionContentPart } from 'openai/resources/chat/completions';
-import { audioToBase64, buildUserPrompt, extractJson, SYSTEM_PROMPT, type TimeAnchor } from './intent-shared';
+import type { TaskView } from "@mui-memo/shared/logic";
+import {
+  parseUtteranceFlexible,
+  type Utterance,
+} from "@mui-memo/shared/validators";
+import OpenAI, { APIError } from "openai";
+import type { ChatCompletionContentPart } from "openai/resources/chat/completions";
+import {
+  audioToBase64,
+  buildUserPrompt,
+  extractJson,
+  SYSTEM_PROMPT,
+  type TimeAnchor,
+} from "./intent-shared";
 
 export interface OpenAIClientConfig {
   apiKey: string;
@@ -33,7 +42,7 @@ interface ParseOptions {
  * webm 不在列表里（这是 web MediaRecorder 默认产物），所以前端要避开。
  * @see https://platform.xiaomimimo.com/docs/zh-CN/usage-guide/multimodal-understanding/audio-understanding
  */
-const MIMO_SUPPORTED_FORMATS = ['mp3', 'wav', 'flac', 'm4a', 'ogg'] as const;
+const MIMO_SUPPORTED_FORMATS = ["mp3", "wav", "flac", "m4a", "ogg"] as const;
 type MimoAudioFormat = (typeof MIMO_SUPPORTED_FORMATS)[number];
 
 /**
@@ -42,12 +51,14 @@ type MimoAudioFormat = (typeof MIMO_SUPPORTED_FORMATS)[number];
  */
 function pickAudioFormat(mimeType: string): MimoAudioFormat {
   const mt = mimeType.toLowerCase();
-  if (mt.includes('mp3') || mt.includes('mpeg')) return 'mp3';
-  if (mt.includes('flac')) return 'flac';
-  if (mt.includes('m4a') || mt.includes('mp4')) return 'm4a';
-  if (mt.includes('wav')) return 'wav';
-  if (mt.includes('ogg') || mt.includes('opus')) return 'ogg';
-  throw new Error(`MIMO 不支持的音频格式：${mimeType}（仅支持 ${MIMO_SUPPORTED_FORMATS.join(' / ')}）`);
+  if (mt.includes("mp3") || mt.includes("mpeg")) return "mp3";
+  if (mt.includes("flac")) return "flac";
+  if (mt.includes("m4a") || mt.includes("mp4")) return "m4a";
+  if (mt.includes("wav")) return "wav";
+  if (mt.includes("ogg") || mt.includes("opus")) return "ogg";
+  throw new Error(
+    `MIMO 不支持的音频格式：${mimeType}（仅支持 ${MIMO_SUPPORTED_FORMATS.join(" / ")}）`,
+  );
 }
 
 /**
@@ -56,16 +67,21 @@ function pickAudioFormat(mimeType: string): MimoAudioFormat {
  */
 export async function parseVoiceIntent(opts: ParseOptions): Promise<Utterance> {
   const base64 = await audioToBase64(opts.audio);
-  const userText = buildUserPrompt(opts.currentTasks, opts.now, undefined, opts.tagCandidates);
+  const userText = buildUserPrompt(
+    opts.currentTasks,
+    opts.now,
+    undefined,
+    opts.tagCandidates,
+  );
   const format = pickAudioFormat(opts.audioMimeType);
 
   const userParts: ChatCompletionContentPart[] = [
-    { type: 'text', text: userText },
+    { type: "text", text: userText },
     {
-      type: 'input_audio',
+      type: "input_audio",
       // OpenAI SDK 把 format 类型缩到 'wav' | 'mp3'，但 MIMO 兼容端点接受
       // mp3/wav/flac/m4a/ogg 全部，cast 一下绕过类型限制
-      input_audio: { data: base64, format: format as 'wav' | 'mp3' },
+      input_audio: { data: base64, format: format as "wav" | "mp3" },
     },
   ];
 
@@ -74,10 +90,10 @@ export async function parseVoiceIntent(opts: ParseOptions): Promise<Utterance> {
     response = await opts.client.chat.completions.create({
       model: opts.model,
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userParts },
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: userParts },
       ],
-      response_format: { type: 'json_object' },
+      response_format: { type: "json_object" },
       temperature: 0.2,
     });
   } catch (err) {
@@ -94,14 +110,14 @@ export async function parseVoiceIntent(opts: ParseOptions): Promise<Utterance> {
         `sentMime=${opts.audioMimeType}`,
         `sentFormat=${format}`,
       ].filter(Boolean);
-      const detail = parts.length ? parts.join(' · ') : err.message;
-      throw new Error(`OpenAI/MIMO ${err.status ?? ''} ${detail}`);
+      const detail = parts.length ? parts.join(" · ") : err.message;
+      throw new Error(`OpenAI/MIMO ${err.status ?? ""} ${detail}`);
     }
     throw err;
   }
 
-  const raw = response.choices[0]?.message?.content ?? '';
-  if (!raw) throw new Error('OpenAI/MIMO returned empty content');
+  const raw = response.choices[0]?.message?.content ?? "";
+  if (!raw) throw new Error("OpenAI/MIMO returned empty content");
 
   const json = JSON.parse(extractJson(raw));
   // MIMO（以及大多数 OpenAI 类模型）的习惯是把 optional 字段填 null 而不是省略，
@@ -122,25 +138,30 @@ export async function parseTextIntent(opts: {
   tagCandidates?: string[];
   now: TimeAnchor;
 }): Promise<Utterance> {
-  const userText = buildUserPrompt(opts.currentTasks, opts.now, opts.text, opts.tagCandidates);
+  const userText = buildUserPrompt(
+    opts.currentTasks,
+    opts.now,
+    opts.text,
+    opts.tagCandidates,
+  );
   const response = await opts.client.chat.completions.create({
     model: opts.model,
     messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: userText },
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "user", content: userText },
     ],
-    response_format: { type: 'json_object' },
+    response_format: { type: "json_object" },
     temperature: 0.2,
   });
-  const raw = response.choices[0]?.message?.content ?? '';
-  if (!raw) throw new Error('OpenAI/MIMO returned empty content');
+  const raw = response.choices[0]?.message?.content ?? "";
+  if (!raw) throw new Error("OpenAI/MIMO returned empty content");
   const json = JSON.parse(extractJson(raw));
   return parseUtteranceFlexible(stripNullsDeep(json));
 }
 
 function stripNullsDeep(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(stripNullsDeep);
-  if (value !== null && typeof value === 'object') {
+  if (value !== null && typeof value === "object") {
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
       if (v === null) continue;

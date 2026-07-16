@@ -1,18 +1,26 @@
-import type { IntentEffect, TaskView } from '@mui-memo/shared/logic';
+import type { IntentEffect, TaskView } from "@mui-memo/shared/logic";
 import {
   type NewTaskRow,
   type NewUtteranceRow,
   type TaskRow,
   tasks as tasksTable,
   utterances as utterancesTable,
-} from '@mui-memo/shared/schema';
-import type { TaskPlace, TaskStatus, TaskWindow, Utterance } from '@mui-memo/shared/validators';
-import { and, desc, eq, inArray } from 'drizzle-orm';
-import type { Database } from './db';
+} from "@mui-memo/shared/schema";
+import type {
+  TaskPlace,
+  TaskStatus,
+  TaskWindow,
+  Utterance,
+} from "@mui-memo/shared/validators";
+import { and, desc, eq, inArray } from "drizzle-orm";
+import type { Database } from "./db";
 
 type NullableField<T> = T | null | undefined;
 
-export function rowToView(row: TaskRow, linkedChildren: Array<{ id: string; text: string }> = []): TaskView {
+export function rowToView(
+  row: TaskRow,
+  linkedChildren: Array<{ id: string; text: string }> = [],
+): TaskView {
   return {
     id: row.id,
     text: row.text,
@@ -30,7 +38,7 @@ export function rowToView(row: TaskRow, linkedChildren: Array<{ id: string; text
     status: row.status as TaskStatus,
     linkedTo: row.linkedTo,
     linked: linkedChildren,
-    done: row.status === 'done',
+    done: row.status === "done",
     completedAt: row.completedAt ? row.completedAt.toISOString() : undefined,
     audioKey: row.audioKey,
     recurrenceId: row.recurrenceId,
@@ -43,7 +51,10 @@ export interface RecentTagSource {
   tags?: string[] | null;
 }
 
-export function collectRecentTagCandidates(rows: RecentTagSource[], limit = 100): string[] {
+export function collectRecentTagCandidates(
+  rows: RecentTagSource[],
+  limit = 100,
+): string[] {
   const out: string[] = [];
   const seen = new Set<string>();
   for (const row of rows) {
@@ -59,7 +70,11 @@ export function collectRecentTagCandidates(rows: RecentTagSource[], limit = 100)
   return out;
 }
 
-export function mergeTagCandidates(primary: string[], secondary: string[], limit = 100): string[] {
+export function mergeTagCandidates(
+  primary: string[],
+  secondary: string[],
+  limit = 100,
+): string[] {
   const out: string[] = [];
   const seen = new Set<string>();
   for (const tag of [...primary, ...secondary]) {
@@ -75,14 +90,22 @@ export function mergeTagCandidates(primary: string[], secondary: string[], limit
 /**
  * 把一个已经写入 R2 的音频 key 关联到任务行（ADD / DONE-backfill 路径用）。
  */
-export async function linkAudioKey(db: Database, userId: string, taskId: string, audioKey: string): Promise<void> {
+export async function linkAudioKey(
+  db: Database,
+  userId: string,
+  taskId: string,
+  audioKey: string,
+): Promise<void> {
   await db
     .update(tasksTable)
     .set({ audioKey, updatedAt: new Date() })
     .where(and(eq(tasksTable.id, taskId), eq(tasksTable.userId, userId)));
 }
 
-export async function listTasksForUser(db: Database, userId: string): Promise<TaskView[]> {
+export async function listTasksForUser(
+  db: Database,
+  userId: string,
+): Promise<TaskView[]> {
   const rows = await db
     .select({
       id: tasksTable.id,
@@ -116,7 +139,7 @@ export async function listTasksForUser(db: Database, userId: string): Promise<Ta
 
   const linkedMap = new Map<string, Array<{ id: string; text: string }>>();
   for (const r of rows) {
-    if (r.status === 'linked' && r.linkedTo) {
+    if (r.status === "linked" && r.linkedTo) {
       const arr = linkedMap.get(r.linkedTo) ?? [];
       arr.push({ id: r.id, text: r.text });
       linkedMap.set(r.linkedTo, arr);
@@ -125,7 +148,10 @@ export async function listTasksForUser(db: Database, userId: string): Promise<Ta
   return rows.map((r) => rowToView(r as TaskRow, linkedMap.get(r.id) ?? []));
 }
 
-export async function listRecentTagCandidatesForUser(db: Database, userId: string): Promise<string[]> {
+export async function listRecentTagCandidatesForUser(
+  db: Database,
+  userId: string,
+): Promise<string[]> {
   const rows = await db
     .select({
       tag: tasksTable.tag,
@@ -160,18 +186,24 @@ function viewPatchToRow(patch: ViewPatch): Partial<NewTaskRow> {
   const out: Partial<NewTaskRow> = {};
   if (patch.text !== undefined) out.text = patch.text;
   if (patch.rawText !== undefined) out.rawText = patch.rawText;
-  if (patch.place !== undefined && patch.place !== null) out.place = patch.place;
-  if (patch.window !== undefined && patch.window !== null) out.taskWindow = patch.window;
-  if (patch.energy !== undefined && patch.energy !== null) out.energy = patch.energy;
-  if (patch.priority !== undefined && patch.priority !== null) out.priority = patch.priority;
+  if (patch.place !== undefined && patch.place !== null)
+    out.place = patch.place;
+  if (patch.window !== undefined && patch.window !== null)
+    out.taskWindow = patch.window;
+  if (patch.energy !== undefined && patch.energy !== null)
+    out.energy = patch.energy;
+  if (patch.priority !== undefined && patch.priority !== null)
+    out.priority = patch.priority;
   if (patch.tags !== undefined) out.tags = patch.tags;
   if (patch.deadline !== undefined) out.deadline = patch.deadline ?? null;
   if (patch.expectAt !== undefined) out.expectAt = patch.expectAt ?? null;
   if (patch.dueAt !== undefined) out.dueAt = patch.dueAt ?? null;
   if (patch.aiReason !== undefined) out.aiReason = patch.aiReason ?? null;
-  if (patch.status !== undefined && patch.status !== null) out.status = patch.status;
+  if (patch.status !== undefined && patch.status !== null)
+    out.status = patch.status;
   if (patch.linkedTo !== undefined) out.linkedTo = patch.linkedTo ?? null;
-  if (patch.completedAt !== undefined) out.completedAt = patch.completedAt ?? null;
+  if (patch.completedAt !== undefined)
+    out.completedAt = patch.completedAt ?? null;
   out.updatedAt = new Date();
   return out;
 }
@@ -186,7 +218,11 @@ export interface PersistPlan {
  * after 里 before 没有的算新增（inserts）；同 id 的逐字段比对，有变化的算 patch（updates）；
  * 完全没变的跳过。不碰 DB，便于单测。embedding 是 TiDB 生成列，这里不赋值。
  */
-export function planPersist(userId: string, before: TaskView[], after: TaskView[]): PersistPlan {
+export function planPersist(
+  userId: string,
+  before: TaskView[],
+  after: TaskView[],
+): PersistPlan {
   const beforeMap = new Map(before.map((t) => [t.id, t]));
 
   const inserts: NewTaskRow[] = [];
@@ -221,17 +257,21 @@ export function planPersist(userId: string, before: TaskView[], after: TaskView[
     if (b.window !== a.window) diff.window = a.window;
     if (b.energy !== a.energy) diff.energy = a.energy;
     if (b.priority !== a.priority) diff.priority = a.priority;
-    if (JSON.stringify(b.tags ?? []) !== JSON.stringify(a.tags ?? [])) diff.tags = a.tags ?? [];
-    if ((b.deadline ?? null) !== (a.deadline ?? null)) diff.deadline = a.deadline ?? null;
+    if (JSON.stringify(b.tags ?? []) !== JSON.stringify(a.tags ?? []))
+      diff.tags = a.tags ?? [];
+    if ((b.deadline ?? null) !== (a.deadline ?? null))
+      diff.deadline = a.deadline ?? null;
     if ((b.expectAt ?? null) !== (a.expectAt ?? null)) {
       diff.expectAt = a.expectAt ? new Date(a.expectAt) : null;
     }
     if ((b.dueAt ?? null) !== (a.dueAt ?? null)) {
       diff.dueAt = a.dueAt ? new Date(a.dueAt) : null;
     }
-    if ((b.aiReason ?? null) !== (a.aiReason ?? null)) diff.aiReason = a.aiReason ?? null;
+    if ((b.aiReason ?? null) !== (a.aiReason ?? null))
+      diff.aiReason = a.aiReason ?? null;
     if (b.status !== a.status) diff.status = a.status;
-    if ((b.linkedTo ?? null) !== (a.linkedTo ?? null)) diff.linkedTo = a.linkedTo ?? null;
+    if ((b.linkedTo ?? null) !== (a.linkedTo ?? null))
+      diff.linkedTo = a.linkedTo ?? null;
     if ((b.completedAt ?? null) !== (a.completedAt ?? null)) {
       diff.completedAt = a.completedAt ? new Date(a.completedAt) : null;
     }
@@ -280,15 +320,19 @@ export async function logUtterance(
   if (!effects.length) return;
   const rows: NewUtteranceRow[] = effects.map((effect, i) => {
     const action = utterance.actions[i];
-    const taskId = effect.kind === 'miss' ? null : ((effect as { id?: string }).id ?? null);
+    const taskId =
+      effect.kind === "miss" ? null : ((effect as { id?: string }).id ?? null);
     return {
       id: crypto.randomUUID(),
       userId,
       rawText: utterance.raw,
-      intent: action?.intent ?? 'ADD',
+      intent: action?.intent ?? "ADD",
       effectKind: effect.kind,
       verb: effect.verb ?? null,
-      reason: effect.kind === 'miss' ? null : ((effect as { reason?: string }).reason ?? null),
+      reason:
+        effect.kind === "miss"
+          ? null
+          : ((effect as { reason?: string }).reason ?? null),
       taskId,
       audioKey,
       dims: utterance.dims,
@@ -298,24 +342,36 @@ export async function logUtterance(
   await db.insert(utterancesTable).values(rows);
 }
 
-export async function markTaskDone(db: Database, userId: string, id: string): Promise<void> {
+export async function markTaskDone(
+  db: Database,
+  userId: string,
+  id: string,
+): Promise<void> {
   await db
     .update(tasksTable)
-    .set({ status: 'done', completedAt: new Date(), updatedAt: new Date() })
+    .set({ status: "done", completedAt: new Date(), updatedAt: new Date() })
     .where(and(eq(tasksTable.id, id), eq(tasksTable.userId, userId)));
 }
 
-export async function reopenTask(db: Database, userId: string, id: string): Promise<void> {
+export async function reopenTask(
+  db: Database,
+  userId: string,
+  id: string,
+): Promise<void> {
   await db
     .update(tasksTable)
-    .set({ status: 'pending', completedAt: null, updatedAt: new Date() })
+    .set({ status: "pending", completedAt: null, updatedAt: new Date() })
     .where(and(eq(tasksTable.id, id), eq(tasksTable.userId, userId)));
 }
 
-export async function markBatchDone(db: Database, userId: string, ids: string[]): Promise<void> {
+export async function markBatchDone(
+  db: Database,
+  userId: string,
+  ids: string[],
+): Promise<void> {
   if (!ids.length) return;
   await db
     .update(tasksTable)
-    .set({ status: 'done', completedAt: new Date(), updatedAt: new Date() })
+    .set({ status: "done", completedAt: new Date(), updatedAt: new Date() })
     .where(and(inArray(tasksTable.id, ids), eq(tasksTable.userId, userId)));
 }

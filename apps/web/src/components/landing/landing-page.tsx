@@ -1,5 +1,5 @@
-import Image from 'next/image';
-import { HeroDemo } from '@/components/landing/hero-demo';
+import Image from "next/image";
+import { HeroDemo } from "@/components/landing/hero-demo";
 import {
   BENEFITS,
   EXPLAINERS,
@@ -9,11 +9,14 @@ import {
   SCENES,
   type Scene,
   UPDATE_POINTS,
-} from '@/components/landing/landing-content';
-import { CenteredSectionHead, SectionHead } from '@/components/landing/landing-section-head';
-import { MarketingHeroActions } from '@/components/marketing/marketing-auth-links';
-import { MarketingShell } from '@/components/marketing/marketing-shell';
-import { LANDING_HEADER_LINKS } from '@/lib/site';
+} from "@/components/landing/landing-content";
+import {
+  CenteredSectionHead,
+  SectionHead,
+} from "@/components/landing/landing-section-head";
+import { MarketingHeroActions } from "@/components/marketing/marketing-auth-links";
+import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { LANDING_HEADER_LINKS } from "@/lib/site";
 
 export function LandingPageView() {
   return (
@@ -45,7 +48,8 @@ function Hero() {
           <span className="text-accent-warm">清单</span>。
         </h1>
         <p className="font-serif mt-6 max-w-[36ch] text-[1.15rem] leading-[1.72] text-ink-soft sm:text-[1.38rem] sm:leading-[1.68]">
-          不只是记下。说一句就能改时间、勾完成、把堆久的事捞回来。整个 todo 生命周期，全靠语音。
+          不只是记下。说一句就能改时间、勾完成、把堆久的事捞回来。整个 todo
+          生命周期，全靠语音。
         </p>
         <p className="mt-5 max-w-[42rem] font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.82rem]">
           iOS 0.4.0 · 记下 → 拆分 → 修改 → 完成 → 标签筛选 → 场景过滤
@@ -66,7 +70,11 @@ function Hero() {
 function ExplainSection() {
   return (
     <section id="what" className="py-18 sm:py-22">
-      <SectionHead number="01" label="是什么" title="不是多一个记事工具，而是少一道整理动作。" />
+      <SectionHead
+        number="01"
+        label="是什么"
+        title="不是多一个记事工具，而是少一道整理动作。"
+      />
       <div className="mt-10 space-y-8 sm:mt-12 sm:space-y-10">
         {EXPLAINERS.map((item) => (
           <article
@@ -77,7 +85,9 @@ function ExplainSection() {
               {item.n}
             </p>
             <div>
-              <h3 className="font-serif text-[1.88rem] leading-tight text-ink sm:text-[2.2rem]">{item.title}</h3>
+              <h3 className="font-serif text-[1.88rem] leading-tight text-ink sm:text-[2.2rem]">
+                {item.title}
+              </h3>
               <p className="mt-3 max-w-[60ch] text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">
                 {item.body}
               </p>
@@ -95,8 +105,12 @@ function ExplainSection() {
         <div className="mt-6 grid gap-5 sm:grid-cols-3 sm:gap-6">
           {UPDATE_POINTS.map((item) => (
             <article key={item.title} className="border-t border-rule/60 pt-4">
-              <h4 className="text-[1rem] font-bold text-ink sm:text-[1.06rem]">{item.title}</h4>
-              <p className="mt-2 text-[0.95rem] leading-[1.68] text-ink-soft">{item.body}</p>
+              <h4 className="text-[1rem] font-bold text-ink sm:text-[1.06rem]">
+                {item.title}
+              </h4>
+              <p className="mt-2 text-[0.95rem] leading-[1.68] text-ink-soft">
+                {item.body}
+              </p>
             </article>
           ))}
         </div>
@@ -108,7 +122,11 @@ function ExplainSection() {
 function ScenesSection() {
   return (
     <section id="scenes" className="py-18 sm:py-22">
-      <SectionHead number="02" label="场景" title="三种忙法，都不适合低头填表。" />
+      <SectionHead
+        number="02"
+        label="场景"
+        title="三种忙法，都不适合低头填表。"
+      />
       <div className="mt-12 space-y-14 sm:mt-14 sm:space-y-18">
         {SCENES.map((scene, index) => (
           <SceneArticle key={scene.tag} scene={scene} index={index} />
@@ -119,11 +137,11 @@ function ScenesSection() {
 }
 
 function SceneArticle({ scene, index }: { scene: Scene; index: number }) {
-  const imageFirst = scene.imageSide === 'left';
+  const imageFirst = scene.imageSide === "left";
 
   return (
     <article className="grid gap-8 sm:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] sm:items-center sm:gap-10 lg:gap-14">
-      <div className={imageFirst ? 'sm:order-1' : 'sm:order-2'}>
+      <div className={imageFirst ? "sm:order-1" : "sm:order-2"}>
         <figure className="landing-sketch-frame overflow-hidden">
           <Image
             src={scene.imageSrc}
@@ -138,12 +156,16 @@ function SceneArticle({ scene, index }: { scene: Scene; index: number }) {
           />
         </figure>
       </div>
-      <div className={imageFirst ? 'sm:order-2' : 'sm:order-1'}>
+      <div className={imageFirst ? "sm:order-2" : "sm:order-1"}>
         <p className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.82rem]">
-          {String(index + 1).padStart(2, '0')} · {scene.tag}
+          {String(index + 1).padStart(2, "0")} · {scene.tag}
         </p>
-        <h3 className="font-serif mt-3 text-[clamp(2.1rem,3.7vw,3.3rem)] leading-tight text-ink">{scene.who}</h3>
-        <p className="mt-3 max-w-[44ch] text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">{scene.context}</p>
+        <h3 className="font-serif mt-3 text-[clamp(2.1rem,3.7vw,3.3rem)] leading-tight text-ink">
+          {scene.who}
+        </h3>
+        <p className="mt-3 max-w-[44ch] text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">
+          {scene.context}
+        </p>
         <div className="mt-6 border-t border-rule/60 pt-4">
           <p className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.8rem]">
             她 / 他说
@@ -158,7 +180,9 @@ function SceneArticle({ scene, index }: { scene: Scene; index: number }) {
           <p className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.8rem]">
             叨叨记接住
           </p>
-          <p className="mt-3 max-w-[50ch] text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">{scene.effect}</p>
+          <p className="mt-3 max-w-[50ch] text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">
+            {scene.effect}
+          </p>
         </div>
       </div>
     </article>
@@ -179,8 +203,12 @@ function BenefitsSection() {
               {item.n}
             </p>
             <div className="max-w-[60ch]">
-              <h3 className="font-serif text-[1.95rem] leading-tight text-ink sm:text-[2.15rem]">{item.title}</h3>
-              <p className="mt-3 text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">{item.body}</p>
+              <h3 className="font-serif text-[1.95rem] leading-tight text-ink sm:text-[2.15rem]">
+                {item.title}
+              </h3>
+              <p className="mt-3 text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">
+                {item.body}
+              </p>
             </div>
           </article>
         ))}
@@ -195,16 +223,23 @@ function RoadmapSection() {
       <CenteredSectionHead number="04" label="Roadmap" title="一步一步来。" />
       <ol className="mx-auto mt-12 max-w-[72rem] space-y-10 sm:mt-14 sm:space-y-12">
         {ROADMAP.map((item, index) => (
-          <li key={item.n} className="grid gap-3 sm:grid-cols-[8rem_minmax(0,50rem)] sm:justify-center sm:gap-8">
+          <li
+            key={item.n}
+            className="grid gap-3 sm:grid-cols-[8rem_minmax(0,50rem)] sm:justify-center sm:gap-8"
+          >
             <p className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:pt-2 sm:text-[0.82rem]">
-              {String(index + 1).padStart(2, '0')} · {item.n}
+              {String(index + 1).padStart(2, "0")} · {item.n}
             </p>
             <div>
               <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-                <h3 className="font-serif text-[2rem] leading-tight text-ink sm:text-[2.15rem]">{item.title}</h3>
+                <h3 className="font-serif text-[2rem] leading-tight text-ink sm:text-[2.15rem]">
+                  {item.title}
+                </h3>
                 <PhaseTag phase={item.phase} />
               </div>
-              <p className="mt-3 text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">{item.body}</p>
+              <p className="mt-3 text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.08rem]">
+                {item.body}
+              </p>
             </div>
           </li>
         ))}
@@ -219,13 +254,20 @@ function FaqSection() {
       <CenteredSectionHead number="05" label="FAQ" title="你可能想问。" />
       <dl className="mx-auto mt-12 max-w-[72rem] space-y-8 sm:mt-14 sm:space-y-10">
         {FAQ.map((item, index) => (
-          <div key={item.q} className="grid gap-3 sm:grid-cols-[5rem_minmax(0,52rem)] sm:justify-center sm:gap-8">
+          <div
+            key={item.q}
+            className="grid gap-3 sm:grid-cols-[5rem_minmax(0,52rem)] sm:justify-center sm:gap-8"
+          >
             <dt className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:pt-1 sm:text-[0.82rem]">
-              Q.{String(index + 1).padStart(2, '0')}
+              Q.{String(index + 1).padStart(2, "0")}
             </dt>
             <div>
-              <p className="font-serif text-[1.6rem] leading-tight text-ink sm:text-[1.75rem]">{item.q}</p>
-              <dd className="mt-3 text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.06rem]">{item.a}</dd>
+              <p className="font-serif text-[1.6rem] leading-tight text-ink sm:text-[1.75rem]">
+                {item.q}
+              </p>
+              <dd className="mt-3 text-[1rem] leading-[1.72] text-ink-soft sm:text-[1.06rem]">
+                {item.a}
+              </dd>
             </div>
           </div>
         ))}
@@ -235,17 +277,24 @@ function FaqSection() {
 }
 
 function Rule() {
-  return <div aria-hidden className="h-px w-full bg-rule/60 sm:my-2" role="presentation" />;
+  return (
+    <div
+      aria-hidden
+      className="h-px w-full bg-rule/60 sm:my-2"
+      role="presentation"
+    />
+  );
 }
 
 function PhaseTag({ phase }: { phase: Phase }) {
-  const label = phase === 'done' ? '已上线' : phase === 'active' ? '进行中' : '规划中';
+  const label =
+    phase === "done" ? "已上线" : phase === "active" ? "进行中" : "规划中";
   const className =
-    phase === 'done'
-      ? 'border-rule/70 text-ink-mute'
-      : phase === 'active'
-        ? 'border-accent-warm/50 text-accent-warm'
-        : 'border-rule/70 text-ink-mute';
+    phase === "done"
+      ? "border-rule/70 text-ink-mute"
+      : phase === "active"
+        ? "border-accent-warm/50 text-accent-warm"
+        : "border-rule/70 text-ink-mute";
 
   return (
     <span

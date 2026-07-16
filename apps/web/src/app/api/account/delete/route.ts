@@ -6,10 +6,10 @@ import {
   tasks as tasksTable,
   users,
   utterances as utterancesTable,
-} from '@mui-memo/shared/schema';
-import { eq } from 'drizzle-orm';
-import { NextResponse } from 'next/server';
-import { requireAuthDb } from '@/lib/route';
+} from "@mui-memo/shared/schema";
+import { eq } from "drizzle-orm";
+import { NextResponse } from "next/server";
+import { requireAuthDb } from "@/lib/route";
 
 /**
  * 注销账号（Apple 5.1.1(v)）：永久删除当前登录用户的全部数据。

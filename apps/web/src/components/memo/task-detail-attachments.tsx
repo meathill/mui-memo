@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import type { Attachment } from '@mui-memo/shared/dto';
-import { PaperclipIcon, TrashIcon } from 'lucide-react';
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { ASSETS_URL } from '@/lib/config';
-import { cn } from '@/lib/utils';
+import type { Attachment } from "@mui-memo/shared/dto";
+import { PaperclipIcon, TrashIcon } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ASSETS_URL } from "@/lib/config";
+import { cn } from "@/lib/utils";
 
 export type { Attachment };
 
 function isImage(mime: string | null) {
-  return mime?.startsWith('image/') ?? false;
+  return mime?.startsWith("image/") ?? false;
 }
 
 function formatSize(bytes: number) {
@@ -19,9 +19,15 @@ function formatSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function AttachmentItem({ att, onDelete }: { att: Attachment; onDelete: () => void }) {
+function AttachmentItem({
+  att,
+  onDelete,
+}: {
+  att: Attachment;
+  onDelete: () => void;
+}) {
   const url = `${ASSETS_URL}/${att.key}`;
-  const name = att.originalName ?? '附件';
+  const name = att.originalName ?? "附件";
   return (
     <li className="flex items-center gap-3 rounded-xl border border-rule/60 bg-paper-2/40 p-2">
       {isImage(att.mime) ? (
@@ -32,7 +38,12 @@ function AttachmentItem({ att, onDelete }: { att: Attachment; onDelete: () => vo
           className="block h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-paper ring-1 ring-rule/50"
         >
           {/* biome-ignore lint/performance/noImgElement: 外链 R2 资源，不走 next/image */}
-          <img src={url} alt={name} className="h-full w-full object-cover" loading="lazy" />
+          <img
+            src={url}
+            alt={name}
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
         </a>
       ) : (
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-paper ring-1 ring-rule/50">
@@ -49,11 +60,16 @@ function AttachmentItem({ att, onDelete }: { att: Attachment; onDelete: () => vo
           {name}
         </a>
         <p className="text-[11px] font-mono text-ink-mute">
-          {att.mime ?? '?'}
-          {att.size != null ? ` · ${formatSize(att.size)}` : ''}
+          {att.mime ?? "?"}
+          {att.size != null ? ` · ${formatSize(att.size)}` : ""}
         </p>
       </div>
-      <Button variant="ghost" size="icon" onClick={onDelete} aria-label="删除附件">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onDelete}
+        aria-label="删除附件"
+      >
         <TrashIcon />
       </Button>
     </li>
@@ -90,20 +106,20 @@ export function AttachmentsSection({
       data-testid="attachments"
       aria-label="附件拖放区"
       className={cn(
-        'mt-8 space-y-3 rounded-2xl p-2 transition-colors',
-        dragOver && 'bg-accent-warm/10 ring-2 ring-accent-warm/60',
+        "mt-8 space-y-3 rounded-2xl p-2 transition-colors",
+        dragOver && "bg-accent-warm/10 ring-2 ring-accent-warm/60",
       )}
       onDragEnter={(e) => {
         // 只有真的拖了文件才响应
-        if (e.dataTransfer.types?.includes('Files')) {
+        if (e.dataTransfer.types?.includes("Files")) {
           e.preventDefault();
           setDragOver(true);
         }
       }}
       onDragOver={(e) => {
-        if (e.dataTransfer.types?.includes('Files')) {
+        if (e.dataTransfer.types?.includes("Files")) {
           e.preventDefault();
-          e.dataTransfer.dropEffect = 'copy';
+          e.dataTransfer.dropEffect = "copy";
         }
       }}
       onDragLeave={(e) => {
@@ -119,12 +135,25 @@ export function AttachmentsSection({
       }}
     >
       <div className="flex items-center justify-between">
-        <h2 className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink-mute">附件 · {attachments.length}</h2>
-        <Button variant="outline" size="sm" onClick={onPickFile} loading={uploading}>
+        <h2 className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink-mute">
+          附件 · {attachments.length}
+        </h2>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onPickFile}
+          loading={uploading}
+        >
           <PaperclipIcon />
           上传
         </Button>
-        <input ref={fileRef} type="file" multiple className="hidden" onChange={onUploadChange} />
+        <input
+          ref={fileRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={onUploadChange}
+        />
       </div>
 
       {error ? <p className="text-xs text-red-600">{error}</p> : null}
@@ -136,12 +165,20 @@ export function AttachmentsSection({
       ) : (
         <ul className="space-y-2">
           {attachments.map((a) => (
-            <AttachmentItem key={a.id} att={a} onDelete={() => onDelete(a.id)} />
+            <AttachmentItem
+              key={a.id}
+              att={a}
+              onDelete={() => onDelete(a.id)}
+            />
           ))}
         </ul>
       )}
 
-      {dragOver ? <p className="font-mono text-[11px] text-accent-warm text-center">松开上传到此任务</p> : null}
+      {dragOver ? (
+        <p className="font-mono text-[11px] text-accent-warm text-center">
+          松开上传到此任务
+        </p>
+      ) : null}
     </section>
   );
 }

@@ -1,7 +1,7 @@
-import { createRecurrenceSchema } from '@mui-memo/shared/validators';
-import { NextResponse } from 'next/server';
-import { applyRecurrenceReconcile, createRecurrence } from '@/lib/recurrences';
-import { requireAuthDb } from '@/lib/route';
+import { createRecurrenceSchema } from "@mui-memo/shared/validators";
+import { NextResponse } from "next/server";
+import { applyRecurrenceReconcile, createRecurrence } from "@/lib/recurrences";
+import { requireAuthDb } from "@/lib/route";
 
 /**
  * 新建周期任务定义。可带 linkTaskId 把现有任务挂成当前期实例。
@@ -13,7 +13,10 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const parsed = createRecurrenceSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: 'invalid_input', issues: parsed.error.issues }, { status: 400 });
+    return NextResponse.json(
+      { error: "invalid_input", issues: parsed.error.issues },
+      { status: 400 },
+    );
   }
   const userId = ctx.session.user.id;
   const rec = await createRecurrence(ctx.db, userId, parsed.data);

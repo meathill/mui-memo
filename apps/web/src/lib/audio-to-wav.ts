@@ -12,7 +12,9 @@ export async function blobToWav(blob: Blob): Promise<Blob> {
   const arrayBuffer = await blob.arrayBuffer();
   // Safari 老版本要 webkitAudioContext；新版 Safari 已统一到 AudioContext
   const Ctor =
-    window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    window.AudioContext ??
+    (window as unknown as { webkitAudioContext: typeof AudioContext })
+      .webkitAudioContext;
   const audioCtx = new Ctor();
   try {
     // decodeAudioData 在 Safari 老版本只接受 callback；现代浏览器返回 Promise
@@ -39,11 +41,11 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
   const view = new DataView(ab);
 
   // RIFF header
-  writeAscii(view, 0, 'RIFF');
+  writeAscii(view, 0, "RIFF");
   view.setUint32(4, 36 + dataSize, true);
-  writeAscii(view, 8, 'WAVE');
+  writeAscii(view, 8, "WAVE");
   // fmt sub-chunk
-  writeAscii(view, 12, 'fmt ');
+  writeAscii(view, 12, "fmt ");
   view.setUint32(16, 16, true); // sub-chunk size
   view.setUint16(20, 1, true); // PCM
   view.setUint16(22, numChannels, true);
@@ -52,7 +54,7 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
   view.setUint16(32, blockAlign, true);
   view.setUint16(34, 16, true); // bits per sample
   // data sub-chunk
-  writeAscii(view, 36, 'data');
+  writeAscii(view, 36, "data");
   view.setUint32(40, dataSize, true);
 
   // 多声道时取首声道，避免立体声混音的额外计算
@@ -64,7 +66,7 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
     offset += 2;
   }
 
-  return new Blob([ab], { type: 'audio/wav' });
+  return new Blob([ab], { type: "audio/wav" });
 }
 
 function writeAscii(view: DataView, offset: number, s: string): void {

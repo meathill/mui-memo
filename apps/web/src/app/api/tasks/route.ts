@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { applyRecurrenceReconcile } from '@/lib/recurrences';
-import { requireAuthDb } from '@/lib/route';
-import { listTasksForUser } from '@/lib/tasks';
+import { NextResponse } from "next/server";
+import { applyRecurrenceReconcile } from "@/lib/recurrences";
+import { requireAuthDb } from "@/lib/route";
+import { listTasksForUser } from "@/lib/tasks";
 
 /**
  * 返回当前用户的全量未归档任务视图。
@@ -15,7 +15,10 @@ export async function GET() {
   // 返回各定义「当前期序号」，用于保留「本轮已完成」的周期实例。
   let currentIndexMap = new Map<string, number>();
   try {
-    currentIndexMap = await applyRecurrenceReconcile(ctx.db, ctx.session.user.id);
+    currentIndexMap = await applyRecurrenceReconcile(
+      ctx.db,
+      ctx.session.user.id,
+    );
   } catch {
     // 对账失败不影响任务读取，下次 fetch 再试
   }
@@ -24,8 +27,10 @@ export async function GET() {
   // 其余 done 的去 /completed 页看。linked 作为子任务保留供 rerank 上下文。
   const tasks = all.filter(
     (t) =>
-      t.status !== 'done' ||
-      (t.recurrenceId != null && t.periodIndex != null && t.periodIndex === currentIndexMap.get(t.recurrenceId)),
+      t.status !== "done" ||
+      (t.recurrenceId != null &&
+        t.periodIndex != null &&
+        t.periodIndex === currentIndexMap.get(t.recurrenceId)),
   );
   return NextResponse.json({ tasks });
 }

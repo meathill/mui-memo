@@ -1,16 +1,20 @@
-'use client';
+"use client";
 
-import { PLACE_LABEL } from '@mui-memo/shared/logic';
-import type { TaskPlace, TaskStatus, TaskWindow } from '@mui-memo/shared/validators';
-import { ArrowLeftIcon, RotateCcwIcon, TrashIcon } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { track } from '@/lib/analytics';
-import { MAX_ATTACHMENT_SIZE } from '@/lib/config';
-import { ConfirmDialog } from './confirm-dialog';
-import { type Attachment, AttachmentsSection } from './task-detail-attachments';
+import { PLACE_LABEL } from "@mui-memo/shared/logic";
+import type {
+  TaskPlace,
+  TaskStatus,
+  TaskWindow,
+} from "@mui-memo/shared/validators";
+import { ArrowLeftIcon, RotateCcwIcon, TrashIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { track } from "@/lib/analytics";
+import { MAX_ATTACHMENT_SIZE } from "@/lib/config";
+import { ConfirmDialog } from "./confirm-dialog";
+import { type Attachment, AttachmentsSection } from "./task-detail-attachments";
 import {
   Field,
   PLACES,
@@ -22,7 +26,7 @@ import {
   TimeRow,
   WINDOW_LABEL,
   WINDOWS,
-} from './task-detail-fields';
+} from "./task-detail-fields";
 
 interface Task {
   id: string;
@@ -53,24 +57,24 @@ export function TaskDetailView({ id }: { id: string }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [tagDraft, setTagDraft] = useState('');
+  const [tagDraft, setTagDraft] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function handleDeleteTask() {
-    const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
     if (!res.ok) {
-      setError('删除失败');
+      setError("删除失败");
       return;
     }
-    track({ name: 'task_delete', source: 'detail' });
-    router.push('/app');
+    track({ name: "task_delete", source: "detail" });
+    router.push("/app");
   }
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/tasks/${id}`, { cache: 'no-store' });
+    const res = await fetch(`/api/tasks/${id}`, { cache: "no-store" });
     if (!res.ok) {
-      if (res.status === 404) router.replace('/app');
+      if (res.status === 404) router.replace("/app");
       setLoading(false);
       return;
     }
@@ -98,17 +102,19 @@ export function TaskDetailView({ id }: { id: string }) {
       if (fields.window !== undefined) body.window = fields.window;
       if (fields.priority !== undefined) body.priority = fields.priority;
       if (fields.tags !== undefined) body.tags = fields.tags;
-      if (fields.deadline !== undefined) body.deadline = fields.deadline || undefined;
-      if (fields.expectAt !== undefined) body.expectAt = fields.expectAt ?? null;
+      if (fields.deadline !== undefined)
+        body.deadline = fields.deadline || undefined;
+      if (fields.expectAt !== undefined)
+        body.expectAt = fields.expectAt ?? null;
       if (fields.dueAt !== undefined) body.dueAt = fields.dueAt ?? null;
       if (fields.status !== undefined) body.status = fields.status;
       try {
         const res = await fetch(`/api/tasks/${id}`, {
-          method: 'PATCH',
-          headers: { 'content-type': 'application/json' },
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
           body: JSON.stringify(body),
         });
-        if (!res.ok) setError('保存失败');
+        if (!res.ok) setError("保存失败");
       } finally {
         setSaving(false);
       }
@@ -121,7 +127,7 @@ export function TaskDetailView({ id }: { id: string }) {
     const v = value.trim();
     if (!v || task.tags.includes(v) || task.tags.length >= 12) return;
     patch({ tags: [...task.tags, v] });
-    setTagDraft('');
+    setTagDraft("");
   }
   function removeTag(value: string) {
     if (!task) return;
@@ -135,13 +141,13 @@ export function TaskDetailView({ id }: { id: string }) {
         return;
       }
       const fd = new FormData();
-      fd.append('file', file);
+      fd.append("file", file);
       const res = await fetch(`/api/tasks/${id}/attachments`, {
-        method: 'POST',
+        method: "POST",
         body: fd,
       });
       if (!res.ok) {
-        setError('上传失败');
+        setError("上传失败");
         return;
       }
       const data = (await res.json()) as { attachment: Attachment };
@@ -169,13 +175,13 @@ export function TaskDetailView({ id }: { id: string }) {
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
-    e.target.value = '';
+    e.target.value = "";
     await uploadMany(files);
   }
 
   async function handleDeleteAttachment(attId: string) {
     setAttachments((prev) => prev.filter((a) => a.id !== attId));
-    await fetch(`/api/attachments/${attId}`, { method: 'DELETE' });
+    await fetch(`/api/attachments/${attId}`, { method: "DELETE" });
   }
 
   if (loading || !task) {
@@ -189,14 +195,25 @@ export function TaskDetailView({ id }: { id: string }) {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-6 pb-24 sm:pt-10">
       <header className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label="返回">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.back()}
+          aria-label="返回"
+        >
           <ArrowLeftIcon />
         </Button>
         <div className="min-w-0 flex-1">
-          <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">任务详情</p>
-          <p className="truncate text-xs text-ink-mute font-mono">{new Date(task.createdAt).toLocaleString('zh-CN')}</p>
+          <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">
+            任务详情
+          </p>
+          <p className="truncate text-xs text-ink-mute font-mono">
+            {new Date(task.createdAt).toLocaleString("zh-CN")}
+          </p>
         </div>
-        {saving ? <span className="font-mono text-[10px] text-ink-mute">保存中…</span> : null}
+        {saving ? (
+          <span className="font-mono text-[10px] text-ink-mute">保存中…</span>
+        ) : null}
         <Button
           variant="ghost"
           size="icon"
@@ -234,7 +251,7 @@ export function TaskDetailView({ id }: { id: string }) {
         <div className="grid grid-cols-2 gap-3">
           <Field label="状态">
             <Segmented
-              value={task.status === 'linked' ? 'pending' : task.status}
+              value={task.status === "linked" ? "pending" : task.status}
               options={STATUSES.map((s) => ({
                 value: s,
                 label: STATUS_LABEL[s],
@@ -311,7 +328,7 @@ export function TaskDetailView({ id }: { id: string }) {
                 value={tagDraft}
                 onChange={(e) => setTagDraft(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     e.preventDefault();
                     addTag(tagDraft);
                   }
@@ -326,10 +343,10 @@ export function TaskDetailView({ id }: { id: string }) {
           </Field>
           <Field label="时间">
             <Input
-              defaultValue={task.deadline ?? ''}
+              defaultValue={task.deadline ?? ""}
               onBlur={(e) => {
                 const v = e.target.value.trim();
-                if (v !== (task.deadline ?? '')) patch({ deadline: v });
+                if (v !== (task.deadline ?? "")) patch({ deadline: v });
               }}
               placeholder="明天 / 17:00"
               size="default"
@@ -337,13 +354,13 @@ export function TaskDetailView({ id }: { id: string }) {
             <TimeRow
               label="预期"
               value={task.expectAt}
-              overdueHint={task.status !== 'done'}
+              overdueHint={task.status !== "done"}
               onChange={(iso) => patch({ expectAt: iso ?? undefined })}
             />
             <TimeRow
               label="Deadline"
               value={task.dueAt}
-              overdueHint={task.status !== 'done'}
+              overdueHint={task.status !== "done"}
               onChange={(iso) => patch({ dueAt: iso ?? undefined })}
             />
           </Field>
@@ -366,7 +383,9 @@ export function TaskDetailView({ id }: { id: string }) {
 
         {task.audioKey ? (
           <div className="space-y-1.5">
-            <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">原始语音</p>
+            <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">
+              原始语音
+            </p>
             {/* biome-ignore lint/a11y/useMediaCaption: 用户录的语音备忘，没有字幕源 */}
             <audio
               controls
@@ -378,18 +397,20 @@ export function TaskDetailView({ id }: { id: string }) {
           </div>
         ) : null}
 
-        {task.status === 'done' ? (
+        {task.status === "done" ? (
           <Button
             variant="outline"
             className="w-full py-6 text-base"
             onClick={async () => {
               try {
                 setSaving(true);
-                const res = await fetch(`/api/tasks/${task.id}/reopen`, { method: 'POST' });
-                if (!res.ok) throw new Error('重启失败');
+                const res = await fetch(`/api/tasks/${task.id}/reopen`, {
+                  method: "POST",
+                });
+                if (!res.ok) throw new Error("重启失败");
                 await load();
               } catch (err) {
-                setError(err instanceof Error ? err.message : '重启失败');
+                setError(err instanceof Error ? err.message : "重启失败");
               } finally {
                 setSaving(false);
               }

@@ -1,19 +1,19 @@
 {
-  "name": "mui-memo",
-  "private": true,
-  "packageManager": "pnpm@11.0.9",
-  "scripts": {
-    "dev": "turbo dev",
-    "build": "turbo build",
-    "test": "turbo test",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
-    "format": "biome format --write .",
-    "postinstall": "pnpm --filter @mui-memo/shared build"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.4.9",
-    "turbo": "^2.5.0",
-    "typescript": "^5.8.3"
-  }
+	"name": "mui-memo",
+	"private": true,
+	"packageManager": "pnpm@11.0.9",
+	"scripts": {
+		"dev": "turbo dev",
+		"build": "turbo build",
+		"test": "turbo test",
+		"lint": "biome check apps/web/src packages/shared/src apps/app/src/app",
+		"lint:fix": "biome check --write apps/web/src packages/shared/src apps/app/src/app",
+		"format": "biome format --write apps/web/src packages/shared/src apps/app/src/app",
+		"postinstall": "pnpm --filter @mui-memo/shared build"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.4",
+		"turbo": "^2.10.5",
+		"typescript": "^6.0.3"
+	}
 }

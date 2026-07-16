@@ -1,22 +1,22 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
 
-const FALLBACK_SITE_URL = 'https://muimemo.meathill.com';
+const FALLBACK_SITE_URL = "https://muimemo.meathill.com";
 
 function normalizeSiteUrl(value?: string) {
-  return value?.replace(/\/+$/, '') || FALLBACK_SITE_URL;
+  return value?.replace(/\/+$/, "") || FALLBACK_SITE_URL;
 }
 
-export const SITE_NAME = '叨叨记';
-export const SITE_TAGLINE = '语音清单';
+export const SITE_NAME = "叨叨记";
+export const SITE_TAGLINE = "语音清单";
 export const SITE_TITLE = `${SITE_NAME} · ${SITE_TAGLINE}`;
 export const SITE_DESCRIPTION =
-  '叨叨记是已上架 App Store 的语音待办清单：一句话就能记下、拆分、改时间、勾完成，再用场景和标签把当前能做的事筛出来。';
+  "叨叨记是已上架 App Store 的语音待办清单：一句话就能记下、拆分、改时间、勾完成，再用场景和标签把当前能做的事筛出来。";
 export const SITE_URL = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL);
-export const APP_STORE_URL = 'https://apps.apple.com/cn/app/id6763317433';
-export const SITE_EMAIL = 'meathill@gmail.com';
-export const OG_IMAGE_PATH = '/opengraph-image';
-export const TWITTER_IMAGE_PATH = '/twitter-image';
-export const SHARE_IMAGE_ALT = '叨叨记已上架 App Store：一句话，整理整张清单。';
+export const APP_STORE_URL = "https://apps.apple.com/cn/app/id6763317433";
+export const SITE_EMAIL = "meathill@gmail.com";
+export const OG_IMAGE_PATH = "/opengraph-image";
+export const TWITTER_IMAGE_PATH = "/twitter-image";
+export const SHARE_IMAGE_ALT = "叨叨记已上架 App Store：一句话，整理整张清单。";
 
 export type MarketingLink = {
   href: string;
@@ -24,47 +24,67 @@ export type MarketingLink = {
 };
 
 export type PublicRoute = MarketingLink & {
-  changeFrequency: 'weekly' | 'monthly' | 'yearly';
+  changeFrequency: "weekly" | "monthly" | "yearly";
   priority: number;
 };
 
 export const LANDING_HEADER_LINKS: MarketingLink[] = [
-  { href: '#what', label: '是什么' },
-  { href: '#scenes', label: '场景' },
-  { href: '/pricing', label: '价格' },
-  { href: '#faq', label: 'FAQ' },
+  { href: "#what", label: "是什么" },
+  { href: "#scenes", label: "场景" },
+  { href: "/pricing", label: "价格" },
+  { href: "#faq", label: "FAQ" },
 ];
 
 export const MARKETING_HEADER_LINKS: MarketingLink[] = [
-  { href: '/', label: '首页' },
-  { href: '/pricing', label: '价格' },
-  { href: '/about', label: 'About' },
-  { href: '/contact', label: 'Contact' },
+  { href: "/", label: "首页" },
+  { href: "/pricing", label: "价格" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export const PUBLIC_SITE_ROUTES: PublicRoute[] = [
-  { href: '/', label: '首页', changeFrequency: 'weekly', priority: 1 },
-  { href: '/pricing', label: '价格', changeFrequency: 'monthly', priority: 0.9 },
-  { href: '/about', label: 'About', changeFrequency: 'monthly', priority: 0.8 },
-  { href: '/contact', label: 'Contact', changeFrequency: 'monthly', priority: 0.6 },
-  { href: '/support', label: 'Support', changeFrequency: 'monthly', priority: 0.6 },
-  { href: '/privacy', label: 'Privacy', changeFrequency: 'yearly', priority: 0.4 },
-  { href: '/terms', label: 'Terms', changeFrequency: 'yearly', priority: 0.4 },
+  { href: "/", label: "首页", changeFrequency: "weekly", priority: 1 },
+  {
+    href: "/pricing",
+    label: "价格",
+    changeFrequency: "monthly",
+    priority: 0.9,
+  },
+  { href: "/about", label: "About", changeFrequency: "monthly", priority: 0.8 },
+  {
+    href: "/contact",
+    label: "Contact",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    href: "/support",
+    label: "Support",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    href: "/privacy",
+    label: "Privacy",
+    changeFrequency: "yearly",
+    priority: 0.4,
+  },
+  { href: "/terms", label: "Terms", changeFrequency: "yearly", priority: 0.4 },
 ];
 
 const DEFAULT_KEYWORDS = [
-  '叨叨记',
-  'MuiMemo',
-  '语音清单',
-  '语音待办',
-  'AI 任务管理',
-  '语音记录',
-  'App Store',
-  'iOS App',
-  '生产力工具',
+  "叨叨记",
+  "MuiMemo",
+  "语音清单",
+  "语音待办",
+  "AI 任务管理",
+  "语音记录",
+  "App Store",
+  "iOS App",
+  "生产力工具",
 ];
 
-export function absoluteUrl(path = '/') {
+export function absoluteUrl(path = "/") {
   return new URL(path, `${SITE_URL}/`).toString();
 }
 
@@ -97,8 +117,8 @@ export function createMarketingMetadata({
       description,
       url: path,
       siteName: SITE_NAME,
-      locale: 'zh_CN',
-      type: 'website',
+      locale: "zh_CN",
+      type: "website",
       images: [
         {
           url: OG_IMAGE_PATH,
@@ -109,7 +129,7 @@ export function createMarketingMetadata({
       ],
     },
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title: fullTitle,
       description,
       images: [TWITTER_IMAGE_PATH],

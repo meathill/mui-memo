@@ -1,9 +1,18 @@
-import { GoogleGenAI } from '@google/genai';
-import type { TaskView } from '@mui-memo/shared/logic';
-import { parseUtteranceFlexible, type Utterance } from '@mui-memo/shared/validators';
-import { audioToBase64, buildUserPrompt, extractJson, SYSTEM_PROMPT, type TimeAnchor } from './intent-shared';
+import { GoogleGenAI } from "@google/genai";
+import type { TaskView } from "@mui-memo/shared/logic";
+import {
+  parseUtteranceFlexible,
+  type Utterance,
+} from "@mui-memo/shared/validators";
+import {
+  audioToBase64,
+  buildUserPrompt,
+  extractJson,
+  SYSTEM_PROMPT,
+  type TimeAnchor,
+} from "./intent-shared";
 
-const CHAT_MODEL = 'gemini-3-flash-preview';
+const CHAT_MODEL = "gemini-3-flash-preview";
 
 export interface GenAIConfig {
   apiKey: string;
@@ -45,25 +54,33 @@ interface ParseOptions {
  */
 export async function parseVoiceIntent(opts: ParseOptions): Promise<Utterance> {
   const base64 = await audioToBase64(opts.audio);
-  const userText = buildUserPrompt(opts.currentTasks, opts.now, undefined, opts.tagCandidates);
+  const userText = buildUserPrompt(
+    opts.currentTasks,
+    opts.now,
+    undefined,
+    opts.tagCandidates,
+  );
 
   const response = await opts.genai.models.generateContent({
     model: CHAT_MODEL,
     contents: [
       {
-        role: 'user',
-        parts: [{ text: userText }, { inlineData: { mimeType: opts.audioMimeType, data: base64 } }],
+        role: "user",
+        parts: [
+          { text: userText },
+          { inlineData: { mimeType: opts.audioMimeType, data: base64 } },
+        ],
       },
     ],
     config: {
       systemInstruction: SYSTEM_PROMPT,
-      responseMimeType: 'application/json',
+      responseMimeType: "application/json",
       temperature: 0.2,
     },
   });
 
-  const raw = response.text ?? '';
-  if (!raw) throw new Error('Gemini returned empty content');
+  const raw = response.text ?? "";
+  if (!raw) throw new Error("Gemini returned empty content");
 
   const json = JSON.parse(extractJson(raw));
   return parseUtteranceFlexible(json);
@@ -80,18 +97,23 @@ export async function parseTextIntent(opts: {
   tagCandidates?: string[];
   now: TimeAnchor;
 }): Promise<Utterance> {
-  const userText = buildUserPrompt(opts.currentTasks, opts.now, opts.text, opts.tagCandidates);
+  const userText = buildUserPrompt(
+    opts.currentTasks,
+    opts.now,
+    opts.text,
+    opts.tagCandidates,
+  );
   const response = await opts.genai.models.generateContent({
     model: CHAT_MODEL,
-    contents: [{ role: 'user', parts: [{ text: userText }] }],
+    contents: [{ role: "user", parts: [{ text: userText }] }],
     config: {
       systemInstruction: SYSTEM_PROMPT,
-      responseMimeType: 'application/json',
+      responseMimeType: "application/json",
       temperature: 0.2,
     },
   });
-  const raw = response.text ?? '';
-  if (!raw) throw new Error('Gemini returned empty content');
+  const raw = response.text ?? "";
+  if (!raw) throw new Error("Gemini returned empty content");
   const json = JSON.parse(extractJson(raw));
   return parseUtteranceFlexible(json);
 }

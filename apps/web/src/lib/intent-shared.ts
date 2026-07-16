@@ -1,4 +1,4 @@
-import type { TaskView } from '@mui-memo/shared/logic';
+import type { TaskView } from "@mui-memo/shared/logic";
 
 export const SYSTEM_PROMPT = `你是叨叨记的语音意图解析器。用户会说一句中文大白话，你需要把它转成结构化 JSON，用来更新用户的任务清单。
 
@@ -178,26 +178,32 @@ export function buildUserPrompt(
     body = `${head}\n\n当前清单：空。`;
   } else {
     const lines = tasks
-      .filter((t) => !t.done && t.status !== 'linked')
+      .filter((t) => !t.done && t.status !== "linked")
       .slice(0, 30)
       .map(
         (t) =>
           `- [${t.status}] ${t.text} · 地点:${t.place} · 时段:${t.window} · 优先:${t.priority}${
-            t.deadline ? ` · 截止:${t.deadline}` : ''
-          }${t.expectAt ? ` · expectAt:${t.expectAt}` : ''}${
-            t.dueAt ? ` · dueAt:${t.dueAt}` : ''
-          }${t.tags?.length ? ` · ${t.tags.map((x) => `#${x}`).join(' ')}` : ''}`,
+            t.deadline ? ` · 截止:${t.deadline}` : ""
+          }${t.expectAt ? ` · expectAt:${t.expectAt}` : ""}${
+            t.dueAt ? ` · dueAt:${t.dueAt}` : ""
+          }${t.tags?.length ? ` · ${t.tags.map((x) => `#${x}`).join(" ")}` : ""}`,
       );
-    body = `${head}\n\n当前清单：\n${lines.join('\n')}`;
+    body = `${head}\n\n当前清单：\n${lines.join("\n")}`;
   }
   // 把用户已有的标签去重后喂给模型，引导它复用而不是造近义新词。
   const existingTags = tagCandidates?.length
     ? [...new Set(tagCandidates.map((t) => t.trim()).filter(Boolean))]
-    : [...new Set(tasks.filter((t) => !t.done && t.status !== 'linked').flatMap((t) => t.tags ?? []))];
+    : [
+        ...new Set(
+          tasks
+            .filter((t) => !t.done && t.status !== "linked")
+            .flatMap((t) => t.tags ?? []),
+        ),
+      ];
   if (existingTags.length) {
     body += `\n\n用户已有的标签（最多 100 个；这件事和其中某个标签语义接近、同义、近义或明显属于其范围时，就复用同一标签字符串，避免造近义新词；都不贴切就留空）：${existingTags
       .slice(0, 100)
-      .join('、')}`;
+      .join("、")}`;
   }
   if (userText) {
     body += `\n\n用户的话（请把它解析成 actions JSON）：「${userText}」`;
@@ -207,7 +213,7 @@ export function buildUserPrompt(
 
 export async function audioToBase64(audio: ArrayBuffer): Promise<string> {
   const bytes = new Uint8Array(audio);
-  let binary = '';
+  let binary = "";
   const chunk = 0x8000;
   for (let i = 0; i < bytes.length; i += chunk) {
     binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
@@ -218,8 +224,8 @@ export async function audioToBase64(audio: ArrayBuffer): Promise<string> {
 export function extractJson(text: string): string {
   const fenced = text.match(/```json\s*([\s\S]*?)```/);
   if (fenced) return fenced[1];
-  const first = text.indexOf('{');
-  const last = text.lastIndexOf('}');
+  const first = text.indexOf("{");
+  const last = text.lastIndexOf("}");
   if (first >= 0 && last > first) return text.slice(first, last + 1);
   return text;
 }

@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import type { IntentEffect } from '@mui-memo/shared/logic';
-import type { Utterance } from '@mui-memo/shared/validators';
-import { useEffect, useState } from 'react';
-import { cn } from '@/lib/utils';
+import type { IntentEffect } from "@mui-memo/shared/logic";
+import type { Utterance } from "@mui-memo/shared/validators";
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
-const TONE: Record<IntentEffect['kind'], string> = {
-  add: 'border-accent-warm/40 bg-accent-warm/10',
-  status: 'border-accent-warm/40 bg-accent-warm/10',
-  done: 'border-accent-good/40 bg-accent-good/10',
-  'done-backfill': 'border-accent-good/40 bg-accent-good/10',
-  modify: 'border-accent-warn/40 bg-accent-warn/10',
-  link: 'border-accent-warm/40 bg-accent-warm/10',
-  miss: 'border-rule bg-paper-2/80',
+const TONE: Record<IntentEffect["kind"], string> = {
+  add: "border-accent-warm/40 bg-accent-warm/10",
+  status: "border-accent-warm/40 bg-accent-warm/10",
+  done: "border-accent-good/40 bg-accent-good/10",
+  "done-backfill": "border-accent-good/40 bg-accent-good/10",
+  modify: "border-accent-warn/40 bg-accent-warn/10",
+  link: "border-accent-warm/40 bg-accent-warm/10",
+  miss: "border-rule bg-paper-2/80",
 };
 
 interface Props {
@@ -47,21 +47,35 @@ export function EffectToast({ effects, utterance }: Props) {
     <div className="pointer-events-none fixed inset-x-0 top-4 z-40 flex justify-center px-4">
       <div className="flex w-full max-w-sm flex-col gap-1.5">
         {list.map((effect, i) => {
-          const title = effect.kind === 'miss' ? '没找到匹配任务' : effect.verb;
-          const body = effect.kind === 'miss' ? (utterance?.raw ?? '') : 'text' in effect ? effect.text : '';
-          const reason = effect.kind === 'miss' ? '' : 'reason' in effect ? effect.reason : '';
+          const title = effect.kind === "miss" ? "没找到匹配任务" : effect.verb;
+          const body =
+            effect.kind === "miss"
+              ? (utterance?.raw ?? "")
+              : "text" in effect
+                ? effect.text
+                : "";
+          const reason =
+            effect.kind === "miss"
+              ? ""
+              : "reason" in effect
+                ? effect.reason
+                : "";
           return (
             <div
               // biome-ignore lint/suspicious/noArrayIndexKey: effect 没有 id 时（miss）只能用位置区分；toast 是瞬态、列表不会重排
-              key={`${effect.kind}-${'id' in effect ? effect.id : 'miss'}-${i}`}
+              key={`${effect.kind}-${"id" in effect ? effect.id : "miss"}-${i}`}
               className={cn(
-                'pointer-events-auto rounded-2xl border px-4 py-3 shadow-lg backdrop-blur',
+                "pointer-events-auto rounded-2xl border px-4 py-3 shadow-lg backdrop-blur",
                 TONE[effect.kind],
               )}
             >
-              <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">{title}</p>
+              <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">
+                {title}
+              </p>
               <p className="mt-0.5 font-serif text-sm text-ink">{body}</p>
-              {reason ? <p className="mt-0.5 text-[11px] text-ink-soft">{reason}</p> : null}
+              {reason ? (
+                <p className="mt-0.5 text-[11px] text-ink-soft">{reason}</p>
+              ) : null}
             </div>
           );
         })}

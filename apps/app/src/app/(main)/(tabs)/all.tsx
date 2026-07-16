@@ -1,127 +1,151 @@
-import type { TaskView } from '@mui-memo/shared/logic';
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ErrorBanner } from '@/components/error-banner';
-import { TaskRow } from '@/components/memo/task-row';
-import { api } from '@/lib/api';
+import type { TaskView } from "@mui-memo/shared/logic";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
-  hydrateTasksFromLocalCache,
-  patchTaskEverywhere,
-  refreshTasksFromRemote,
-  restoreTaskEverywhere,
-} from '@/lib/task-sync';
-import { useThemeHex } from '@/lib/use-theme-hex';
-import { useAppStore } from '@/store';
+	ActivityIndicator,
+	RefreshControl,
+	ScrollView,
+	Text,
+	View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { ErrorBanner } from "@/components/error-banner";
+import { TaskRow } from "@/components/memo/task-row";
+import { api } from "@/lib/api";
+import {
+	hydrateTasksFromLocalCache,
+	patchTaskEverywhere,
+	refreshTasksFromRemote,
+	restoreTaskEverywhere,
+} from "@/lib/task-sync";
+import { useThemeHex } from "@/lib/use-theme-hex";
+import { useAppStore } from "@/store";
 
-const UNTAGGED = '（未分类）';
+const UNTAGGED = "（未分类）";
 
 export default function AllScreen() {
-  const { tasks } = useAppStore();
-  const colors = useThemeHex();
-  const [loading, setLoading] = useState(tasks.length === 0);
-  const [refreshing, setRefreshing] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
+	const { tasks } = useAppStore();
+	const colors = useThemeHex();
+	const [loading, setLoading] = useState(tasks.length === 0);
+	const [refreshing, setRefreshing] = useState(false);
+	const [loadError, setLoadError] = useState<string | null>(null);
 
-  const load = useCallback(async (force = false) => {
-    try {
-      await hydrateTasksFromLocalCache();
-      setLoading(false);
-      await refreshTasksFromRemote({ force });
-      setLoadError(null);
-    } catch (err) {
-      setLoadError(err instanceof Error ? err.message : '请求失败');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+	const load = useCallback(async (force = false) => {
+		try {
+			await hydrateTasksFromLocalCache();
+			setLoading(false);
+			await refreshTasksFromRemote({ force });
+			setLoadError(null);
+		} catch (err) {
+			setLoadError(err instanceof Error ? err.message : "请求失败");
+		} finally {
+			setLoading(false);
+		}
+	}, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [load]),
-  );
+	useFocusEffect(
+		useCallback(() => {
+			load();
+		}, [load]),
+	);
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      await load(true);
-    } finally {
-      setRefreshing(false);
-    }
-  }, [load]);
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true);
+		try {
+			await load(true);
+		} finally {
+			setRefreshing(false);
+		}
+	}, [load]);
 
-  const handleDone = useCallback(async (id: string) => {
-    const current = useAppStore.getState().tasks;
-    const original = current.find((t) => t.id === id);
-    await patchTaskEverywhere(id, { status: 'done', completedAt: new Date().toISOString() });
-    try {
-      await api.tasks.done(id);
-    } catch {
-      // 失败时只回滚单条；load() 全表覆盖会让 TaskRow 退场动画结束后
-      // 因 task ref 批量变化而被全部重建（视觉「复位」）。
-      if (original) {
-        await restoreTaskEverywhere(original);
-      }
-    }
-  }, []);
+	const handleDone = useCallback(async (id: string) => {
+		const current = useAppStore.getState().tasks;
+		const original = current.find((t) => t.id === id);
+		await patchTaskEverywhere(id, {
+			status: "done",
+			completedAt: new Date().toISOString(),
+		});
+		try {
+			await api.tasks.done(id);
+		} catch {
+			// 失败时只回滚单条；load() 全表覆盖会让 TaskRow 退场动画结束后
+			// 因 task ref 批量变化而被全部重建（视觉「复位」）。
+			if (original) {
+				await restoreTaskEverywhere(original);
+			}
+		}
+	}, []);
 
-  const pending = useMemo(() => tasks.filter((t) => !t.done && t.status !== 'linked'), [tasks]);
-  const grouped = useMemo(() => {
-    const map = new Map<string, TaskView[]>();
-    for (const t of pending) {
-      // 多标签：一件事进它每个标签的分组；没标签的进「未分类」。
-      const keys = t.tags?.length ? t.tags : [UNTAGGED];
-      for (const key of keys) {
-        const arr = map.get(key) ?? [];
-        arr.push(t);
-        map.set(key, arr);
-      }
-    }
-    return Array.from(map.entries()).sort((a, b) => b[1].length - a[1].length);
-  }, [pending]);
+	const pending = useMemo(
+		() => tasks.filter((t) => !t.done && t.status !== "linked"),
+		[tasks],
+	);
+	const grouped = useMemo(() => {
+		const map = new Map<string, TaskView[]>();
+		for (const t of pending) {
+			// 多标签：一件事进它每个标签的分组；没标签的进「未分类」。
+			const keys = t.tags?.length ? t.tags : [UNTAGGED];
+			for (const key of keys) {
+				const arr = map.get(key) ?? [];
+				arr.push(t);
+				map.set(key, arr);
+			}
+		}
+		return Array.from(map.entries()).sort((a, b) => b[1].length - a[1].length);
+	}, [pending]);
 
-  return (
-    <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-      <ScrollView
-        contentContainerClassName="px-5 pt-4 pb-10"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />}
-      >
-        <Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">叨叨记 · 全部</Text>
-        <Text className="mt-1 font-serif text-2xl text-ink">清单全景</Text>
-        <Text className="mt-1 text-ink-soft text-sm">共 {pending.length} 件待办，按标签分组</Text>
+	return (
+		<SafeAreaView className="flex-1 bg-paper" edges={["top"]}>
+			<ScrollView
+				contentContainerClassName="px-5 pt-4 pb-10"
+				refreshControl={
+					<RefreshControl
+						refreshing={refreshing}
+						onRefresh={onRefresh}
+						tintColor={colors.ink}
+					/>
+				}
+			>
+				<Text className="font-mono text-ink-mute text-xs uppercase tracking-[2px]">
+					叨叨记 · 全部
+				</Text>
+				<Text className="mt-1 font-serif text-2xl text-ink">清单全景</Text>
+				<Text className="mt-1 text-ink-soft text-sm">
+					共 {pending.length} 件待办，按标签分组
+				</Text>
 
-        {loadError ? (
-          <View className="mt-4">
-            <ErrorBanner message={loadError} onRetry={load} />
-          </View>
-        ) : null}
+				{loadError ? (
+					<View className="mt-4">
+						<ErrorBanner message={loadError} onRetry={load} />
+					</View>
+				) : null}
 
-        {loading ? (
-          <View className="mt-12 items-center">
-            <ActivityIndicator color={colors.ink} />
-          </View>
-        ) : grouped.length === 0 ? (
-          <View className="mt-12 items-center rounded-2xl border border-rule/60 border-dashed px-6 py-10">
-            <Text className="font-serif text-ink text-lg">清单是空的</Text>
-            <Text className="mt-1 text-ink-soft text-sm">回到今天说一句话就有了。</Text>
-          </View>
-        ) : (
-          grouped.map(([tag, list]) => (
-            <View key={tag} className="mt-6">
-              <Text className="mb-2 font-mono text-ink-mute text-xs uppercase tracking-[2px]">
-                {tag} · {list.length}
-              </Text>
-              <View className="rounded-2xl border border-rule/60 bg-paper-2/40 px-3">
-                {list.map((t) => (
-                  <TaskRow key={t.id} task={t} onDone={handleDone} />
-                ))}
-              </View>
-            </View>
-          ))
-        )}
-      </ScrollView>
-    </SafeAreaView>
-  );
+				{loading ? (
+					<View className="mt-12 items-center">
+						<ActivityIndicator color={colors.ink} />
+					</View>
+				) : grouped.length === 0 ? (
+					<View className="mt-12 items-center rounded-2xl border border-rule/60 border-dashed px-6 py-10">
+						<Text className="font-serif text-ink text-lg">清单是空的</Text>
+						<Text className="mt-1 text-ink-soft text-sm">
+							回到今天说一句话就有了。
+						</Text>
+					</View>
+				) : (
+					grouped.map(([tag, list]) => (
+						<View key={tag} className="mt-6">
+							<Text className="mb-2 font-mono text-ink-mute text-xs uppercase tracking-[2px]">
+								{tag} · {list.length}
+							</Text>
+							<View className="rounded-2xl border border-rule/60 bg-paper-2/40 px-3">
+								{list.map((t) => (
+									<TaskRow key={t.id} task={t} onDone={handleDone} />
+								))}
+							</View>
+						</View>
+					))
+				)}
+			</ScrollView>
+		</SafeAreaView>
+	);
 }

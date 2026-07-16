@@ -1,15 +1,15 @@
-import { sql } from 'drizzle-orm';
+import { sql } from "drizzle-orm";
 import {
-  boolean,
-  customType,
-  int,
-  json,
-  mysqlTable,
-  text,
-  timestamp,
-  uniqueIndex,
-  varchar,
-} from 'drizzle-orm/mysql-core';
+	boolean,
+	customType,
+	int,
+	json,
+	mysqlTable,
+	text,
+	timestamp,
+	uniqueIndex,
+	varchar,
+} from "drizzle-orm/mysql-core";
 
 // ──────────────────────────────────────────────
 // Custom Types (TiDB-specific)
@@ -19,7 +19,7 @@ import {
  * TiDB 自动嵌入用到的模型。`tidbcloud_free/...` 前缀是 TiDB 自己托管的 free tier
  * 入口，不需要任何外部 API key；维度 1024。详见 TiDB Auto-Embedding 文档。
  */
-export const TIDB_EMBED_MODEL = 'tidbcloud_free/amazon/titan-embed-text-v2';
+export const TIDB_EMBED_MODEL = "tidbcloud_free/amazon/titan-embed-text-v2";
 export const EMBEDDING_DIM = 1024;
 
 /**
@@ -28,59 +28,59 @@ export const EMBEDDING_DIM = 1024;
  * 由 TiDB 自己填。
  */
 const vector1024 = customType<{ data: string }>({
-  dataType() {
-    return `vector(${EMBEDDING_DIM})`;
-  },
+	dataType() {
+		return `vector(${EMBEDDING_DIM})`;
+	},
 });
 
 // ──────────────────────────────────────────────
 // Better-Auth 鉴权表
 // ──────────────────────────────────────────────
 
-export const users = mysqlTable('users', {
-  id: varchar('id', { length: 36 }).primaryKey(),
-  name: text('name').notNull(),
-  email: varchar('email', { length: 255 }).notNull().unique(),
-  emailVerified: boolean('email_verified').notNull().default(false),
-  image: text('image'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+export const users = mysqlTable("users", {
+	id: varchar("id", { length: 36 }).primaryKey(),
+	name: text("name").notNull(),
+	email: varchar("email", { length: 255 }).notNull().unique(),
+	emailVerified: boolean("email_verified").notNull().default(false),
+	image: text("image"),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const sessions = mysqlTable('sessions', {
-  id: varchar('id', { length: 36 }).primaryKey(),
-  userId: varchar('user_id', { length: 36 }).notNull(),
-  token: varchar('token', { length: 255 }).notNull().unique(),
-  expiresAt: timestamp('expires_at').notNull(),
-  ipAddress: text('ip_address'),
-  userAgent: text('user_agent'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+export const sessions = mysqlTable("sessions", {
+	id: varchar("id", { length: 36 }).primaryKey(),
+	userId: varchar("user_id", { length: 36 }).notNull(),
+	token: varchar("token", { length: 255 }).notNull().unique(),
+	expiresAt: timestamp("expires_at").notNull(),
+	ipAddress: text("ip_address"),
+	userAgent: text("user_agent"),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const accounts = mysqlTable('accounts', {
-  id: varchar('id', { length: 36 }).primaryKey(),
-  userId: varchar('user_id', { length: 36 }).notNull(),
-  accountId: text('account_id').notNull(),
-  providerId: text('provider_id').notNull(),
-  accessToken: text('access_token'),
-  refreshToken: text('refresh_token'),
-  accessTokenExpiresAt: timestamp('access_token_expires_at'),
-  refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
-  scope: text('scope'),
-  idToken: text('id_token'),
-  password: text('password'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+export const accounts = mysqlTable("accounts", {
+	id: varchar("id", { length: 36 }).primaryKey(),
+	userId: varchar("user_id", { length: 36 }).notNull(),
+	accountId: text("account_id").notNull(),
+	providerId: text("provider_id").notNull(),
+	accessToken: text("access_token"),
+	refreshToken: text("refresh_token"),
+	accessTokenExpiresAt: timestamp("access_token_expires_at"),
+	refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+	scope: text("scope"),
+	idToken: text("id_token"),
+	password: text("password"),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const verifications = mysqlTable('verifications', {
-  id: varchar('id', { length: 36 }).primaryKey(),
-  identifier: text('identifier').notNull(),
-  value: text('value').notNull(),
-  expiresAt: timestamp('expires_at').notNull(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+export const verifications = mysqlTable("verifications", {
+	id: varchar("id", { length: 36 }).primaryKey(),
+	identifier: text("identifier").notNull(),
+	value: text("value").notNull(),
+	expiresAt: timestamp("expires_at").notNull(),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 // ──────────────────────────────────────────────
@@ -107,55 +107,62 @@ export const verifications = mysqlTable('verifications', {
  * - embedding: 语义向量（v1 暂不写入，v1.1 接入混合搜索）
  */
 export const tasks = mysqlTable(
-  'tasks',
-  {
-    id: varchar('id', { length: 36 }).primaryKey(),
-    userId: varchar('user_id', { length: 36 }).notNull(),
-    rawText: text('raw_text').notNull(),
-    text: text('text').notNull(),
-    place: varchar('place', { length: 10 }).notNull().default('any'),
-    taskWindow: varchar('task_window', { length: 10 }).notNull().default('today'),
-    energy: int('energy').notNull().default(2),
-    priority: int('priority').notNull().default(2),
-    /** @deprecated 单标签旧列：保留作回填源 + 回滚，新代码不再读写。 */
-    tag: varchar('tag', { length: 32 }),
-    /** 多标签：读时 tags ?? (tag ? [tag] : [])，写只写 tags（始终数组）。 */
-    tags: json('tags').$type<string[]>(),
-    deadline: varchar('deadline', { length: 64 }),
-    /**
-     * 预期完成时间：用户原话里「打算做的时间」，如「明天下午三点」。
-     * 未来会被 rerank 用来排序、被 UI 用来显示相对时间 label。
-     */
-    expectAt: timestamp('expect_at'),
-    /**
-     * 真正的 deadline：可以晚于 expectAt，AI 只有用户显式说了才填。
-     * 例如「明天做，最晚这周」→ expectAt=明天，dueAt=周日 23:59。
-     */
-    dueAt: timestamp('due_at'),
-    aiReason: text('ai_reason'),
-    actionType: varchar('action_type', { length: 50 }),
-    entities: json('entities'),
-    status: varchar('status', { length: 20 }).notNull().default('pending'),
-    linkedTo: varchar('linked_to', { length: 36 }),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
-    completedAt: timestamp('completed_at'),
-    /**
-     * TiDB 自动生成的语义向量（基于 `text` 列）。写入时不要手动赋值。
-     * 读出来的值我们用不到；声明它只是为了 schema 一致 + 让 drizzle
-     * 能识别该列。
-     */
-    embedding: vector1024('embedding').generatedAlwaysAs(sql.raw(`EMBED_TEXT("${TIDB_EMBED_MODEL}", \`text\`)`), {
-      mode: 'stored',
-    }),
-    /** 创建这条任务的原始语音 R2 key（仅 ADD / DONE-backfill 会填）。 */
-    audioKey: varchar('audio_key', { length: 512 }),
-    /** 周期任务实例：指向 recurrences.id（普通任务为 null）。约定无外键，仿 linkedTo。 */
-    recurrenceId: varchar('recurrence_id', { length: 36 }),
-    /** 周期序号 k（自 anchorAt 起第几期）。与 recurrenceId 组唯一键，防重复生成。 */
-    periodIndex: int('period_index'),
-  },
-  (t) => [uniqueIndex('uq_tasks_recurrence_period').on(t.recurrenceId, t.periodIndex)],
+	"tasks",
+	{
+		id: varchar("id", { length: 36 }).primaryKey(),
+		userId: varchar("user_id", { length: 36 }).notNull(),
+		rawText: text("raw_text").notNull(),
+		text: text("text").notNull(),
+		place: varchar("place", { length: 10 }).notNull().default("any"),
+		taskWindow: varchar("task_window", { length: 10 })
+			.notNull()
+			.default("today"),
+		energy: int("energy").notNull().default(2),
+		priority: int("priority").notNull().default(2),
+		/** @deprecated 单标签旧列：保留作回填源 + 回滚，新代码不再读写。 */
+		tag: varchar("tag", { length: 32 }),
+		/** 多标签：读时 tags ?? (tag ? [tag] : [])，写只写 tags（始终数组）。 */
+		tags: json("tags").$type<string[]>(),
+		deadline: varchar("deadline", { length: 64 }),
+		/**
+		 * 预期完成时间：用户原话里「打算做的时间」，如「明天下午三点」。
+		 * 未来会被 rerank 用来排序、被 UI 用来显示相对时间 label。
+		 */
+		expectAt: timestamp("expect_at"),
+		/**
+		 * 真正的 deadline：可以晚于 expectAt，AI 只有用户显式说了才填。
+		 * 例如「明天做，最晚这周」→ expectAt=明天，dueAt=周日 23:59。
+		 */
+		dueAt: timestamp("due_at"),
+		aiReason: text("ai_reason"),
+		actionType: varchar("action_type", { length: 50 }),
+		entities: json("entities"),
+		status: varchar("status", { length: 20 }).notNull().default("pending"),
+		linkedTo: varchar("linked_to", { length: 36 }),
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+		updatedAt: timestamp("updated_at").notNull().defaultNow(),
+		completedAt: timestamp("completed_at"),
+		/**
+		 * TiDB 自动生成的语义向量（基于 `text` 列）。写入时不要手动赋值。
+		 * 读出来的值我们用不到；声明它只是为了 schema 一致 + 让 drizzle
+		 * 能识别该列。
+		 */
+		embedding: vector1024("embedding").generatedAlwaysAs(
+			sql.raw(`EMBED_TEXT("${TIDB_EMBED_MODEL}", \`text\`)`),
+			{
+				mode: "stored",
+			},
+		),
+		/** 创建这条任务的原始语音 R2 key（仅 ADD / DONE-backfill 会填）。 */
+		audioKey: varchar("audio_key", { length: 512 }),
+		/** 周期任务实例：指向 recurrences.id（普通任务为 null）。约定无外键，仿 linkedTo。 */
+		recurrenceId: varchar("recurrence_id", { length: 36 }),
+		/** 周期序号 k（自 anchorAt 起第几期）。与 recurrenceId 组唯一键，防重复生成。 */
+		periodIndex: int("period_index"),
+	},
+	(t) => [
+		uniqueIndex("uq_tasks_recurrence_period").on(t.recurrenceId, t.periodIndex),
+	],
 );
 
 export type TaskRow = typeof tasks.$inferSelect;
@@ -173,26 +180,26 @@ export type NewTaskRow = typeof tasks.$inferInsert;
  * - anchorAt: 锚点时刻，编码「星期几 + 时刻」，也是周期切分起点；实例 expectAt 由它推算
  * - 其余字段（text/place/...）每期复制到实例
  */
-export const recurrences = mysqlTable('recurrences', {
-  id: varchar('id', { length: 36 }).primaryKey(),
-  userId: varchar('user_id', { length: 36 }).notNull(),
-  text: text('text').notNull(),
-  place: varchar('place', { length: 10 }).notNull().default('any'),
-  taskWindow: varchar('task_window', { length: 10 }).notNull().default('today'),
-  energy: int('energy').notNull().default(2),
-  priority: int('priority').notNull().default(2),
-  /** @deprecated 单标签旧列：保留作回填源 + 回滚，新代码不再读写。 */
-  tag: varchar('tag', { length: 32 }),
-  /** 多标签：读时 tags ?? (tag ? [tag] : [])，写只写 tags（始终数组）。 */
-  tags: json('tags').$type<string[]>(),
-  freq: varchar('freq', { length: 10 }).notNull().default('weekly'),
-  // `interval` 是 SQL 保留字，列名用 repeat_interval；TS 字段保持语义 interval
-  interval: int('repeat_interval').notNull().default(1),
-  anchorAt: timestamp('anchor_at').notNull(),
-  // 创建端 getTimezoneOffset() 分钟数，monthly/workday 按本地日历切分用
-  tzOffset: int('tz_offset').notNull().default(0),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+export const recurrences = mysqlTable("recurrences", {
+	id: varchar("id", { length: 36 }).primaryKey(),
+	userId: varchar("user_id", { length: 36 }).notNull(),
+	text: text("text").notNull(),
+	place: varchar("place", { length: 10 }).notNull().default("any"),
+	taskWindow: varchar("task_window", { length: 10 }).notNull().default("today"),
+	energy: int("energy").notNull().default(2),
+	priority: int("priority").notNull().default(2),
+	/** @deprecated 单标签旧列：保留作回填源 + 回滚，新代码不再读写。 */
+	tag: varchar("tag", { length: 32 }),
+	/** 多标签：读时 tags ?? (tag ? [tag] : [])，写只写 tags（始终数组）。 */
+	tags: json("tags").$type<string[]>(),
+	freq: varchar("freq", { length: 10 }).notNull().default("weekly"),
+	// `interval` 是 SQL 保留字，列名用 repeat_interval；TS 字段保持语义 interval
+	interval: int("repeat_interval").notNull().default(1),
+	anchorAt: timestamp("anchor_at").notNull(),
+	// 创建端 getTimezoneOffset() 分钟数，monthly/workday 按本地日历切分用
+	tzOffset: int("tz_offset").notNull().default(0),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export type RecurrenceRow = typeof recurrences.$inferSelect;
@@ -206,15 +213,15 @@ export type NewRecurrenceRow = typeof recurrences.$inferInsert;
  * 任务附件：指向 R2 中的实际对象。
  * `key` 是完整 R2 object key，已包含 `muimemo/` 前缀。
  */
-export const attachments = mysqlTable('attachments', {
-  id: varchar('id', { length: 36 }).primaryKey(),
-  taskId: varchar('task_id', { length: 36 }).notNull(),
-  userId: varchar('user_id', { length: 36 }).notNull(),
-  key: varchar('r2_key', { length: 512 }).notNull(),
-  mime: varchar('mime', { length: 128 }).notNull(),
-  size: int('size').notNull(),
-  originalName: varchar('original_name', { length: 255 }),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
+export const attachments = mysqlTable("attachments", {
+	id: varchar("id", { length: 36 }).primaryKey(),
+	taskId: varchar("task_id", { length: 36 }).notNull(),
+	userId: varchar("user_id", { length: 36 }).notNull(),
+	key: varchar("r2_key", { length: 512 }).notNull(),
+	mime: varchar("mime", { length: 128 }).notNull(),
+	size: int("size").notNull(),
+	originalName: varchar("original_name", { length: 255 }),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export type AttachmentRow = typeof attachments.$inferSelect;
@@ -228,32 +235,32 @@ export type NewAttachmentRow = typeof attachments.$inferInsert;
  * 每条 utterance 是一次用户语音事件（ADD / STATUS / DONE / MODIFY / LINK）。
  * 存下来让用户能在「我的 · 输入记录」里翻看自己说过什么、AI 是怎么理解的。
  */
-export const utterances = mysqlTable('utterances', {
-  id: varchar('id', { length: 36 }).primaryKey(),
-  userId: varchar('user_id', { length: 36 }).notNull(),
-  /** AI 转写出的原话 */
-  rawText: text('raw_text').notNull(),
-  /** ADD / STATUS / DONE / MODIFY / LINK */
-  intent: varchar('intent', { length: 16 }).notNull(),
-  /** effect.kind：add / status / done / done-backfill / modify / link / miss */
-  effectKind: varchar('effect_kind', { length: 24 }).notNull(),
-  /** effect.verb 直接用作展示主文案 */
-  verb: varchar('verb', { length: 32 }),
-  /** effect.reason 保存为展示副文案 */
-  reason: text('reason'),
-  /** 如果命中 / 产生了某个 task，记它的 id（可能是新建、可能是已存在） */
-  taskId: varchar('task_id', { length: 36 }),
-  /** R2 里原始语音的 key，没存音频就为 null */
-  audioKey: varchar('audio_key', { length: 512 }),
-  /** AI 给出的 dims[]，用 JSON 保留便于未来加调试面板 */
-  dims: json('dims'),
-  /**
-   * 完整的 actions[]（v0.9 起）。一句话可能含多个 action，每行 utterance 仍代表
-   * 单个 action（intent/effectKind/taskId 各自一行），actions 列冗余存全量便于
-   * 「输入记录」页回看完整结构。老行此列为 NULL，读端用 legacyToActions 兜底。
-   */
-  actions: json('actions'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
+export const utterances = mysqlTable("utterances", {
+	id: varchar("id", { length: 36 }).primaryKey(),
+	userId: varchar("user_id", { length: 36 }).notNull(),
+	/** AI 转写出的原话 */
+	rawText: text("raw_text").notNull(),
+	/** ADD / STATUS / DONE / MODIFY / LINK */
+	intent: varchar("intent", { length: 16 }).notNull(),
+	/** effect.kind：add / status / done / done-backfill / modify / link / miss */
+	effectKind: varchar("effect_kind", { length: 24 }).notNull(),
+	/** effect.verb 直接用作展示主文案 */
+	verb: varchar("verb", { length: 32 }),
+	/** effect.reason 保存为展示副文案 */
+	reason: text("reason"),
+	/** 如果命中 / 产生了某个 task，记它的 id（可能是新建、可能是已存在） */
+	taskId: varchar("task_id", { length: 36 }),
+	/** R2 里原始语音的 key，没存音频就为 null */
+	audioKey: varchar("audio_key", { length: 512 }),
+	/** AI 给出的 dims[]，用 JSON 保留便于未来加调试面板 */
+	dims: json("dims"),
+	/**
+	 * 完整的 actions[]（v0.9 起）。一句话可能含多个 action，每行 utterance 仍代表
+	 * 单个 action（intent/effectKind/taskId 各自一行），actions 列冗余存全量便于
+	 * 「输入记录」页回看完整结构。老行此列为 NULL，读端用 legacyToActions 兜底。
+	 */
+	actions: json("actions"),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export type UtteranceRow = typeof utterances.$inferSelect;

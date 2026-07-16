@@ -25,14 +25,18 @@
  * 关键 token，不锁文案；挂了通常说明 prompt 行为变了，需要 review。
  */
 
-import type { TaskView } from '@mui-memo/shared/logic';
-import type { Action, Utterance } from '@mui-memo/shared/validators';
-import { describe, expect, test } from 'vitest';
-import { createGenAI, parseTextIntent as parseGemini } from './gemini';
-import { CASES, type ExpectedAction, type TaskFixture } from './intent-prompt.cases';
-import type { TimeAnchor } from './intent-shared';
-import { createOpenAIClient, parseTextIntent as parseOpenAI } from './openai';
-import { describeNow, normalizeTz } from './time';
+import type { TaskView } from "@mui-memo/shared/logic";
+import type { Action, Utterance } from "@mui-memo/shared/validators";
+import { describe, expect, test } from "vitest";
+import { createGenAI, parseTextIntent as parseGemini } from "./gemini";
+import {
+  CASES,
+  type ExpectedAction,
+  type TaskFixture,
+} from "./intent-prompt.cases";
+import type { TimeAnchor } from "./intent-shared";
+import { createOpenAIClient, parseTextIntent as parseOpenAI } from "./openai";
+import { describeNow, normalizeTz } from "./time";
 
 interface ParseArgs {
   text: string;
@@ -40,16 +44,22 @@ interface ParseArgs {
   now: TimeAnchor;
 }
 
-function makeParser(): { name: string; parse: (a: ParseArgs) => Promise<Utterance> } | null {
+function makeParser(): {
+  name: string;
+  parse: (a: ParseArgs) => Promise<Utterance>;
+} | null {
   // opt-in：默认不跑，要跑显式设 PROMPT_EVAL=1（专用 npm script: test:prompt-eval）
-  if (process.env.PROMPT_EVAL !== '1' && process.env.PROMPT_EVAL !== 'true') {
+  if (process.env.PROMPT_EVAL !== "1" && process.env.PROMPT_EVAL !== "true") {
     return null;
   }
   const openaiKey = process.env.OPENAI_API_KEY;
   const openaiBase = process.env.OPENAI_BASE_URL;
   const openaiModel = process.env.OPENAI_MODEL;
   if (openaiKey && openaiBase && openaiModel) {
-    const client = createOpenAIClient({ apiKey: openaiKey, baseURL: openaiBase });
+    const client = createOpenAIClient({
+      apiKey: openaiKey,
+      baseURL: openaiBase,
+    });
     return {
       name: `OpenAI 兼容 (${openaiModel} @ ${openaiBase})`,
       parse: (args) => parseOpenAI({ client, model: openaiModel, ...args }),
@@ -62,7 +72,7 @@ function makeParser(): { name: string; parse: (a: ParseArgs) => Promise<Utteranc
       gatewayAccountId: process.env.CF_ACCOUNT_ID,
       gatewayId: process.env.CF_AI_GATEWAY_ID,
     });
-    return { name: 'Gemini', parse: (args) => parseGemini({ genai, ...args }) };
+    return { name: "Gemini", parse: (args) => parseGemini({ genai, ...args }) };
   }
   return null;
 }
@@ -73,11 +83,11 @@ function buildTaskView(p: TaskFixture): TaskView {
   return {
     id: p.id,
     text: p.text,
-    place: p.place ?? 'any',
-    window: p.window ?? 'today',
+    place: p.place ?? "any",
+    window: p.window ?? "today",
     energy: 2,
     priority: 2,
-    status: p.status ?? 'pending',
+    status: p.status ?? "pending",
     done: false,
   };
 }
@@ -85,72 +95,100 @@ function buildTaskView(p: TaskFixture): TaskView {
 function assertAction(actual: Action, exp: ExpectedAction, idx: number): void {
   expect(actual.intent, `actions[${idx}].intent`).toBe(exp.intent);
 
-  if (actual.intent === 'ADD') {
+  if (actual.intent === "ADD") {
     if (exp.taskTextContains) {
-      expect(actual.task?.text ?? '', `actions[${idx}].task.text`).toContain(exp.taskTextContains);
+      expect(actual.task?.text ?? "", `actions[${idx}].task.text`).toContain(
+        exp.taskTextContains,
+      );
     }
     if (exp.hasExpectAt) {
-      expect(actual.task?.expectAt, `actions[${idx}].task.expectAt 应填`).toBeTruthy();
+      expect(
+        actual.task?.expectAt,
+        `actions[${idx}].task.expectAt 应填`,
+      ).toBeTruthy();
     }
     if (exp.hasNoExpectAt) {
-      expect(actual.task?.expectAt, `actions[${idx}].task.expectAt 应不填`).toBeFalsy();
+      expect(
+        actual.task?.expectAt,
+        `actions[${idx}].task.expectAt 应不填`,
+      ).toBeFalsy();
     }
     if (exp.hasDueAt) {
-      expect(actual.task?.dueAt, `actions[${idx}].task.dueAt 应填`).toBeTruthy();
+      expect(
+        actual.task?.dueAt,
+        `actions[${idx}].task.dueAt 应填`,
+      ).toBeTruthy();
     }
     if (exp.hasNoDueAt) {
-      expect(actual.task?.dueAt, `actions[${idx}].task.dueAt 应不填`).toBeFalsy();
+      expect(
+        actual.task?.dueAt,
+        `actions[${idx}].task.dueAt 应不填`,
+      ).toBeFalsy();
     }
   }
 
   if (
-    actual.intent === 'MODIFY' ||
-    actual.intent === 'STATUS' ||
-    actual.intent === 'DONE' ||
-    actual.intent === 'LINK'
+    actual.intent === "MODIFY" ||
+    actual.intent === "STATUS" ||
+    actual.intent === "DONE" ||
+    actual.intent === "LINK"
   ) {
     if (exp.matchContains) {
-      expect(actual.match ?? '', `actions[${idx}].match`).toContain(exp.matchContains);
+      expect(actual.match ?? "", `actions[${idx}].match`).toContain(
+        exp.matchContains,
+      );
     }
   }
 
-  if (actual.intent === 'MODIFY') {
+  if (actual.intent === "MODIFY") {
     if (exp.patchTextContains) {
-      expect(actual.patch?.text ?? '', `actions[${idx}].patch.text`).toContain(exp.patchTextContains);
+      expect(actual.patch?.text ?? "", `actions[${idx}].patch.text`).toContain(
+        exp.patchTextContains,
+      );
     }
     if (exp.patchHasExpectAt) {
-      expect(actual.patch?.expectAt, `actions[${idx}].patch.expectAt 应填`).toBeTruthy();
+      expect(
+        actual.patch?.expectAt,
+        `actions[${idx}].patch.expectAt 应填`,
+      ).toBeTruthy();
     }
   }
 
-  if (actual.intent === 'STATUS' && exp.patchStatus) {
-    expect(actual.patch?.status, `actions[${idx}].patch.status`).toBe(exp.patchStatus);
+  if (actual.intent === "STATUS" && exp.patchStatus) {
+    expect(actual.patch?.status, `actions[${idx}].patch.status`).toBe(
+      exp.patchStatus,
+    );
   }
 }
 
 const parser = makeParser();
 
-describe.skipIf(!parser)(`AI prompt eval (${parser?.name ?? '未配置 provider，已跳过'})`, () => {
-  const tz = normalizeTz('Asia/Shanghai');
+describe.skipIf(!parser)(
+  `AI prompt eval (${parser?.name ?? "未配置 provider，已跳过"})`,
+  () => {
+    const tz = normalizeTz("Asia/Shanghai");
 
-  for (const c of CASES) {
-    test(
-      c.name,
-      async () => {
-        const anchor = describeNow(tz);
-        const tasks = (c.currentTasks ?? []).map(buildTaskView);
-        // biome-ignore lint/style/noNonNullAssertion: describe.skipIf 已经守卫了 parser 非空，TS 推断不到
-        const u = await parser!.parse({
-          text: c.text,
-          currentTasks: tasks,
-          now: { iso: anchor.iso, tz, weekday: anchor.weekday },
-        });
-        expect(u.actions, '生成 actions 数量与期望不一致').toHaveLength(c.expected.length);
-        for (const [i, exp] of c.expected.entries()) {
-          assertAction(u.actions[i], exp, i);
-        }
-      },
-      TIMEOUT_MS,
-    );
-  }
-});
+    for (const c of CASES) {
+      test(
+        c.name,
+        async () => {
+          const anchor = describeNow(tz);
+          const tasks = (c.currentTasks ?? []).map(buildTaskView);
+          // biome-ignore lint/style/noNonNullAssertion: describe.skipIf 已经守卫了 parser 非空，TS 推断不到
+          const u = await parser!.parse({
+            text: c.text,
+            currentTasks: tasks,
+            now: { iso: anchor.iso, tz, weekday: anchor.weekday },
+          });
+          expect(u.actions, "生成 actions 数量与期望不一致").toHaveLength(
+            c.expected.length,
+          );
+          for (const [i, exp] of c.expected.entries()) {
+            assertAction(u.actions[i], exp, i);
+          }
+        },
+        TIMEOUT_MS,
+      );
+    }
+  },
+);

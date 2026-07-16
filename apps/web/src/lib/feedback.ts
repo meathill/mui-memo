@@ -1,6 +1,7 @@
-const FEEDBACK_BASE = process.env.NEXT_PUBLIC_FEEDBACK_API_BASE ?? 'https://feedback.meathill.com';
+const FEEDBACK_BASE =
+  process.env.NEXT_PUBLIC_FEEDBACK_API_BASE ?? "https://feedback.meathill.com";
 
-export const FEEDBACK_APP_ID = 'mui-memo-web';
+export const FEEDBACK_APP_ID = "mui-memo-web";
 
 export type FeedbackPayload = {
   content: string;
@@ -22,8 +23,8 @@ export async function submitFeedback(payload: FeedbackPayload): Promise<void> {
     tags: payload.tags?.length ? payload.tags : undefined,
   };
   const res = await fetch(`${FEEDBACK_BASE}/api/feedbacks`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
   if (!res.ok) {

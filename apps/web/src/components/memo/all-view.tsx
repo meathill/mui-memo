@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import type { TaskView } from '@mui-memo/shared/logic';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
-import { track } from '@/lib/analytics';
-import { useAppStore } from '@/store';
-import { PullIndicator } from './pull-indicator';
-import { SectionHeader } from './section-header';
-import { TaskRow } from './task-row';
+import type { TaskView } from "@mui-memo/shared/logic";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
+import { track } from "@/lib/analytics";
+import { useAppStore } from "@/store";
+import { PullIndicator } from "./pull-indicator";
+import { SectionHeader } from "./section-header";
+import { TaskRow } from "./task-row";
 
-const UNTAGGED = '（未分类）';
+const UNTAGGED = "（未分类）";
 
 export function AllView() {
   const { tasks, hydrate } = useAppStore();
   const [loaded, setLoaded] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetch('/api/tasks', { cache: 'no-store' });
+    const res = await fetch("/api/tasks", { cache: "no-store" });
     if (!res.ok) return;
     const data = (await res.json()) as { tasks: TaskView[] };
     hydrate({ tasks: data.tasks, ranked: [] });
@@ -39,7 +39,7 @@ export function AllView() {
           t.id === id
             ? {
                 ...t,
-                status: 'done',
+                status: "done",
                 done: true,
                 completedAt: new Date().toISOString(),
               }
@@ -47,13 +47,16 @@ export function AllView() {
         ),
         ranked: [],
       });
-      await fetch(`/api/tasks/${id}/done`, { method: 'POST' });
-      track({ name: 'task_complete', source: 'all' });
+      await fetch(`/api/tasks/${id}/done`, { method: "POST" });
+      track({ name: "task_complete", source: "all" });
     },
     [hydrate],
   );
 
-  const pending = useMemo(() => tasks.filter((t) => !t.done && t.status !== 'linked'), [tasks]);
+  const pending = useMemo(
+    () => tasks.filter((t) => !t.done && t.status !== "linked"),
+    [tasks],
+  );
   const grouped = useMemo(() => {
     const map = new Map<string, TaskView[]>();
     for (const t of pending) {
@@ -70,11 +73,19 @@ export function AllView() {
 
   return (
     <main className="relative mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-6 pb-24 sm:pt-10">
-      <PullIndicator pullOffset={pullOffset} refreshing={refreshing} onManualRefresh={() => trigger()} />
+      <PullIndicator
+        pullOffset={pullOffset}
+        refreshing={refreshing}
+        onManualRefresh={() => trigger()}
+      />
       <header>
-        <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">叨叨记 · 全部</p>
+        <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">
+          叨叨记 · 全部
+        </p>
         <h1 className="font-serif text-2xl text-ink">清单全景</h1>
-        <p className="mt-1 text-sm text-ink-soft">共 {pending.length} 件待办，按标签分组</p>
+        <p className="mt-1 text-sm text-ink-soft">
+          共 {pending.length} 件待办，按标签分组
+        </p>
       </header>
 
       {!loaded ? (

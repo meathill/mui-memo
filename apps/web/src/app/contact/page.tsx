@@ -1,14 +1,14 @@
-import { Suspense } from 'react';
-import { ContentPage } from '@/components/marketing/content-page';
-import { TopicAwareEmailComposer } from '@/components/marketing/topic-aware-email-composer';
-import ContactDoc from '@/content/contact.mdx';
-import { createMarketingMetadata, SITE_EMAIL } from '@/lib/site';
+import { Suspense } from "react";
+import { ContentPage } from "@/components/marketing/content-page";
+import { TopicAwareEmailComposer } from "@/components/marketing/topic-aware-email-composer";
+import ContactDoc from "@/content/contact.mdx";
+import { createMarketingMetadata, SITE_EMAIL } from "@/lib/site";
 
 export const metadata = createMarketingMetadata({
-  title: '联系',
+  title: "联系",
   description: `通过 ${SITE_EMAIL} 联系叨叨记，反馈 bug、讨论产品、处理隐私或数据删除请求。`,
-  path: '/contact',
-  keywords: ['联系叨叨记', '反馈 bug', '数据删除', 'Team 候补'],
+  path: "/contact",
+  keywords: ["联系叨叨记", "反馈 bug", "数据删除", "Team 候补"],
 });
 
 export default function ContactPage() {

@@ -3,14 +3,14 @@ import {
   type RecurrenceDef,
   type RecurrenceInstanceLite,
   reconcileRecurrences,
-} from '@mui-memo/shared/recurrence';
+} from "@mui-memo/shared/recurrence";
 import {
   type NewRecurrenceRow,
   type NewTaskRow,
   type RecurrenceRow,
   recurrences as recurrencesTable,
   tasks as tasksTable,
-} from '@mui-memo/shared/schema';
+} from "@mui-memo/shared/schema";
 import type {
   CreateRecurrenceInput,
   RecurrenceFreq,
@@ -18,9 +18,9 @@ import type {
   TaskStatus,
   TaskWindow,
   UpdateRecurrenceInput,
-} from '@mui-memo/shared/validators';
-import { and, eq, inArray, isNotNull, ne } from 'drizzle-orm';
-import type { Database } from './db';
+} from "@mui-memo/shared/validators";
+import { and, eq, inArray, isNotNull, ne } from "drizzle-orm";
+import type { Database } from "./db";
 
 function rowToDef(r: RecurrenceRow): RecurrenceDef {
   return {
@@ -38,11 +38,17 @@ function rowToDef(r: RecurrenceRow): RecurrenceDef {
   };
 }
 
-export async function getRecurrence(db: Database, userId: string, id: string): Promise<RecurrenceRow | null> {
+export async function getRecurrence(
+  db: Database,
+  userId: string,
+  id: string,
+): Promise<RecurrenceRow | null> {
   const [row] = await db
     .select()
     .from(recurrencesTable)
-    .where(and(eq(recurrencesTable.id, id), eq(recurrencesTable.userId, userId)))
+    .where(
+      and(eq(recurrencesTable.id, id), eq(recurrencesTable.userId, userId)),
+    )
     .limit(1);
   return row ?? null;
 }
@@ -75,14 +81,27 @@ export async function createRecurrence(
   // 锚点在未来时（预期时间预设都是将来），currentPeriodIndex 为 null，按第 0 期挂——
   // 用户正编辑的这条就是即将到来的首期，这样重开编辑页「重复」开关状态也不丢。
   if (input.linkTaskId) {
-    const k = currentPeriodIndex(anchorAt, now, input.freq, input.interval, input.tzOffset) ?? 0;
+    const k =
+      currentPeriodIndex(
+        anchorAt,
+        now,
+        input.freq,
+        input.interval,
+        input.tzOffset,
+      ) ?? 0;
     await db
       .update(tasksTable)
       .set({ recurrenceId: id, periodIndex: k, updatedAt: new Date() })
-      .where(and(eq(tasksTable.id, input.linkTaskId), eq(tasksTable.userId, userId)));
+      .where(
+        and(eq(tasksTable.id, input.linkTaskId), eq(tasksTable.userId, userId)),
+      );
   }
 
-  const [created] = await db.select().from(recurrencesTable).where(eq(recurrencesTable.id, id)).limit(1);
+  const [created] = await db
+    .select()
+    .from(recurrencesTable)
+    .where(eq(recurrencesTable.id, id))
+    .limit(1);
   return created;
 }
 
@@ -106,19 +125,35 @@ export async function updateRecurrence(
   await db
     .update(recurrencesTable)
     .set(update)
-    .where(and(eq(recurrencesTable.id, id), eq(recurrencesTable.userId, userId)));
+    .where(
+      and(eq(recurrencesTable.id, id), eq(recurrencesTable.userId, userId)),
+    );
 }
 
 /**
  * 删除定义；把它名下未完成实例 unlink 成普通一次性任务（保留用户正在看的这条），
  * done 实例保留作历史。过期未完成的清理交给 reconcile。
  */
-export async function deleteRecurrence(db: Database, userId: string, id: string): Promise<void> {
+export async function deleteRecurrence(
+  db: Database,
+  userId: string,
+  id: string,
+): Promise<void> {
   await db
     .update(tasksTable)
     .set({ recurrenceId: null, periodIndex: null, updatedAt: new Date() })
-    .where(and(eq(tasksTable.userId, userId), eq(tasksTable.recurrenceId, id), ne(tasksTable.status, 'done')));
-  await db.delete(recurrencesTable).where(and(eq(recurrencesTable.id, id), eq(recurrencesTable.userId, userId)));
+    .where(
+      and(
+        eq(tasksTable.userId, userId),
+        eq(tasksTable.recurrenceId, id),
+        ne(tasksTable.status, "done"),
+      ),
+    );
+  await db
+    .delete(recurrencesTable)
+    .where(
+      and(eq(recurrencesTable.id, id), eq(recurrencesTable.userId, userId)),
+    );
 }
 
 /**
@@ -131,10 +166,19 @@ export async function applyRecurrenceReconcile(
   userId: string,
   now: Date = new Date(),
 ): Promise<Map<string, number>> {
-  const defRows = await db.select().from(recurrencesTable).where(eq(recurrencesTable.userId, userId));
+  const defRows = await db
+    .select()
+    .from(recurrencesTable)
+    .where(eq(recurrencesTable.userId, userId));
   const currentIndexMap = new Map<string, number>();
   for (const r of defRows) {
-    const k = currentPeriodIndex(r.anchorAt, now, r.freq as RecurrenceFreq, r.interval, r.tzOffset);
+    const k = currentPeriodIndex(
+      r.anchorAt,
+      now,
+      r.freq as RecurrenceFreq,
+      r.interval,
+      r.tzOffset,
+    );
     if (k !== null) currentIndexMap.set(r.id, k);
   }
   if (defRows.length === 0) return currentIndexMap;
@@ -147,7 +191,9 @@ export async function applyRecurrenceReconcile(
       status: tasksTable.status,
     })
     .from(tasksTable)
-    .where(and(eq(tasksTable.userId, userId), isNotNull(tasksTable.recurrenceId)));
+    .where(
+      and(eq(tasksTable.userId, userId), isNotNull(tasksTable.recurrenceId)),
+    );
 
   const instances: RecurrenceInstanceLite[] = [];
   for (const r of instRows) {
@@ -160,7 +206,11 @@ export async function applyRecurrenceReconcile(
     });
   }
 
-  const { toCreate, toDelete } = reconcileRecurrences(defRows.map(rowToDef), instances, now);
+  const { toCreate, toDelete } = reconcileRecurrences(
+    defRows.map(rowToDef),
+    instances,
+    now,
+  );
 
   for (const spec of toCreate) {
     const row: NewTaskRow = {
@@ -173,7 +223,7 @@ export async function applyRecurrenceReconcile(
       energy: spec.energy,
       priority: spec.priority,
       tags: spec.tags ?? [],
-      status: 'pending',
+      status: "pending",
       expectAt: new Date(spec.expectAt),
       recurrenceId: spec.recurrenceId,
       periodIndex: spec.periodIndex,
@@ -188,7 +238,13 @@ export async function applyRecurrenceReconcile(
   if (toDelete.length > 0) {
     await db
       .delete(tasksTable)
-      .where(and(eq(tasksTable.userId, userId), inArray(tasksTable.id, toDelete), ne(tasksTable.status, 'done')));
+      .where(
+        and(
+          eq(tasksTable.userId, userId),
+          inArray(tasksTable.id, toDelete),
+          ne(tasksTable.status, "done"),
+        ),
+      );
   }
 
   return currentIndexMap;

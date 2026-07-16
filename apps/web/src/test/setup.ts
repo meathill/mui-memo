@@ -3,9 +3,9 @@
 // 这里给一份最小可用 stub，避免组件测试一进来就因「不存在」而炸。
 // 真要测响应式 / observer 行为时，单测里再用 vi.spyOn 覆盖即可。
 
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   if (!window.matchMedia) {
-    Object.defineProperty(window, 'matchMedia', {
+    Object.defineProperty(window, "matchMedia", {
       writable: true,
       value: (query: string) => ({
         matches: false,
@@ -31,7 +31,7 @@ if (typeof window !== 'undefined') {
   if (!window.IntersectionObserver) {
     window.IntersectionObserver = class {
       readonly root = null;
-      readonly rootMargin = '';
+      readonly rootMargin = "";
       readonly thresholds: ReadonlyArray<number> = [];
       observe() {}
       unobserve() {}

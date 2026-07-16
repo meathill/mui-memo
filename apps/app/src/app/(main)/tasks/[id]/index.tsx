@@ -1,259 +1,361 @@
-import { PLACE_LABEL, STATUS_LABEL, type TaskView, WINDOW_LABEL } from '@mui-memo/shared/logic';
-import Constants from 'expo-constants';
-import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { CheckIcon, ChevronLeftIcon, PencilIcon, RotateCcwIcon, Trash2Icon } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { AudioPlayButton, AudioUrlPlayButton, isAudioMime } from '@/components/audio-play-button';
-import { ErrorBanner } from '@/components/error-banner';
-import { type Attachment, api } from '@/lib/api';
-import { loadCachedTaskDetail, saveCachedTaskDetail } from '@/lib/local-db';
-import { patchTaskEverywhere, removeTaskEverywhere, restoreTaskEverywhere } from '@/lib/task-sync';
-import { useThemeHex } from '@/lib/use-theme-hex';
-import { useAppStore } from '@/store';
+import {
+	PLACE_LABEL,
+	STATUS_LABEL,
+	type TaskView,
+	WINDOW_LABEL,
+} from "@mui-memo/shared/logic";
+import Constants from "expo-constants";
+import {
+	router,
+	Stack,
+	useFocusEffect,
+	useLocalSearchParams,
+} from "expo-router";
+import {
+	CheckIcon,
+	ChevronLeftIcon,
+	PencilIcon,
+	RotateCcwIcon,
+	Trash2Icon,
+} from "lucide-react-native";
+import { useCallback, useState } from "react";
+import {
+	ActivityIndicator,
+	Alert,
+	Pressable,
+	ScrollView,
+	Text,
+	View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+	AudioPlayButton,
+	AudioUrlPlayButton,
+	isAudioMime,
+} from "@/components/audio-play-button";
+import { ErrorBanner } from "@/components/error-banner";
+import { type Attachment, api } from "@/lib/api";
+import { loadCachedTaskDetail, saveCachedTaskDetail } from "@/lib/local-db";
+import {
+	patchTaskEverywhere,
+	removeTaskEverywhere,
+	restoreTaskEverywhere,
+} from "@/lib/task-sync";
+import { useThemeHex } from "@/lib/use-theme-hex";
+import { useAppStore } from "@/store";
 
 function formatDateTime(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString('zh-CN', {
-    month: 'numeric',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return iso;
+	return d.toLocaleString("zh-CN", {
+		month: "numeric",
+		day: "numeric",
+		hour: "2-digit",
+		minute: "2-digit",
+	});
 }
 
 export default function TaskDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const colors = useThemeHex();
-  const [task, setTask] = useState<TaskView | null>(null);
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
+	const { id } = useLocalSearchParams<{ id: string }>();
+	const colors = useThemeHex();
+	const [task, setTask] = useState<TaskView | null>(null);
+	const [attachments, setAttachments] = useState<Attachment[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [loadError, setLoadError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    if (!id) return;
-    setLoading(true);
-    const cached = await loadCachedTaskDetail(id);
-    if (cached) {
-      setTask(cached.task);
-      setAttachments(cached.attachments);
-      setLoading(false);
-    } else {
-      const localTask = useAppStore.getState().tasks.find((item) => item.id === id);
-      if (localTask) {
-        setTask(localTask);
-        setAttachments([]);
-        setLoading(false);
-      }
-    }
-    try {
-      const { task, recurrence, attachments } = await api.tasks.detail(id);
-      setTask(task);
-      setAttachments(attachments);
-      await saveCachedTaskDetail({ task, recurrence, attachments });
-      setLoadError(null);
-    } catch (err) {
-      setLoadError(err instanceof Error ? err.message : '请求失败');
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+	const load = useCallback(async () => {
+		if (!id) return;
+		setLoading(true);
+		const cached = await loadCachedTaskDetail(id);
+		if (cached) {
+			setTask(cached.task);
+			setAttachments(cached.attachments);
+			setLoading(false);
+		} else {
+			const localTask = useAppStore
+				.getState()
+				.tasks.find((item) => item.id === id);
+			if (localTask) {
+				setTask(localTask);
+				setAttachments([]);
+				setLoading(false);
+			}
+		}
+		try {
+			const { task, recurrence, attachments } = await api.tasks.detail(id);
+			setTask(task);
+			setAttachments(attachments);
+			await saveCachedTaskDetail({ task, recurrence, attachments });
+			setLoadError(null);
+		} catch (err) {
+			setLoadError(err instanceof Error ? err.message : "请求失败");
+		} finally {
+			setLoading(false);
+		}
+	}, [id]);
 
-  // 屏聚焦时拉数据：从 edit 返回后自动显示最新
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [load]),
-  );
+	// 屏聚焦时拉数据：从 edit 返回后自动显示最新
+	useFocusEffect(
+		useCallback(() => {
+			load();
+		}, [load]),
+	);
 
-  const handleDelete = useCallback(() => {
-    if (!task) return;
-    Alert.alert('删除这条任务？', `「${task.text}」将被彻底删除。`, [
-      { text: '取消', style: 'cancel' },
-      {
-        text: '删除',
-        style: 'destructive',
-        onPress: async () => {
-          const original = task;
-          await removeTaskEverywhere(task.id);
-          try {
-            await api.tasks.delete(task.id);
-            router.back();
-          } catch (err) {
-            await restoreTaskEverywhere(original);
-            if (err instanceof Error) Alert.alert('删除失败', err.message);
-          }
-        },
-      },
-    ]);
-  }, [task]);
+	const handleDelete = useCallback(() => {
+		if (!task) return;
+		Alert.alert("删除这条任务？", `「${task.text}」将被彻底删除。`, [
+			{ text: "取消", style: "cancel" },
+			{
+				text: "删除",
+				style: "destructive",
+				onPress: async () => {
+					const original = task;
+					try {
+						await removeTaskEverywhere(task.id);
+					} catch (err) {
+						if (err instanceof Error) Alert.alert("本地删除失败", err.message);
+						return;
+					}
+					router.back();
+					void api.tasks.delete(task.id).catch(async (err) => {
+						await restoreTaskEverywhere(original);
+						if (err instanceof Error) Alert.alert("删除失败", err.message);
+					});
+				},
+			},
+		]);
+	}, [task]);
 
-  return (
-    <SafeAreaView className="flex-1 bg-paper" edges={['top']}>
-      <Stack.Screen options={{ headerShown: false }} />
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={8}
-          className="h-9 w-9 items-center justify-center rounded-full active:bg-ink/10"
-        >
-          <ChevronLeftIcon size={22} color={colors.ink} />
-        </Pressable>
-        <View className="flex-row items-center gap-2">
-          <Pressable
-            onPress={() => task && router.push(`/tasks/${task.id}/edit`)}
-            disabled={!task}
-            hitSlop={8}
-            className="flex-row items-center gap-1.5 rounded-full border border-rule px-3 py-1.5 active:opacity-70"
-          >
-            <PencilIcon size={14} color={colors.inkMute} />
-            <Text className="text-ink-soft text-sm">编辑</Text>
-          </Pressable>
-          <Pressable
-            onPress={handleDelete}
-            disabled={!task}
-            hitSlop={8}
-            className="flex-row items-center gap-1.5 rounded-full border border-rule px-3 py-1.5 active:opacity-70"
-          >
-            <Trash2Icon size={14} color={colors.inkMute} />
-            <Text className="text-ink-soft text-sm">删除</Text>
-          </Pressable>
-        </View>
-      </View>
+	async function markTaskDone() {
+		if (!task) return;
+		const original = task;
+		let next: TaskView | null;
+		try {
+			next = await patchTaskEverywhere(task.id, {
+				status: "done",
+				completedAt: new Date().toISOString(),
+			});
+		} catch (err) {
+			if (err instanceof Error) Alert.alert("本地更新失败", err.message);
+			return;
+		}
+		if (!next) {
+			try {
+				await api.tasks.done(task.id);
+				router.back();
+			} catch (err) {
+				if (err instanceof Error) Alert.alert("标记失败", err.message);
+			}
+			return;
+		}
 
-      {loadError && !task ? (
-        <View className="flex-1 items-center justify-center px-5">
-          <View className="w-full">
-            <ErrorBanner message={loadError} onRetry={load} />
-          </View>
-        </View>
-      ) : loading || !task ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color={colors.ink} />
-        </View>
-      ) : (
-        <ScrollView contentContainerClassName="px-5 pb-10">
-          <Text className="font-mono text-ink-mute text-sm uppercase tracking-[2px]">
-            {STATUS_LABEL[task.status] ?? task.status}
-            {task.tags?.length ? ` · 🏷 ${task.tags.join(' ')}` : ''}
-          </Text>
-          <Text className="mt-2 font-serif text-ink text-3xl leading-snug">{task.text}</Text>
-          {task.rawText && task.rawText !== task.text ? (
-            <Text className="mt-2 text-ink-soft text-base">原话：「{task.rawText}」</Text>
-          ) : null}
+		setTask(next);
+		router.back();
+		void api.tasks.done(task.id).catch(async (err) => {
+			await restoreTaskEverywhere(original);
+			if (err instanceof Error) Alert.alert("标记失败", err.message);
+		});
+	}
 
-          {task.audioKey ? (
-            <View className="mt-3">
-              <AudioPlayButton audioKey={task.audioKey} label="播放原声" />
-            </View>
-          ) : null}
+	async function reopenTask() {
+		if (!task) return;
+		const original = task;
+		let next: TaskView | null;
+		try {
+			next = await patchTaskEverywhere(task.id, {
+				status: "pending",
+				completedAt: null,
+			});
+		} catch (err) {
+			if (err instanceof Error) Alert.alert("本地更新失败", err.message);
+			return;
+		}
+		if (!next) {
+			try {
+				await api.tasks.reopen(task.id);
+				router.back();
+			} catch (err) {
+				if (err instanceof Error) Alert.alert("重启失败", err.message);
+			}
+			return;
+		}
 
-          <View className="mt-6 gap-2 rounded-2xl border border-rule/60 bg-paper-2/40 p-4">
-            <Row label="地点" value={PLACE_LABEL[task.place]?.label ?? task.place} />
-            <Row label="时段" value={WINDOW_LABEL[task.window] ?? task.window} />
-            {task.expectAt ? <Row label="预计" value={formatDateTime(task.expectAt)} /> : null}
-            {task.dueAt ? <Row label="截止" value={formatDateTime(task.dueAt)} /> : null}
-            {task.deadline ? <Row label="Deadline" value={task.deadline} /> : null}
-            <Row label="优先级" value={String(task.priority ?? 0)} />
-            <Row label="精力" value={String(task.energy ?? 0)} />
-          </View>
+		setTask(next);
+		router.back();
+		void api.tasks.reopen(task.id).catch(async (err) => {
+			await restoreTaskEverywhere(original);
+			if (err instanceof Error) Alert.alert("重启失败", err.message);
+		});
+	}
 
-          {task.aiReason ? (
-            <View className="mt-4 rounded-2xl border border-accent-warm/30 bg-accent-warm/10 p-4">
-              <Text className="font-mono text-sm text-ink-mute uppercase tracking-[2px]">AI · 理由</Text>
-              <Text className="mt-1.5 text-ink text-base leading-relaxed">{task.aiReason}</Text>
-            </View>
-          ) : null}
+	return (
+		<SafeAreaView className="flex-1 bg-paper" edges={["top"]}>
+			<Stack.Screen options={{ headerShown: false }} />
+			<View className="flex-row items-center justify-between px-4 py-3">
+				<Pressable
+					onPress={() => router.back()}
+					hitSlop={8}
+					className="h-9 w-9 items-center justify-center rounded-full active:bg-ink/10"
+				>
+					<ChevronLeftIcon size={22} color={colors.ink} />
+				</Pressable>
+				<View className="flex-row items-center gap-2">
+					<Pressable
+						onPress={() => task && router.push(`/tasks/${task.id}/edit`)}
+						disabled={!task}
+						hitSlop={8}
+						className="flex-row items-center gap-1.5 rounded-full border border-rule px-3 py-1.5 active:opacity-70"
+					>
+						<PencilIcon size={14} color={colors.inkMute} />
+						<Text className="text-ink-soft text-sm">编辑</Text>
+					</Pressable>
+					<Pressable
+						onPress={handleDelete}
+						disabled={!task}
+						hitSlop={8}
+						className="flex-row items-center gap-1.5 rounded-full border border-rule px-3 py-1.5 active:opacity-70"
+					>
+						<Trash2Icon size={14} color={colors.inkMute} />
+						<Text className="text-ink-soft text-sm">删除</Text>
+					</Pressable>
+				</View>
+			</View>
 
-          {attachments.length > 0 ? (
-            <View className="mt-4">
-              <Text className="mb-2 font-mono text-xs text-ink-mute uppercase tracking-[2px]">
-                附件 · {attachments.length}
-              </Text>
-              <View className="gap-2">
-                {attachments.map((a) => {
-                  const apiBase = (
-                    (Constants.expoConfig?.extra as { apiBase?: string } | undefined)?.apiBase ?? ''
-                  ).replace(/\/$/, '');
-                  const url = `${apiBase}/api/attachments/${a.id}`;
-                  return (
-                    <View key={a.id} className="rounded-xl border border-rule/60 bg-paper-2/40 px-3 py-2">
-                      <View className="flex-row items-center gap-2">
-                        <View className="flex-1">
-                          <Text className="text-ink text-sm" numberOfLines={1}>
-                            {a.originalName ?? a.key}
-                          </Text>
-                          <Text className="font-mono text-ink-mute text-xs">
-                            {a.mime ?? '?'}
-                            {a.size ? ` · ${(a.size / 1024).toFixed(1)} KB` : ''}
-                          </Text>
-                        </View>
-                        {isAudioMime(a.mime) ? <AudioUrlPlayButton url={url} /> : null}
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-          ) : null}
+			{loadError && !task ? (
+				<View className="flex-1 items-center justify-center px-5">
+					<View className="w-full">
+						<ErrorBanner message={loadError} onRetry={load} />
+					</View>
+				</View>
+			) : loading || !task ? (
+				<View className="flex-1 items-center justify-center">
+					<ActivityIndicator color={colors.ink} />
+				</View>
+			) : (
+				<ScrollView contentContainerClassName="px-5 pb-10">
+					<Text className="font-mono text-ink-mute text-sm uppercase tracking-[2px]">
+						{STATUS_LABEL[task.status] ?? task.status}
+						{task.tags?.length ? ` · 🏷 ${task.tags.join(" ")}` : ""}
+					</Text>
+					<Text className="mt-2 font-serif text-ink text-3xl leading-snug">
+						{task.text}
+					</Text>
+					{task.rawText && task.rawText !== task.text ? (
+						<Text className="mt-2 text-ink-soft text-base">
+							原话：「{task.rawText}」
+						</Text>
+					) : null}
 
-          {task.status !== 'done' ? (
-            <Pressable
-              onPress={async () => {
-                const original = task;
-                const next = await patchTaskEverywhere(task.id, {
-                  status: 'done',
-                  completedAt: new Date().toISOString(),
-                });
-                if (next) setTask(next);
-                try {
-                  await api.tasks.done(task.id);
-                  router.back();
-                } catch (err) {
-                  await restoreTaskEverywhere(original);
-                  setTask(original);
-                  if (err instanceof Error) Alert.alert('标记失败', err.message);
-                }
-              }}
-              className="mt-8 flex-row items-center justify-center gap-2 rounded-xl bg-ink py-3.5 active:opacity-80"
-            >
-              <CheckIcon size={18} color={colors.paper} />
-              <Text className="font-medium text-paper text-base">搞定了</Text>
-            </Pressable>
-          ) : (
-            <Pressable
-              onPress={async () => {
-                const original = task;
-                const next = await patchTaskEverywhere(task.id, { status: 'pending', completedAt: null });
-                if (next) setTask(next);
-                try {
-                  await api.tasks.reopen(task.id);
-                  router.back();
-                } catch (err) {
-                  await restoreTaskEverywhere(original);
-                  setTask(original);
-                  if (err instanceof Error) Alert.alert('重启失败', err.message);
-                }
-              }}
-              className="mt-8 flex-row items-center justify-center gap-2 rounded-xl border border-rule bg-paper py-3.5 active:bg-ink/5"
-            >
-              <RotateCcwIcon size={18} color={colors.ink} />
-              <Text className="font-medium text-ink text-base">重新启动</Text>
-            </Pressable>
-          )}
-        </ScrollView>
-      )}
-    </SafeAreaView>
-  );
+					{task.audioKey ? (
+						<View className="mt-3">
+							<AudioPlayButton audioKey={task.audioKey} label="播放原声" />
+						</View>
+					) : null}
+
+					<View className="mt-6 gap-2 rounded-2xl border border-rule/60 bg-paper-2/40 p-4">
+						<Row
+							label="地点"
+							value={PLACE_LABEL[task.place]?.label ?? task.place}
+						/>
+						<Row
+							label="时段"
+							value={WINDOW_LABEL[task.window] ?? task.window}
+						/>
+						{task.expectAt ? (
+							<Row label="预计" value={formatDateTime(task.expectAt)} />
+						) : null}
+						{task.dueAt ? (
+							<Row label="截止" value={formatDateTime(task.dueAt)} />
+						) : null}
+						{task.deadline ? (
+							<Row label="Deadline" value={task.deadline} />
+						) : null}
+						<Row label="优先级" value={String(task.priority ?? 0)} />
+						<Row label="精力" value={String(task.energy ?? 0)} />
+					</View>
+
+					{task.aiReason ? (
+						<View className="mt-4 rounded-2xl border border-accent-warm/30 bg-accent-warm/10 p-4">
+							<Text className="font-mono text-sm text-ink-mute uppercase tracking-[2px]">
+								AI · 理由
+							</Text>
+							<Text className="mt-1.5 text-ink text-base leading-relaxed">
+								{task.aiReason}
+							</Text>
+						</View>
+					) : null}
+
+					{attachments.length > 0 ? (
+						<View className="mt-4">
+							<Text className="mb-2 font-mono text-xs text-ink-mute uppercase tracking-[2px]">
+								附件 · {attachments.length}
+							</Text>
+							<View className="gap-2">
+								{attachments.map((a) => {
+									const apiBase = (
+										(
+											Constants.expoConfig?.extra as
+												| { apiBase?: string }
+												| undefined
+										)?.apiBase ?? ""
+									).replace(/\/$/, "");
+									const url = `${apiBase}/api/attachments/${a.id}`;
+									return (
+										<View
+											key={a.id}
+											className="rounded-xl border border-rule/60 bg-paper-2/40 px-3 py-2"
+										>
+											<View className="flex-row items-center gap-2">
+												<View className="flex-1">
+													<Text className="text-ink text-sm" numberOfLines={1}>
+														{a.originalName ?? a.key}
+													</Text>
+													<Text className="font-mono text-ink-mute text-xs">
+														{a.mime ?? "?"}
+														{a.size
+															? ` · ${(a.size / 1024).toFixed(1)} KB`
+															: ""}
+													</Text>
+												</View>
+												{isAudioMime(a.mime) ? (
+													<AudioUrlPlayButton url={url} />
+												) : null}
+											</View>
+										</View>
+									);
+								})}
+							</View>
+						</View>
+					) : null}
+
+					{task.status !== "done" ? (
+						<Pressable
+							onPress={markTaskDone}
+							className="mt-8 flex-row items-center justify-center gap-2 rounded-xl bg-ink py-3.5 active:opacity-80"
+						>
+							<CheckIcon size={18} color={colors.paper} />
+							<Text className="font-medium text-paper text-base">搞定了</Text>
+						</Pressable>
+					) : (
+						<Pressable
+							onPress={reopenTask}
+							className="mt-8 flex-row items-center justify-center gap-2 rounded-xl border border-rule bg-paper py-3.5 active:bg-ink/5"
+						>
+							<RotateCcwIcon size={18} color={colors.ink} />
+							<Text className="font-medium text-ink text-base">重新启动</Text>
+						</Pressable>
+					)}
+				</ScrollView>
+			)}
+		</SafeAreaView>
+	);
 }
 
 function Row({ label, value }: { label: string; value: string | null }) {
-  return (
-    <View className="flex-row items-center justify-between py-1">
-      <Text className="text-ink-soft text-base">{label}</Text>
-      <Text className="text-ink text-base">{value ?? '—'}</Text>
-    </View>
-  );
+	return (
+		<View className="flex-row items-center justify-between py-1">
+			<Text className="text-ink-soft text-base">{label}</Text>
+			<Text className="text-ink text-base">{value ?? "—"}</Text>
+		</View>
+	);
 }

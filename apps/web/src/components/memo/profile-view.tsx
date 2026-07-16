@@ -1,10 +1,15 @@
-'use client';
+"use client";
 
-import { LogOutIcon, MessageSquareIcon, RefreshCcwIcon, Trash2Icon } from 'lucide-react';
-import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
-import { FeedbackDialog } from '@/components/memo/feedback-dialog';
-import { TweaksPanel } from '@/components/memo/tweaks-panel';
+import {
+  LogOutIcon,
+  MessageSquareIcon,
+  RefreshCcwIcon,
+  Trash2Icon,
+} from "lucide-react";
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
+import { FeedbackDialog } from "@/components/memo/feedback-dialog";
+import { TweaksPanel } from "@/components/memo/tweaks-panel";
 import {
   AlertDialog,
   AlertDialogClose,
@@ -13,9 +18,9 @@ import {
   AlertDialogHeader,
   AlertDialogPopup,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { signOut } from '@/lib/auth-client';
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { signOut } from "@/lib/auth-client";
 
 interface ProfileData {
   user: { name: string; email: string };
@@ -37,7 +42,7 @@ export function ProfileView() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch('/api/profile/stats', { cache: 'no-store' });
+    const res = await fetch("/api/profile/stats", { cache: "no-store" });
     if (res.ok) setData((await res.json()) as ProfileData);
     setLoading(false);
   }, []);
@@ -48,7 +53,7 @@ export function ProfileView() {
 
   async function handleLogout() {
     await signOut();
-    window.location.href = '/login';
+    window.location.href = "/login";
   }
 
   // 注销账号（Apple 5.1.1(v)）：AlertDialog 本身即确认步骤，确认后调后端永久删除，
@@ -56,29 +61,31 @@ export function ProfileView() {
   async function handleDeleteAccount() {
     setDeleting(true);
     try {
-      const res = await fetch('/api/account/delete', { method: 'POST' });
-      if (!res.ok) throw new Error('failed');
-      window.location.href = '/login';
+      const res = await fetch("/api/account/delete", { method: "POST" });
+      if (!res.ok) throw new Error("failed");
+      window.location.href = "/login";
     } catch {
       setDeleting(false);
       setDeleteOpen(false);
-      window.alert('注销失败，请稍后再试');
+      window.alert("注销失败，请稍后再试");
     }
   }
 
   function restartOnboarding() {
     try {
-      window.localStorage.removeItem('muimemo:onboarded');
+      window.localStorage.removeItem("muimemo:onboarded");
     } catch {}
-    window.location.href = '/onboarding';
+    window.location.href = "/onboarding";
   }
 
-  const initial = data?.user.name?.charAt(0)?.toUpperCase() ?? '·';
+  const initial = data?.user.name?.charAt(0)?.toUpperCase() ?? "·";
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-6 pb-24 sm:pt-10">
       <header>
-        <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">叨叨记 · 我的</p>
+        <p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">
+          叨叨记 · 我的
+        </p>
         <h1 className="font-serif text-2xl text-ink">账号与数据</h1>
       </header>
 
@@ -88,8 +95,12 @@ export function ProfileView() {
             {initial}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-serif text-lg text-ink truncate">{data?.user.name ?? '…'}</p>
-            <p className="truncate text-xs text-ink-mute font-mono">{data?.user.email ?? ''}</p>
+            <p className="font-serif text-lg text-ink truncate">
+              {data?.user.name ?? "…"}
+            </p>
+            <p className="truncate text-xs text-ink-mute font-mono">
+              {data?.user.email ?? ""}
+            </p>
           </div>
         </div>
       </section>
@@ -129,14 +140,28 @@ export function ProfileView() {
         </button>
       </section>
 
-      <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} defaultContact={data?.user.email} />
+      <FeedbackDialog
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+        defaultContact={data?.user.email}
+      />
 
       <section className="mt-6 space-y-2">
-        <Button variant="outline" size="lg" className="w-full" onClick={handleLogout}>
+        <Button
+          variant="outline"
+          size="lg"
+          className="w-full"
+          onClick={handleLogout}
+        >
           <LogOutIcon />
           退出登录
         </Button>
-        <Button variant="destructive-outline" size="lg" className="w-full" onClick={() => setDeleteOpen(true)}>
+        <Button
+          variant="destructive-outline"
+          size="lg"
+          className="w-full"
+          onClick={() => setDeleteOpen(true)}
+        >
           <Trash2Icon />
           注销账号
         </Button>
@@ -151,32 +176,54 @@ export function ProfileView() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogClose render={<Button variant="outline">取消</Button>} />
-            <Button variant="destructive" disabled={deleting} onClick={handleDeleteAccount}>
-              {deleting ? '注销中…' : '确认注销'}
+            <AlertDialogClose
+              render={<Button variant="outline">取消</Button>}
+            />
+            <Button
+              variant="destructive"
+              disabled={deleting}
+              onClick={handleDeleteAccount}
+            >
+              {deleting ? "注销中…" : "确认注销"}
             </Button>
           </AlertDialogFooter>
         </AlertDialogPopup>
       </AlertDialog>
 
-      {loading ? <p className="mt-4 text-center text-xs text-ink-mute">加载中…</p> : null}
+      {loading ? (
+        <p className="mt-4 text-center text-xs text-ink-mute">加载中…</p>
+      ) : null}
 
       <footer className="mt-8 text-center">
-        <p className="font-mono text-[10px] tracking-[0.15em] text-ink-mute">v{process.env.NEXT_PUBLIC_APP_VERSION}</p>
+        <p className="font-mono text-[10px] tracking-[0.15em] text-ink-mute">
+          v{process.env.NEXT_PUBLIC_APP_VERSION}
+        </p>
       </footer>
     </main>
   );
 }
 
-function StatCard({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
+function StatCard({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: number;
+  accent?: boolean;
+}) {
   return (
     <div
       className={
-        'rounded-2xl border p-4 ' +
-        (accent ? 'border-accent-warm/40 bg-accent-warm/10' : 'border-rule/60 bg-paper-2/50')
+        "rounded-2xl border p-4 " +
+        (accent
+          ? "border-accent-warm/40 bg-accent-warm/10"
+          : "border-rule/60 bg-paper-2/50")
       }
     >
-      <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">{label}</p>
+      <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">
+        {label}
+      </p>
       <p className="mt-1 font-serif text-3xl text-ink">{value}</p>
     </div>
   );

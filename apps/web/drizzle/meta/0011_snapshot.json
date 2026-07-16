@@ -106,9 +106,7 @@
       "compositePrimaryKeys": {
         "accounts_id": {
           "name": "accounts_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -180,9 +178,7 @@
       "compositePrimaryKeys": {
         "attachments_id": {
           "name": "attachments_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -311,9 +307,7 @@
       "compositePrimaryKeys": {
         "recurrences_id": {
           "name": "recurrences_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -386,17 +380,13 @@
       "compositePrimaryKeys": {
         "sessions_id": {
           "name": "sessions_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "sessions_token_unique": {
           "name": "sessions_token_unique",
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "checkConstraint": {}
@@ -594,10 +584,7 @@
       "indexes": {
         "uq_tasks_recurrence_period": {
           "name": "uq_tasks_recurrence_period",
-          "columns": [
-            "recurrence_id",
-            "period_index"
-          ],
+          "columns": ["recurrence_id", "period_index"],
           "isUnique": true
         }
       },
@@ -605,9 +592,7 @@
       "compositePrimaryKeys": {
         "tasks_id": {
           "name": "tasks_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -674,17 +659,13 @@
       "compositePrimaryKeys": {
         "users_id": {
           "name": "users_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "checkConstraint": {}
@@ -783,9 +764,7 @@
       "compositePrimaryKeys": {
         "utterances_id": {
           "name": "utterances_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},
@@ -844,9 +823,7 @@
       "compositePrimaryKeys": {
         "verifications_id": {
           "name": "verifications_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {},

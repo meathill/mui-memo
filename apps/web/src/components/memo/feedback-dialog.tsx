@@ -1,11 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogClose, DialogFooter, DialogHeader, DialogPopup, DialogTitle } from '@/components/ui/dialog';
-import { submitFeedback } from '@/lib/feedback';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogFooter,
+  DialogHeader,
+  DialogPopup,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { submitFeedback } from "@/lib/feedback";
 
-const TAG_OPTIONS = ['bug', '建议', '其他'] as const;
+const TAG_OPTIONS = ["bug", "建议", "其他"] as const;
 
 interface Props {
   open: boolean;
@@ -14,18 +21,20 @@ interface Props {
 }
 
 export function FeedbackDialog({ open, onOpenChange, defaultContact }: Props) {
-  const [content, setContent] = useState('');
-  const [contact, setContact] = useState(defaultContact ?? '');
+  const [content, setContent] = useState("");
+  const [contact, setContact] = useState(defaultContact ?? "");
   const [tags, setTags] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function toggleTag(tag: string) {
-    setTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
+    setTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    );
   }
 
   function reset() {
-    setContent('');
+    setContent("");
     setTags([]);
     setError(null);
   }
@@ -33,7 +42,7 @@ export function FeedbackDialog({ open, onOpenChange, defaultContact }: Props) {
   async function handleSubmit() {
     const text = content.trim();
     if (!text) {
-      setError('请填写反馈内容');
+      setError("请填写反馈内容");
       return;
     }
     setBusy(true);
@@ -43,7 +52,7 @@ export function FeedbackDialog({ open, onOpenChange, defaultContact }: Props) {
       reset();
       onOpenChange(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : '提交失败');
+      setError(e instanceof Error ? e.message : "提交失败");
     } finally {
       setBusy(false);
     }
@@ -58,7 +67,9 @@ export function FeedbackDialog({ open, onOpenChange, defaultContact }: Props) {
 
         <div className="space-y-4 px-6 pb-2">
           <label className="block">
-            <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">反馈内容</span>
+            <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">
+              反馈内容
+            </span>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -69,7 +80,9 @@ export function FeedbackDialog({ open, onOpenChange, defaultContact }: Props) {
           </label>
 
           <label className="block">
-            <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">联系方式（选填）</span>
+            <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">
+              联系方式（选填）
+            </span>
             <input
               type="text"
               value={contact}
@@ -80,7 +93,9 @@ export function FeedbackDialog({ open, onOpenChange, defaultContact }: Props) {
           </label>
 
           <div>
-            <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">标签</span>
+            <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">
+              标签
+            </span>
             <div className="mt-2 flex flex-wrap gap-2">
               {TAG_OPTIONS.map((tag) => {
                 const selected = tags.includes(tag);
@@ -90,10 +105,10 @@ export function FeedbackDialog({ open, onOpenChange, defaultContact }: Props) {
                     type="button"
                     onClick={() => toggleTag(tag)}
                     className={
-                      'rounded-full border px-3 py-1 font-mono text-xs transition-colors ' +
+                      "rounded-full border px-3 py-1 font-mono text-xs transition-colors " +
                       (selected
-                        ? 'border-ink bg-ink text-paper'
-                        : 'border-rule/60 bg-paper-2/50 text-ink-mute hover:text-ink')
+                        ? "border-ink bg-ink text-paper"
+                        : "border-rule/60 bg-paper-2/50 text-ink-mute hover:text-ink")
                     }
                   >
                     {tag}

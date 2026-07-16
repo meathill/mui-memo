@@ -1,12 +1,13 @@
-import { ContentPage } from '@/components/marketing/content-page';
-import AboutDoc from '@/content/about.mdx';
-import { createMarketingMetadata } from '@/lib/site';
+import { ContentPage } from "@/components/marketing/content-page";
+import AboutDoc from "@/content/about.mdx";
+import { createMarketingMetadata } from "@/lib/site";
 
 export const metadata = createMarketingMetadata({
-  title: '关于',
-  description: '了解叨叨记为什么从语音录入出发，以及网页版和已上架 App Store 的 iOS App 现在能解决什么问题。',
-  path: '/about',
-  keywords: ['关于叨叨记', '产品定位', 'App Store', 'iOS App'],
+  title: "关于",
+  description:
+    "了解叨叨记为什么从语音录入出发，以及网页版和已上架 App Store 的 iOS App 现在能解决什么问题。",
+  path: "/about",
+  keywords: ["关于叨叨记", "产品定位", "App Store", "iOS App"],
 });
 
 export default function AboutPage() {

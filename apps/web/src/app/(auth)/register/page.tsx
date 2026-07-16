@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { signUp } from '@/lib/auth-client';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { signUp } from "@/lib/auth-client";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -17,47 +17,74 @@ export default function RegisterPage() {
     setError(null);
     setLoading(true);
     const form = new FormData(event.currentTarget);
-    const email = String(form.get('email') ?? '');
-    const password = String(form.get('password') ?? '');
-    const name = String(form.get('name') ?? email.split('@')[0]);
+    const email = String(form.get("email") ?? "");
+    const password = String(form.get("password") ?? "");
+    const name = String(form.get("name") ?? email.split("@")[0]);
     const { error } = await signUp.email({
       email,
       password,
       name,
-      callbackURL: '/app',
+      callbackURL: "/app",
     });
     setLoading(false);
     if (error) {
-      setError(error.message ?? '注册失败，请稍后重试');
+      setError(error.message ?? "注册失败，请稍后重试");
       return;
     }
-    router.push('/app');
+    router.push("/app");
     router.refresh();
   }
 
   return (
     <div className="space-y-8">
       <header className="space-y-2 text-center">
-        <p className="font-mono text-xs tracking-[0.15em] uppercase text-ink-mute">叨叨记</p>
-        <h1 className="font-serif text-3xl font-medium text-ink">开启你的语音清单</h1>
+        <p className="font-mono text-xs tracking-[0.15em] uppercase text-ink-mute">
+          叨叨记
+        </p>
+        <h1 className="font-serif text-3xl font-medium text-ink">
+          开启你的语音清单
+        </h1>
         <p className="text-sm text-ink-soft">注册后立即开始录制。</p>
       </header>
 
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-1.5">
-          <label htmlFor="register-name" className="block text-xs font-medium text-ink-soft">
+          <label
+            htmlFor="register-name"
+            className="block text-xs font-medium text-ink-soft"
+          >
             昵称
           </label>
-          <Input id="register-name" name="name" type="text" autoComplete="name" required size="lg" />
+          <Input
+            id="register-name"
+            name="name"
+            type="text"
+            autoComplete="name"
+            required
+            size="lg"
+          />
         </div>
         <div className="space-y-1.5">
-          <label htmlFor="register-email" className="block text-xs font-medium text-ink-soft">
+          <label
+            htmlFor="register-email"
+            className="block text-xs font-medium text-ink-soft"
+          >
             邮箱
           </label>
-          <Input id="register-email" name="email" type="email" autoComplete="email" required size="lg" />
+          <Input
+            id="register-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            size="lg"
+          />
         </div>
         <div className="space-y-1.5">
-          <label htmlFor="register-password" className="block text-xs font-medium text-ink-soft">
+          <label
+            htmlFor="register-password"
+            className="block text-xs font-medium text-ink-soft"
+          >
             密码（≥ 8 位）
           </label>
           <Input
@@ -77,8 +104,11 @@ export default function RegisterPage() {
       </form>
 
       <p className="text-center text-sm text-ink-soft">
-        已有账号？{' '}
-        <Link href="/login" className="text-accent-warm underline underline-offset-4">
+        已有账号？{" "}
+        <Link
+          href="/login"
+          className="text-accent-warm underline underline-offset-4"
+        >
           去登录
         </Link>
       </p>
