@@ -34,6 +34,7 @@ import {
 	isAudioMime,
 } from "@/components/audio-play-button";
 import { ErrorBanner } from "@/components/error-banner";
+import { TaskVaultCard } from "@/components/task-vault-card";
 import { type Attachment, api } from "@/lib/api";
 import { loadCachedTaskDetail, saveCachedTaskDetail } from "@/lib/local-db";
 import {
@@ -283,6 +284,10 @@ export default function TaskDetailScreen() {
 								{task.aiReason}
 							</Text>
 						</View>
+					) : null}
+
+					{task.vaultKey ? (
+						<TaskVaultCard taskId={task.id} vaultKey={task.vaultKey} />
 					) : null}
 
 					{attachments.length > 0 ? (

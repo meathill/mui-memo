@@ -334,6 +334,17 @@ export const setPlaceSchema = z.object({
 	place: taskPlaceEnum,
 });
 
+/**
+ * 手动编辑任务的 PATCH 入参（/api/tasks/[id]）。
+ * vaultKey（保险箱指针）只允许从这里进入：AI 链路的 actionSchema /
+ * intentConfirmSchema 沿用 taskPatchSchema，未知键会被 strip，
+ * 保证语音/AI 流程永远写不了保险箱指针。
+ */
+export const updateTaskSchema = taskPatchSchema.extend({
+	vaultKey: z.uuid().nullable().optional(),
+});
+export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
+
 // ──────────────────────────────────────────────
 // /api/intent/confirm 输入
 // ──────────────────────────────────────────────

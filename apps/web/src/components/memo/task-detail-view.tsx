@@ -46,6 +46,7 @@ interface Task {
   linkedTo: string | null;
   createdAt: string;
   completedAt: string | null;
+  vaultKey: string | null;
 }
 
 export function TaskDetailView({ id }: { id: string }) {
@@ -369,6 +370,12 @@ export function TaskDetailView({ id }: { id: string }) {
         {task.aiReason ? (
           <p className="rounded-xl border border-rule/60 bg-paper-2/40 px-3 py-2 text-xs text-ink-soft font-mono">
             🤖 {task.aiReason}
+          </p>
+        ) : null}
+
+        {task.vaultKey ? (
+          <p className="rounded-xl border border-rule/60 bg-paper-2/40 px-3 py-2 text-xs text-ink-soft font-mono">
+            🔒 含保险箱内容 · 端到端加密，请在 App 中查看
           </p>
         ) : null}
 

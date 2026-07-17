@@ -8,7 +8,7 @@ import type {
   TaskStatus,
   TaskWindow,
 } from "@mui-memo/shared/validators";
-import { taskCoreSchema, taskStatusEnum } from "@mui-memo/shared/validators";
+import { updateTaskSchema } from "@mui-memo/shared/validators";
 import { and, asc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getRecurrence } from "@/lib/recurrences";
@@ -71,6 +71,7 @@ export async function GET(
       completedAt: row.completedAt?.toISOString() ?? null,
       audioKey: row.audioKey ?? null,
       recurrenceId: row.recurrenceId ?? null,
+      vaultKey: row.vaultKey ?? null,
     },
     recurrence: rec
       ? { id: rec.id, freq: rec.freq, interval: rec.interval }
@@ -82,10 +83,6 @@ export async function GET(
   });
 }
 
-const patchSchema = taskCoreSchema.partial().extend({
-  status: taskStatusEnum.optional(),
-});
-
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -94,7 +91,7 @@ export async function PATCH(
   if (resp) return resp;
   const { id } = await params;
   const body = await req.json().catch(() => null);
-  const parsed = patchSchema.safeParse(body);
+  const parsed = updateTaskSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "invalid_input", issues: parsed.error.issues },
@@ -115,6 +112,8 @@ export async function PATCH(
   if (p.expectAt !== undefined)
     update.expectAt = p.expectAt ? new Date(p.expectAt) : null;
   if (p.dueAt !== undefined) update.dueAt = p.dueAt ? new Date(p.dueAt) : null;
+  // 保险箱指针：string 设置、null 清空、缺省不动（值本身无意义，密文在 HSM）
+  if (p.vaultKey !== undefined) update.vaultKey = p.vaultKey;
   if (p.status !== undefined) {
     update.status = p.status;
     if (p.status === "done") update.completedAt = new Date();

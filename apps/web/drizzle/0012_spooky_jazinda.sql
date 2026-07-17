@@ -1,0 +1,1 @@
+ALTER TABLE `tasks` ADD `vault_key` varchar(64);

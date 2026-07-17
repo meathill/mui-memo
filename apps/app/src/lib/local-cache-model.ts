@@ -22,6 +22,8 @@ export type LocalTaskPatch = Partial<
 	window?: TaskWindow;
 	status?: TaskStatus;
 	completedAt?: string | null;
+	/** 保险箱指针。只是无意义 UUID，随视图缓存无害；明文不进本模块。 */
+	vaultKey?: string | null;
 };
 
 interface PersistedAppState {
@@ -93,6 +95,7 @@ export function mergeTaskPatch(
 	if (patch.deadline !== undefined) next.deadline = patch.deadline;
 	if (patch.expectAt !== undefined) next.expectAt = patch.expectAt;
 	if (patch.dueAt !== undefined) next.dueAt = patch.dueAt;
+	if (patch.vaultKey !== undefined) next.vaultKey = patch.vaultKey;
 	if (patch.status !== undefined) {
 		next.status = patch.status;
 		next.done = patch.status === "done";
@@ -120,6 +123,7 @@ export function taskPatchToLocalPatch(
 	if (patch.expectAt !== undefined) out.expectAt = patch.expectAt;
 	if (patch.dueAt !== undefined) out.dueAt = patch.dueAt;
 	if (patch.status !== undefined) out.status = patch.status;
+	if (patch.vaultKey !== undefined) out.vaultKey = patch.vaultKey;
 	return out;
 }
 

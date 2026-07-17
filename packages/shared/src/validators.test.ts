@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+	actionSchema,
+	intentConfirmSchema,
 	legacyToActions,
 	legacyUtteranceSchema,
 	parseUtteranceFlexible,
+	updateTaskSchema,
 	utteranceSchema,
 } from "./validators.js";
 
@@ -170,5 +173,51 @@ describe("parseUtteranceFlexible", () => {
 
 	it("两边都不通过时抛错", () => {
 		expect(() => parseUtteranceFlexible({ foo: "bar" })).toThrow();
+	});
+});
+
+describe("updateTaskSchema（保险箱指针）", () => {
+	it("接受合法 UUID / null / 缺省三态", () => {
+		const uuid = "5c2a4d1e-9f3b-4c7d-8a6e-1b2c3d4e5f60";
+		expect(updateTaskSchema.parse({ vaultKey: uuid }).vaultKey).toBe(uuid);
+		expect(updateTaskSchema.parse({ vaultKey: null }).vaultKey).toBeNull();
+		expect(updateTaskSchema.parse({}).vaultKey).toBeUndefined();
+	});
+
+	it("拒绝非 UUID 字符串", () => {
+		expect(updateTaskSchema.safeParse({ vaultKey: "not-a-uuid" }).success).toBe(
+			false,
+		);
+		expect(updateTaskSchema.safeParse({ vaultKey: "" }).success).toBe(false);
+	});
+
+	it("与原 PATCH 形状兼容：普通字段照常通过", () => {
+		const parsed = updateTaskSchema.parse({ text: "买菜", status: "doing" });
+		expect(parsed.text).toBe("买菜");
+		expect(parsed.status).toBe("doing");
+	});
+});
+
+describe("AI 链路写不进 vaultKey（不变量）", () => {
+	const uuid = "5c2a4d1e-9f3b-4c7d-8a6e-1b2c3d4e5f60";
+
+	it("actionSchema 的 MODIFY patch 里塞 vaultKey 会被 strip", () => {
+		const action = actionSchema.parse({
+			intent: "MODIFY",
+			matchId: "t1",
+			patch: { text: "改名", vaultKey: uuid },
+		});
+		if (action.intent !== "MODIFY") throw new Error("expected MODIFY");
+		expect(action.patch).not.toHaveProperty("vaultKey");
+	});
+
+	it("intentConfirmSchema 的 modify patch 里塞 vaultKey 会被 strip", () => {
+		const confirm = intentConfirmSchema.parse({
+			kind: "modify",
+			taskId: "t1",
+			patch: { text: "改名", vaultKey: uuid },
+		});
+		if (confirm.kind !== "modify") throw new Error("expected modify");
+		expect(confirm.patch).not.toHaveProperty("vaultKey");
 	});
 });

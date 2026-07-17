@@ -360,6 +360,8 @@ export interface TaskPatch {
 	expectAt: string | null;
 	dueAt: string | null;
 	status: "pending" | "doing" | "done";
+	/** 保险箱指针（随机 UUID）：string 设置、null 清空。明文永不经过这个 API。 */
+	vaultKey: string | null;
 }
 
 /** 新建/编辑周期任务入参，对齐 web recurrenceCoreSchema。空字段省略（zod 用 default/optional）。 */

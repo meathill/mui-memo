@@ -159,6 +159,12 @@ export const tasks = mysqlTable(
 		recurrenceId: varchar("recurrence_id", { length: 36 }),
 		/** 周期序号 k（自 anchorAt 起第几期）。与 recurrenceId 组唯一键，防重复生成。 */
 		periodIndex: int("period_index"),
+		/**
+		 * 保险箱指针：app 端 mint 的随机 UUID，HSM 完整路径 = mui-memo/{userId}/{vaultKey}。
+		 * 这里只存无意义指针，明文与解密密钥永不落库（零知识）；密文在用户自有 HSM，
+		 * 密钥在设备 Keychain。用独立随机 id 而非 taskId，避免密钥更换后旧路径所有权死锁。
+		 */
+		vaultKey: varchar("vault_key", { length: 64 }),
 	},
 	(t) => [
 		uniqueIndex("uq_tasks_recurrence_period").on(t.recurrenceId, t.periodIndex),

@@ -43,6 +43,7 @@ export function rowToView(
     audioKey: row.audioKey,
     recurrenceId: row.recurrenceId,
     periodIndex: row.periodIndex,
+    vaultKey: row.vaultKey,
   };
 }
 
@@ -132,6 +133,7 @@ export async function listTasksForUser(
       audioKey: tasksTable.audioKey,
       recurrenceId: tasksTable.recurrenceId,
       periodIndex: tasksTable.periodIndex,
+      vaultKey: tasksTable.vaultKey,
     })
     .from(tasksTable)
     .where(eq(tasksTable.userId, userId))

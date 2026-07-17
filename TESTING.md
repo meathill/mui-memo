@@ -68,6 +68,25 @@ apps/web/e2e/intent.spec.ts
 - `logic.test.ts` — `rerank` 分桶排序、`applyIntent` 6 种 intent 全路径
 - `validators.test.ts` — Zod schema 边界情况
 
+## 保险箱（Secret Vault）手测清单
+
+vault-keychain / vault-biometric 是 native 薄层，不进 Vitest，靠以下手测覆盖。
+**新增了原生模块（react-native-keychain / expo-local-authentication / expo-clipboard），
+必须重建 dev client**（`pnpm -F @mui-memo/app ios`），Expo Go 跑不了。
+
+模拟器 Face ID：Features → Face ID → Enrolled，配合 Matching / Non-matching 两分支。
+
+- [ ] 编辑任务 → 保险箱 → Face ID → 输入内容保存；首次保存弹「备份恢复码」引导
+- [ ] 详情页出现保险箱卡片 → 解锁查看 → 复制（系统弹粘贴提示）→ 收起
+- [ ] 修改已有内容；移除内容（两步确认）后详情页卡片消失，web 详情页占位提示同步消失
+- [ ] 生物识别取消 → 静默返回不弹错；切后台再回来 → 自动上锁，重新认证后草稿还在
+- [ ] 飞行模式：解锁/保存报「网络异常」，内容不丢；移除流程被中止（不清指针）
+- [ ] 8000 字符粘贴被截断，计数器 >7800 变警示色
+- [ ] 设置 → 任务保险箱：查看恢复码（Face ID）→ 抄下 → 卸载重装（或第二台设备）→ 导入恢复码 → 能解锁旧内容
+- [ ] 导入错误的恢复码 → 解锁旧内容报「密钥与写入时不一致」（403），换回正确恢复码恢复
+- [ ] 双真机同 Apple ID：设备 A 创建保险箱，设备 B（iCloud 钥匙串开启）稍候可直接解锁
+- [ ] web 详情页：带保险箱的任务显示「请在 App 中查看」占位；web 上编辑其它字段不影响解锁
+
 ## 修 bug 的测试纪律
 
 参见 [AGENTS.md](./AGENTS.md) 的「修复 bug」章节：

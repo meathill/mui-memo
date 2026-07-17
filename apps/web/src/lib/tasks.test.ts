@@ -35,6 +35,7 @@ function makeRow(overrides: Partial<TaskRow> = {}): TaskRow {
     audioKey: null,
     recurrenceId: null,
     periodIndex: null,
+    vaultKey: null,
     ...overrides,
   } as unknown as TaskRow;
 }
@@ -211,5 +212,34 @@ describe("planPersist", () => {
     expect(inserts.map((r) => r.id)).toEqual(["c"]);
     expect(updates.map((u) => u.id)).toEqual(["a"]);
     expect(updates[0].patch).toMatchObject({ text: "新A" });
+  });
+});
+
+describe("保险箱指针 vaultKey", () => {
+  const uuid = "5c2a4d1e-9f3b-4c7d-8a6e-1b2c3d4e5f60";
+
+  it("rowToView 透传 vaultKey", () => {
+    expect(rowToView(makeRow({ vaultKey: uuid })).vaultKey).toBe(uuid);
+    expect(rowToView(makeRow()).vaultKey).toBeNull();
+  });
+
+  it("planPersist 不 diff vaultKey：AI 意图流不会覆盖/清空指针", () => {
+    const { inserts, updates } = planPersist(
+      "u1",
+      [makeView({ vaultKey: uuid })],
+      [makeView({ vaultKey: null })],
+    );
+    expect(inserts).toHaveLength(0);
+    expect(updates).toHaveLength(0);
+  });
+
+  it("planPersist 其它字段变更时 patch 也不带 vaultKey", () => {
+    const { updates } = planPersist(
+      "u1",
+      [makeView({ text: "旧", vaultKey: uuid })],
+      [makeView({ text: "新", vaultKey: null })],
+    );
+    expect(updates).toHaveLength(1);
+    expect(updates[0].patch).not.toHaveProperty("vaultKey");
   });
 });

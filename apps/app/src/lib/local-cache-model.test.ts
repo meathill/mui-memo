@@ -131,6 +131,24 @@ describe("本地任务 patch", () => {
 		});
 	});
 
+	it("vaultKey 指针三态：设值 / null 清空 / 缺省不动", () => {
+		const uuid = "5c2a4d1e-9f3b-4c7d-8a6e-1b2c3d4e5f60";
+		expect(mergeTaskPatch(task(), { vaultKey: uuid }).vaultKey).toBe(uuid);
+		expect(
+			mergeTaskPatch(task({ vaultKey: uuid }), { vaultKey: null }).vaultKey,
+		).toBeNull();
+		expect(
+			mergeTaskPatch(task({ vaultKey: uuid }), { text: "改名" }).vaultKey,
+		).toBe(uuid);
+		expect(taskPatchToLocalPatch({ vaultKey: uuid })).toEqual({
+			vaultKey: uuid,
+		});
+		expect(taskPatchToLocalPatch({ vaultKey: null })).toEqual({
+			vaultKey: null,
+		});
+		expect(taskPatchToLocalPatch({ text: "x" })).not.toHaveProperty("vaultKey");
+	});
+
 	it("completedTaskToView 生成可回滚的任务视图", () => {
 		expect(
 			completedTaskToView({

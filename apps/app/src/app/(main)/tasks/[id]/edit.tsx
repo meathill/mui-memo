@@ -11,7 +11,7 @@ import type {
 	TaskWindow,
 } from "@mui-memo/shared/validators";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { CheckIcon, PlusIcon, XIcon } from "lucide-react-native";
+import { CheckIcon, LockIcon, PlusIcon, XIcon } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	ActivityIndicator,
@@ -115,6 +115,10 @@ export default function TaskEditScreen() {
 
 	// 已有标签建议：从全局任务里现算去重，排除已选的，点一下即加入。
 	const storeTasks = useAppStore((s) => s.tasks);
+	// 保险箱指针以 store 为准（vault 屏保存后经 patchTaskEverywhere 更新），
+	// store 里没有（如已完成任务）再退回进屏时加载的 task。
+	const vaultKey =
+		storeTasks.find((t) => t.id === id)?.vaultKey ?? task?.vaultKey ?? null;
 	const tagSuggestions = useMemo(
 		() =>
 			[...new Set(storeTasks.flatMap((t) => t.tags ?? []))]
@@ -372,6 +376,20 @@ export default function TaskEditScreen() {
 									以「预期时间」为每期的星期与时刻锚点；留空则取保存时刻。没完成会在下一期自动清掉。
 								</Text>
 							) : null}
+						</Section>
+
+						<Section label="保险箱">
+							<Pressable
+								onPress={() => router.push(`/tasks/${id}/vault`)}
+								className="flex-row items-center gap-2 rounded-lg border border-rule bg-paper-2/50 px-4 py-3 active:opacity-70"
+							>
+								<LockIcon size={16} color={colors.inkMute} />
+								<Text className="flex-1 text-base text-ink-soft">
+									{vaultKey
+										? "已加密保存 · 点按查看或修改"
+										: "添加私密内容（端到端加密）"}
+								</Text>
+							</Pressable>
 						</Section>
 
 						<Section label="标签">

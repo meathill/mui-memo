@@ -6,6 +6,7 @@ import {
 	CheckIcon,
 	ChevronDownIcon,
 	CircleIcon,
+	LockIcon,
 	LogOutIcon,
 	MessageSquareIcon,
 	MoonIcon,
@@ -35,8 +36,10 @@ import {
 	type PermStatus,
 	requestPermission,
 } from "@/lib/notifications";
+import { useSession } from "@/lib/session";
 import type { ThemePreference } from "@/lib/theme";
 import { useThemeHex } from "@/lib/use-theme-hex";
+import { destroyLocalVaultSecret } from "@/lib/vault";
 import { useAppStore } from "@/store";
 
 const THEME_OPTIONS: {
@@ -170,6 +173,10 @@ export default function ProfileScreen() {
 									setDeleting(true);
 									try {
 										await api.account.deleteAccount();
+										// 账号没了，本机保险箱密钥一并清掉；HSM 残留密文自此不可解
+										const uid = useSession.getState().user?.id;
+										if (uid)
+											await destroyLocalVaultSecret(uid).catch(() => undefined);
 										await clearLocalCache();
 										useAppStore.getState().clearTaskSnapshot();
 										router.replace("/login");
@@ -373,6 +380,22 @@ export default function ProfileScreen() {
 						})}
 					</View>
 				) : null}
+
+				<Pressable
+					onPress={() => router.push("/vault-settings")}
+					className="mt-3 flex-row items-center gap-3 rounded-2xl border border-rule/60 bg-paper-2/50 p-4 active:opacity-80"
+				>
+					<View className="h-10 w-10 items-center justify-center rounded-full bg-ink/10">
+						<LockIcon size={18} color={colors.ink} />
+					</View>
+					<View className="flex-1">
+						<Text className="font-serif text-base text-ink">任务保险箱</Text>
+						<Text className="mt-0.5 text-ink-soft text-sm">
+							端到端加密 · 恢复码备份与导入
+						</Text>
+					</View>
+					<Text className="font-mono text-ink-mute text-sm">→</Text>
+				</Pressable>
 
 				<Pressable
 					onPress={() => router.push("/feedback")}

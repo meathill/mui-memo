@@ -36,6 +36,14 @@ export default function MainLayout() {
 				}}
 			/>
 			<Stack.Screen
+				name="tasks/[id]/vault"
+				options={{ presentation: "modal", headerShown: false }}
+			/>
+			<Stack.Screen
+				name="vault-settings"
+				options={{ presentation: "card", headerShown: false }}
+			/>
+			<Stack.Screen
 				name="queue/[id]"
 				options={{ presentation: "modal", headerShown: false }}
 			/>

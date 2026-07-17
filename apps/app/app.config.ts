@@ -68,6 +68,12 @@ const config: ExpoConfig & { newArchEnabled?: boolean } = {
 			},
 		],
 		"expo-secure-store",
+		[
+			"expo-local-authentication",
+			{
+				faceIDPermission: "允许叨叨记使用 Face ID 解锁任务保险箱。",
+			},
+		],
 		// iOS 不需要 google-services，只用 local notifications，配置最简
 		"expo-notifications",
 		"expo-apple-authentication",

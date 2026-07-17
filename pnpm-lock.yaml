@@ -47,6 +47,9 @@ importers:
       expo-audio:
         specifier: ~57.0.2
         version: 57.0.2(expo-asset@57.0.5(expo@57.0.6)(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(typescript@6.0.3))(expo@57.0.6)(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)
+      expo-clipboard:
+        specifier: ~57.0.1
+        version: 57.0.1(expo@57.0.6)(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)
       expo-constants:
         specifier: ~57.0.5
         version: 57.0.5(expo@57.0.6)(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))
@@ -65,6 +68,9 @@ importers:
       expo-linking:
         specifier: ~57.0.3
         version: 57.0.3(expo@57.0.6)(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)
+      expo-local-authentication:
+        specifier: ~57.0.1
+        version: 57.0.1(expo@57.0.6)
       expo-notifications:
         specifier: ~57.0.5
         version: 57.0.5(expo@57.0.6)(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
@@ -107,6 +113,9 @@ importers:
       react-native-gesture-handler:
         specifier: ~2.32.0
         version: 2.32.0(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)
+      react-native-keychain:
+        specifier: ^10.0.0
+        version: 10.0.0
       react-native-reanimated:
         specifier: ~4.5.0
         version: 4.5.0(react-native-worklets@0.10.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)
@@ -4866,6 +4875,13 @@ packages:
       react: '*'
       react-native: '*'
 
+  expo-clipboard@57.0.1:
+    resolution: {integrity: sha512-HWICri4+1ao7S6QEfcorxVumXDiDnx1guGGewjZgGJWLGxFYs0RgH8ujBs+lkTzBkMmlwADaWSlaesR+nDJt5Q==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
+      react-native: '*'
+
   expo-constants@57.0.5:
     resolution: {integrity: sha512-HVxPZc1uBdqrlcmNvdyO3L107vt/gsCRNGvXrYXWjZqmz1XOvGeUCR7S3MG4wUj4cQw4/WMCp+fcoDIhynJ80A==}
     peerDependencies:
@@ -4938,6 +4954,11 @@ packages:
     peerDependencies:
       react: '*'
       react-native: '*'
+
+  expo-local-authentication@57.0.1:
+    resolution: {integrity: sha512-FrXtuXVBmXmwmvDus0OsFWMdzjYTaLd/ZvvVMKnRjXDKDS+LFG2Sz3r9f3Go0goJdpb/hA09wGwGi8XfW3Aa0w==}
+    peerDependencies:
+      expo: '*'
 
   expo-manifests@57.0.0:
     resolution: {integrity: sha512-JDKDuF1gd3wPywhu+VzH+qFNDlu91Unqpcre6R9b14MEMq5L3mG6XL9LOySChiWlLJAoObeNPdVV7Od6P++49g==}
@@ -6860,6 +6881,10 @@ packages:
     peerDependencies:
       react: '*'
       react-native: '*'
+
+  react-native-keychain@10.0.0:
+    resolution: {integrity: sha512-YzPKSAnSzGEJ12IK6CctNLU79T1W15WDrElRQ+1/FsOazGX9ucFPTQwgYe8Dy8jiSEDJKM4wkVa3g4lD2Z+Pnw==}
+    engines: {node: '>=16'}
 
   react-native-reanimated@4.5.0:
     resolution: {integrity: sha512-+iPfvK34PKKYP/p/4TaBliFkbfvjGDIvXuiiaxvISP5ip7sWegvlacwU/uAV6zNDSSmX0tDyER7PurPMKGDipA==}
@@ -14103,6 +14128,12 @@ snapshots:
       react: 19.2.3
       react-native: 0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3)
 
+  expo-clipboard@57.0.1(expo@57.0.6)(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3):
+    dependencies:
+      expo: 57.0.6(@babel/core@7.29.7)(@expo/dom-webview@55.0.5)(@expo/metro-runtime@57.0.5)(expo-router@57.0.6)(expo-widgets@57.0.5)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native-worklets@0.10.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
+      react: 19.2.3
+      react-native: 0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3)
+
   expo-constants@57.0.5(expo@57.0.6)(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3)):
     dependencies:
       '@expo/env': 2.4.2
@@ -14229,6 +14260,11 @@ snapshots:
       - expo
       - supports-color
     optional: true
+
+  expo-local-authentication@57.0.1(expo@57.0.6):
+    dependencies:
+      expo: 57.0.6(@babel/core@7.29.7)(@expo/dom-webview@55.0.5)(@expo/metro-runtime@57.0.5)(expo-router@57.0.6)(expo-widgets@57.0.5)(react-dom@19.2.3(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native-worklets@0.10.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
+      invariant: 2.2.4
 
   expo-manifests@57.0.0(expo@57.0.6):
     dependencies:
@@ -16675,6 +16711,8 @@ snapshots:
       react: 19.2.7
       react-native: 0.86.0(@babel/core@8.0.1)(@react-native/metro-config@0.86.0(@babel/core@8.0.1))(@types/react@19.2.17)(react@19.2.7)
     optional: true
+
+  react-native-keychain@10.0.0: {}
 
   react-native-reanimated@4.5.0(react-native-worklets@0.10.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3):
     dependencies:

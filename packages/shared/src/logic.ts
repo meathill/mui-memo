@@ -32,6 +32,8 @@ export interface TaskView {
 	completedAt?: string | null;
 	/** 产出该任务的原始语音 R2 key，空表示没有归档。 */
 	audioKey?: string | null;
+	/** 保险箱指针（随机 UUID），密文在 HSM、密钥在设备 Keychain；这里只是无意义指针。 */
+	vaultKey?: string | null;
 	/** 周期任务实例所属的定义 id；非周期任务为空。仅用于 UI 标记。 */
 	recurrenceId?: string | null;
 	/** 周期序号；服务端只把「当前期」的已完成周期实例发到主列表。 */
