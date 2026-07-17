@@ -4,49 +4,49 @@ const DEFAULT_TZ = "Asia/Shanghai";
  * 校验时区名合法：不合法返回默认。
  */
 export function normalizeTz(tz: string | undefined | null): string {
-  if (!tz) return DEFAULT_TZ;
-  try {
-    // Intl 会抛，抛了就 fallback
-    new Intl.DateTimeFormat("en-US", { timeZone: tz }).format(new Date());
-    return tz;
-  } catch {
-    return DEFAULT_TZ;
-  }
+	if (!tz) return DEFAULT_TZ;
+	try {
+		// Intl 会抛，抛了就 fallback
+		new Intl.DateTimeFormat("en-US", { timeZone: tz }).format(new Date());
+		return tz;
+	} catch {
+		return DEFAULT_TZ;
+	}
 }
 
 function pad(n: number, w = 2): string {
-  return String(n).padStart(w, "0");
+	return String(n).padStart(w, "0");
 }
 
 /**
  * 给定一个时间点和时区，返回该时区的 UTC 偏移，形如 "+08:00" / "-05:30"。
  */
 export function tzOffset(date: Date, tz: string): string {
-  // 通过 formatToParts 取该时区下的年月日时分秒，再减去 UTC 得到偏移。
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: tz,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  }).formatToParts(date);
-  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
-  // Date.UTC 把那个时区本地时间当 UTC 构造，减去原始毫秒 = 时区偏移
-  const asUTC = Date.UTC(
-    get("year"),
-    get("month") - 1,
-    get("day"),
-    get("hour") % 24,
-    get("minute"),
-    get("second"),
-  );
-  const offsetMin = Math.round((asUTC - date.getTime()) / 60000);
-  const sign = offsetMin >= 0 ? "+" : "-";
-  const abs = Math.abs(offsetMin);
-  return `${sign}${pad(Math.floor(abs / 60))}:${pad(abs % 60)}`;
+	// 通过 formatToParts 取该时区下的年月日时分秒，再减去 UTC 得到偏移。
+	const parts = new Intl.DateTimeFormat("en-US", {
+		timeZone: tz,
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		second: "2-digit",
+		hour12: false,
+	}).formatToParts(date);
+	const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+	// Date.UTC 把那个时区本地时间当 UTC 构造，减去原始毫秒 = 时区偏移
+	const asUTC = Date.UTC(
+		get("year"),
+		get("month") - 1,
+		get("day"),
+		get("hour") % 24,
+		get("minute"),
+		get("second"),
+	);
+	const offsetMin = Math.round((asUTC - date.getTime()) / 60000);
+	const sign = offsetMin >= 0 ? "+" : "-";
+	const abs = Math.abs(offsetMin);
+	return `${sign}${pad(Math.floor(abs / 60))}:${pad(abs % 60)}`;
 }
 
 const WEEKDAY_ZH = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
@@ -55,49 +55,49 @@ const WEEKDAY_ZH = ["周日", "周一", "周二", "周三", "周四", "周五", 
  * 返回该时刻在目标时区下的 "YYYY-MM-DDTHH:mm:ss±HH:MM" 以及中文星期。
  */
 export function describeNow(
-  tz: string,
-  now: Date = new Date(),
+	tz: string,
+	now: Date = new Date(),
 ): { iso: string; weekday: string } {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: tz,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  }).formatToParts(now);
-  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
-  const y = get("year");
-  const m = get("month");
-  const d = get("day");
-  const h = String(Number(get("hour")) % 24).padStart(2, "0");
-  const mi = get("minute");
-  const s = get("second");
-  const iso = `${y}-${m}-${d}T${h}:${mi}:${s}${tzOffset(now, tz)}`;
+	const parts = new Intl.DateTimeFormat("en-US", {
+		timeZone: tz,
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		second: "2-digit",
+		hour12: false,
+	}).formatToParts(now);
+	const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
+	const y = get("year");
+	const m = get("month");
+	const d = get("day");
+	const h = String(Number(get("hour")) % 24).padStart(2, "0");
+	const mi = get("minute");
+	const s = get("second");
+	const iso = `${y}-${m}-${d}T${h}:${mi}:${s}${tzOffset(now, tz)}`;
 
-  // 计算该时区下的 weekday
-  const wd = new Date(`${y}-${m}-${d}T00:00:00Z`).getUTCDay();
-  return { iso, weekday: WEEKDAY_ZH[wd] };
+	// 计算该时区下的 weekday
+	const wd = new Date(`${y}-${m}-${d}T00:00:00Z`).getUTCDay();
+	return { iso, weekday: WEEKDAY_ZH[wd] };
 }
 
 /**
  * 把 ISO 字符串渲染成 "4月23日 周四 15:00" 这种展示用文本，按目标时区折算。
  */
 export function formatDueAt(iso: string, tz: string = DEFAULT_TZ): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  const parts = new Intl.DateTimeFormat("zh-CN", {
-    timeZone: tz,
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    weekday: "short",
-  }).format(d);
-  return parts;
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return iso;
+	const parts = new Intl.DateTimeFormat("zh-CN", {
+		timeZone: tz,
+		month: "long",
+		day: "numeric",
+		hour: "2-digit",
+		minute: "2-digit",
+		hour12: false,
+		weekday: "short",
+	}).format(d);
+	return parts;
 }
 
 export const TZ_DEFAULT = DEFAULT_TZ;
@@ -110,57 +110,57 @@ export const TZ_DEFAULT = DEFAULT_TZ;
  * 空串入参返回空串。
  */
 export function relativeTimeLabel(
-  iso: string | null | undefined,
-  now: Date = new Date(),
-  tz: string = DEFAULT_TZ,
+	iso: string | null | undefined,
+	now: Date = new Date(),
+	tz: string = DEFAULT_TZ,
 ): string {
-  if (!iso) return "";
-  const target = new Date(iso);
-  if (Number.isNaN(target.getTime())) return "";
-  const diffMs = target.getTime() - now.getTime();
-  const mins = Math.round(Math.abs(diffMs) / 60000);
-  if (diffMs < 0) {
-    if (mins < 1) return "刚过期";
-    if (mins < 60) return `过期 ${mins} 分钟`;
-    const hrs = Math.round(mins / 60);
-    if (hrs < 24) return `过期 ${hrs} 小时`;
-    const days = Math.round(hrs / 24);
-    return `过期 ${days} 天`;
-  }
-  if (mins < 60) return `${Math.max(mins, 1)} 分钟后`;
-  const hrs = Math.round(mins / 60);
-  if (hrs < 24) return `${hrs} 小时后`;
-  const dayKey = (d: Date) =>
-    new Intl.DateTimeFormat("en-US", {
-      timeZone: tz,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(d);
-  const todayKey = dayKey(now);
-  const tomorrow = new Date(now.getTime() + 86400000);
-  const tomorrowKey = dayKey(tomorrow);
-  const tKey = dayKey(target);
-  const hm = new Intl.DateTimeFormat("zh-CN", {
-    timeZone: tz,
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(target);
-  if (tKey === todayKey) return `今天 ${hm}`;
-  if (tKey === tomorrowKey) return `明天 ${hm}`;
-  const days = Math.round((target.getTime() - now.getTime()) / 86400000);
-  if (days <= 7) return `${days} 天后`;
-  return formatDueAt(iso, tz);
+	if (!iso) return "";
+	const target = new Date(iso);
+	if (Number.isNaN(target.getTime())) return "";
+	const diffMs = target.getTime() - now.getTime();
+	const mins = Math.round(Math.abs(diffMs) / 60000);
+	if (diffMs < 0) {
+		if (mins < 1) return "刚过期";
+		if (mins < 60) return `过期 ${mins} 分钟`;
+		const hrs = Math.round(mins / 60);
+		if (hrs < 24) return `过期 ${hrs} 小时`;
+		const days = Math.round(hrs / 24);
+		return `过期 ${days} 天`;
+	}
+	if (mins < 60) return `${Math.max(mins, 1)} 分钟后`;
+	const hrs = Math.round(mins / 60);
+	if (hrs < 24) return `${hrs} 小时后`;
+	const dayKey = (d: Date) =>
+		new Intl.DateTimeFormat("en-US", {
+			timeZone: tz,
+			year: "numeric",
+			month: "2-digit",
+			day: "2-digit",
+		}).format(d);
+	const todayKey = dayKey(now);
+	const tomorrow = new Date(now.getTime() + 86400000);
+	const tomorrowKey = dayKey(tomorrow);
+	const tKey = dayKey(target);
+	const hm = new Intl.DateTimeFormat("zh-CN", {
+		timeZone: tz,
+		hour: "2-digit",
+		minute: "2-digit",
+		hour12: false,
+	}).format(target);
+	if (tKey === todayKey) return `今天 ${hm}`;
+	if (tKey === tomorrowKey) return `明天 ${hm}`;
+	const days = Math.round((target.getTime() - now.getTime()) / 86400000);
+	if (days <= 7) return `${days} 天后`;
+	return formatDueAt(iso, tz);
 }
 
 export function isOverdue(
-  iso: string | null | undefined,
-  now: Date = new Date(),
+	iso: string | null | undefined,
+	now: Date = new Date(),
 ): boolean {
-  if (!iso) return false;
-  const t = new Date(iso);
-  return !Number.isNaN(t.getTime()) && t.getTime() < now.getTime();
+	if (!iso) return false;
+	const t = new Date(iso);
+	return !Number.isNaN(t.getTime()) && t.getTime() < now.getTime();
 }
 
 /**
@@ -168,10 +168,10 @@ export function isOverdue(
  * 这里把 ISO 转成本地（浏览器时区）下的那种格式给 input 默认值。
  */
 export function isoToLocalInput(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+	if (!iso) return "";
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return "";
+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 /**
@@ -179,7 +179,7 @@ export function isoToLocalInput(iso: string | null | undefined): string {
  * 空字符串返回 null。
  */
 export function localInputToISO(val: string): string | null {
-  if (!val) return null;
-  const d = new Date(val);
-  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+	if (!val) return null;
+	const d = new Date(val);
+	return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }

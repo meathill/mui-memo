@@ -8,8 +8,8 @@ import { drizzle } from "drizzle-orm/tidb-serverless";
  * 本地开发时通过 .dev.vars 注入
  */
 export function createDb(databaseUrl: string) {
-  const client = connect({ url: databaseUrl });
-  return drizzle(client, { schema });
+	const client = connect({ url: databaseUrl });
+	return drizzle(client, { schema });
 }
 
 export type Database = ReturnType<typeof createDb>;

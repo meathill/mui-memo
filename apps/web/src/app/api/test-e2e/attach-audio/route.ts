@@ -10,35 +10,35 @@ import { requireAuthDb } from "@/lib/route";
  * multipart: file (Blob), taskId (string), mime? (string)
  */
 export async function POST(req: Request) {
-  if (!(await ensureE2EEnabled())) {
-    return NextResponse.json({ error: "disabled" }, { status: 404 });
-  }
-  const [resp, ctx] = await requireAuthDb();
-  if (resp) return resp;
-  const userId = ctx.session.user.id;
+	if (!(await ensureE2EEnabled())) {
+		return NextResponse.json({ error: "disabled" }, { status: 404 });
+	}
+	const [resp, ctx] = await requireAuthDb();
+	if (resp) return resp;
+	const userId = ctx.session.user.id;
 
-  const form = await req.formData();
-  const file = form.get("file");
-  const taskId = String(form.get("taskId") ?? "");
-  if (!(file instanceof Blob) || !taskId) {
-    return NextResponse.json({ error: "bad_request" }, { status: 400 });
-  }
-  const mime = String(form.get("mime") ?? file.type ?? "audio/webm");
+	const form = await req.formData();
+	const file = form.get("file");
+	const taskId = String(form.get("taskId") ?? "");
+	if (!(file instanceof Blob) || !taskId) {
+		return NextResponse.json({ error: "bad_request" }, { status: 400 });
+	}
+	const mime = String(form.get("mime") ?? file.type ?? "audio/webm");
 
-  const bucket = ctx.env.AUDIO_BUCKET;
-  if (!bucket)
-    return NextResponse.json({ error: "r2_not_bound" }, { status: 500 });
+	const bucket = ctx.env.AUDIO_BUCKET;
+	if (!bucket)
+		return NextResponse.json({ error: "r2_not_bound" }, { status: 500 });
 
-  const ext = mime.includes("webm") ? "webm" : "bin";
-  const key = `${R2_PREFIX}/audio/${userId}/${Date.now()}-test.${ext}`;
-  await bucket.put(key, await file.arrayBuffer(), {
-    httpMetadata: { contentType: mime },
-  });
+	const ext = mime.includes("webm") ? "webm" : "bin";
+	const key = `${R2_PREFIX}/audio/${userId}/${Date.now()}-test.${ext}`;
+	await bucket.put(key, await file.arrayBuffer(), {
+		httpMetadata: { contentType: mime },
+	});
 
-  await ctx.db
-    .update(tasksTable)
-    .set({ audioKey: key, updatedAt: new Date() })
-    .where(and(eq(tasksTable.id, taskId), eq(tasksTable.userId, userId)));
+	await ctx.db
+		.update(tasksTable)
+		.set({ audioKey: key, updatedAt: new Date() })
+		.where(and(eq(tasksTable.id, taskId), eq(tasksTable.userId, userId)));
 
-  return NextResponse.json({ ok: true, key });
+	return NextResponse.json({ ok: true, key });
 }

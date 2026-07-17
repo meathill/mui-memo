@@ -16,31 +16,31 @@ import { requireAuth } from "@/lib/route";
  * 历史上只回 200 全量会让 iOS 静默不播 (#2)。
  */
 async function handle(
-  req: Request,
-  { params }: { params: Promise<{ key: string[] }> },
+	req: Request,
+	{ params }: { params: Promise<{ key: string[] }> },
 ) {
-  const [resp, ctx] = await requireAuth();
-  if (resp) return resp;
+	const [resp, ctx] = await requireAuth();
+	if (resp) return resp;
 
-  const { key: segments } = await params;
-  const key = segments.join("/");
+	const { key: segments } = await params;
+	const key = segments.join("/");
 
-  const required = `${R2_PREFIX}/audio/${ctx.session.user.id}/`;
-  if (!key.startsWith(required)) {
-    return NextResponse.json({ error: "forbidden" }, { status: 403 });
-  }
+	const required = `${R2_PREFIX}/audio/${ctx.session.user.id}/`;
+	if (!key.startsWith(required)) {
+		return NextResponse.json({ error: "forbidden" }, { status: 403 });
+	}
 
-  const bucket = ctx.env.AUDIO_BUCKET;
-  if (!bucket) {
-    return NextResponse.json({ error: "r2_not_bound" }, { status: 500 });
-  }
+	const bucket = ctx.env.AUDIO_BUCKET;
+	if (!bucket) {
+		return NextResponse.json({ error: "r2_not_bound" }, { status: 500 });
+	}
 
-  return streamR2Object({
-    bucket,
-    key,
-    request: req,
-    fallbackContentType: "audio/mp4",
-  });
+	return streamR2Object({
+		bucket,
+		key,
+		request: req,
+		fallbackContentType: "audio/mp4",
+	});
 }
 
 export const GET = handle;

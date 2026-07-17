@@ -8,15 +8,15 @@ type CfEnv = Awaited<ReturnType<typeof getCloudflareContext>>["env"];
 
 /** Cloudflare ExecutionContext 的最小投影。@cloudflare/workers-types 没装，手写一份。 */
 interface ExecCtx {
-  waitUntil(promise: Promise<unknown>): void;
+	waitUntil(promise: Promise<unknown>): void;
 }
 
 export interface AuthedCtx {
-  session: Session;
-  db: Database;
-  env: CfEnv;
-  /** Cloudflare 执行上下文，用 waitUntil 挂后台任务。Next dev 下可能为 undefined。 */
-  execCtx: ExecCtx | undefined;
+	session: Session;
+	db: Database;
+	env: CfEnv;
+	/** Cloudflare 执行上下文，用 waitUntil 挂后台任务。Next dev 下可能为 undefined。 */
+	execCtx: ExecCtx | undefined;
 }
 
 /**
@@ -33,33 +33,33 @@ export interface AuthedCtx {
  * 也让新路由少写 3 行样板。
  */
 export async function requireAuthDb(): Promise<
-  [NextResponse, null] | [null, AuthedCtx]
+	[NextResponse, null] | [null, AuthedCtx]
 > {
-  const session = await getServerSession();
-  if (!session) {
-    return [
-      NextResponse.json({ error: "unauthorized" }, { status: 401 }),
-      null,
-    ];
-  }
-  const { env, ctx: execCtx } = await getCloudflareContext({ async: true });
-  const db = createDb(env.TIDB_DATABASE_URL);
-  return [null, { session, db, env, execCtx: execCtx as ExecCtx | undefined }];
+	const session = await getServerSession();
+	if (!session) {
+		return [
+			NextResponse.json({ error: "unauthorized" }, { status: 401 }),
+			null,
+		];
+	}
+	const { env, ctx: execCtx } = await getCloudflareContext({ async: true });
+	const db = createDb(env.TIDB_DATABASE_URL);
+	return [null, { session, db, env, execCtx: execCtx as ExecCtx | undefined }];
 }
 
 /**
  * 只要 session（不建 db）。audio 回放等纯 R2 路由用。
  */
 export async function requireAuth(): Promise<
-  [NextResponse, null] | [null, { session: Session; env: CfEnv }]
+	[NextResponse, null] | [null, { session: Session; env: CfEnv }]
 > {
-  const session = await getServerSession();
-  if (!session) {
-    return [
-      NextResponse.json({ error: "unauthorized" }, { status: 401 }),
-      null,
-    ];
-  }
-  const { env } = await getCloudflareContext({ async: true });
-  return [null, { session, env }];
+	const session = await getServerSession();
+	if (!session) {
+		return [
+			NextResponse.json({ error: "unauthorized" }, { status: 401 }),
+			null,
+		];
+	}
+	const { env } = await getCloudflareContext({ async: true });
+	return [null, { session, env }];
 }

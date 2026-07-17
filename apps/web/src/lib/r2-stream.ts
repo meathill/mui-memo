@@ -18,118 +18,118 @@
 const DEFAULT_CACHE_CONTROL = "private, max-age=31536000, immutable";
 
 export interface StreamR2Options {
-  bucket: R2Bucket;
-  key: string;
-  request: Request;
-  /** 当 R2 对象没存 contentType 时的兜底 */
-  fallbackContentType?: string;
-  cacheControl?: string;
+	bucket: R2Bucket;
+	key: string;
+	request: Request;
+	/** 当 R2 对象没存 contentType 时的兜底 */
+	fallbackContentType?: string;
+	cacheControl?: string;
 }
 
 export async function streamR2Object(opts: StreamR2Options): Promise<Response> {
-  const {
-    bucket,
-    key,
-    request,
-    fallbackContentType = "application/octet-stream",
-    cacheControl = DEFAULT_CACHE_CONTROL,
-  } = opts;
+	const {
+		bucket,
+		key,
+		request,
+		fallbackContentType = "application/octet-stream",
+		cacheControl = DEFAULT_CACHE_CONTROL,
+	} = opts;
 
-  if (request.method === "HEAD") {
-    const head = await bucket.head(key);
-    if (!head) return notFound(request);
-    return new Response(null, {
-      status: 200,
-      headers: buildBaseHeaders({
-        size: head.size,
-        contentType: head.httpMetadata?.contentType ?? fallbackContentType,
-        cacheControl,
-      }),
-    });
-  }
+	if (request.method === "HEAD") {
+		const head = await bucket.head(key);
+		if (!head) return notFound(request);
+		return new Response(null, {
+			status: 200,
+			headers: buildBaseHeaders({
+				size: head.size,
+				contentType: head.httpMetadata?.contentType ?? fallbackContentType,
+				cacheControl,
+			}),
+		});
+	}
 
-  const rangeHeader = request.headers.get("range");
-  const parsed = parseRange(rangeHeader);
+	const rangeHeader = request.headers.get("range");
+	const parsed = parseRange(rangeHeader);
 
-  if (parsed === "unsupported") {
-    // Range 语法不合规（多段、非 bytes 单位、反向、非纯数字等）：按 RFC 7233 §3.1
-    // 忽略 Range，回 200 全量
-    return getFull(bucket, key, fallbackContentType, cacheControl, request);
-  }
+	if (parsed === "unsupported") {
+		// Range 语法不合规（多段、非 bytes 单位、反向、非纯数字等）：按 RFC 7233 §3.1
+		// 忽略 Range，回 200 全量
+		return getFull(bucket, key, fallbackContentType, cacheControl, request);
+	}
 
-  if (parsed === null) {
-    return getFull(bucket, key, fallbackContentType, cacheControl, request);
-  }
+	if (parsed === null) {
+		return getFull(bucket, key, fallbackContentType, cacheControl, request);
+	}
 
-  // 先拿一次 metadata 确定 size，验 Range 合法性 + 算 416 的 Content-Range
-  const head = await bucket.head(key);
-  if (!head) return notFound(request);
+	// 先拿一次 metadata 确定 size，验 Range 合法性 + 算 416 的 Content-Range
+	const head = await bucket.head(key);
+	if (!head) return notFound(request);
 
-  const resolved = resolveRange(parsed, head.size);
-  if (resolved === "invalid") {
-    return new Response(null, {
-      status: 416,
-      headers: {
-        "content-range": `bytes */${head.size}`,
-        "content-length": "0",
-        "accept-ranges": "bytes",
-        "cache-control": cacheControl,
-      },
-    });
-  }
+	const resolved = resolveRange(parsed, head.size);
+	if (resolved === "invalid") {
+		return new Response(null, {
+			status: 416,
+			headers: {
+				"content-range": `bytes */${head.size}`,
+				"content-length": "0",
+				"accept-ranges": "bytes",
+				"cache-control": cacheControl,
+			},
+		});
+	}
 
-  const obj = await bucket.get(key, { range: resolved });
-  if (!obj) return notFound(request);
+	const obj = await bucket.get(key, { range: resolved });
+	if (!obj) return notFound(request);
 
-  // 用我们自己刚 resolve 出的 range 算 start/length——R2 回的 obj.range
-  // 在 suffix 模式下不带 offset，依赖它会把 suffix Range 算成 bytes 0-N/size
-  const { start, length } = rangeBounds(resolved, head.size);
-  const end = start + length - 1;
+	// 用我们自己刚 resolve 出的 range 算 start/length——R2 回的 obj.range
+	// 在 suffix 模式下不带 offset，依赖它会把 suffix Range 算成 bytes 0-N/size
+	const { start, length } = rangeBounds(resolved, head.size);
+	const end = start + length - 1;
 
-  return new Response(obj.body, {
-    status: 206,
-    headers: {
-      ...buildBaseHeaders({
-        size: head.size,
-        contentType: obj.httpMetadata?.contentType ?? fallbackContentType,
-        cacheControl,
-      }),
-      "content-range": `bytes ${start}-${end}/${head.size}`,
-      "content-length": String(length),
-    },
-  });
+	return new Response(obj.body, {
+		status: 206,
+		headers: {
+			...buildBaseHeaders({
+				size: head.size,
+				contentType: obj.httpMetadata?.contentType ?? fallbackContentType,
+				cacheControl,
+			}),
+			"content-range": `bytes ${start}-${end}/${head.size}`,
+			"content-length": String(length),
+		},
+	});
 }
 
 async function getFull(
-  bucket: R2Bucket,
-  key: string,
-  fallbackContentType: string,
-  cacheControl: string,
-  request: Request,
+	bucket: R2Bucket,
+	key: string,
+	fallbackContentType: string,
+	cacheControl: string,
+	request: Request,
 ): Promise<Response> {
-  const obj = await bucket.get(key);
-  if (!obj) return notFound(request);
-  return new Response(obj.body, {
-    status: 200,
-    headers: buildBaseHeaders({
-      size: obj.size,
-      contentType: obj.httpMetadata?.contentType ?? fallbackContentType,
-      cacheControl,
-    }),
-  });
+	const obj = await bucket.get(key);
+	if (!obj) return notFound(request);
+	return new Response(obj.body, {
+		status: 200,
+		headers: buildBaseHeaders({
+			size: obj.size,
+			contentType: obj.httpMetadata?.contentType ?? fallbackContentType,
+			cacheControl,
+		}),
+	});
 }
 
 function buildBaseHeaders(opts: {
-  size: number;
-  contentType: string;
-  cacheControl: string;
+	size: number;
+	contentType: string;
+	cacheControl: string;
 }): Record<string, string> {
-  return {
-    "content-type": opts.contentType,
-    "content-length": String(opts.size),
-    "accept-ranges": "bytes",
-    "cache-control": opts.cacheControl,
-  };
+	return {
+		"content-type": opts.contentType,
+		"content-length": String(opts.size),
+		"accept-ranges": "bytes",
+		"cache-control": opts.cacheControl,
+	};
 }
 
 /**
@@ -137,11 +137,11 @@ function buildBaseHeaders(opts: {
  * （都是 application/json content-type），方便客户端 / 调试工具拿到一致信号。
  */
 function notFound(request: Request): Response {
-  const isHead = request.method === "HEAD";
-  return new Response(isHead ? null : JSON.stringify({ error: "not_found" }), {
-    status: 404,
-    headers: { "content-type": "application/json" },
-  });
+	const isHead = request.method === "HEAD";
+	return new Response(isHead ? null : JSON.stringify({ error: "not_found" }), {
+		status: 404,
+		headers: { "content-type": "application/json" },
+	});
 }
 
 /**
@@ -159,13 +159,13 @@ function notFound(request: Request): Response {
  * ```
  */
 export function withHeadBodyStripped<TCtx>(
-  handler: (req: Request, ctx: TCtx) => Promise<Response>,
+	handler: (req: Request, ctx: TCtx) => Promise<Response>,
 ): (req: Request, ctx: TCtx) => Promise<Response> {
-  return async (req, ctx) => {
-    const resp = await handler(req, ctx);
-    if (resp.body === null) return resp;
-    return new Response(null, { status: resp.status, headers: resp.headers });
-  };
+	return async (req, ctx) => {
+		const resp = await handler(req, ctx);
+		if (resp.body === null) return resp;
+		return new Response(null, { status: resp.status, headers: resp.headers });
+	};
 }
 
 /**
@@ -183,35 +183,35 @@ type ParsedRange = { start: number; end: number | null } | { suffix: number };
 const DIGITS_ONLY = /^\d+$/;
 
 export function parseRange(
-  header: string | null | undefined,
+	header: string | null | undefined,
 ): ParsedRange | "unsupported" | null {
-  if (!header) return null;
-  const trimmed = header.trim();
-  if (!trimmed) return null;
-  if (!trimmed.toLowerCase().startsWith("bytes=")) return "unsupported";
-  const spec = trimmed.slice(6).trim();
-  if (!spec) return "unsupported";
-  if (spec.includes(",")) return "unsupported";
+	if (!header) return null;
+	const trimmed = header.trim();
+	if (!trimmed) return null;
+	if (!trimmed.toLowerCase().startsWith("bytes=")) return "unsupported";
+	const spec = trimmed.slice(6).trim();
+	if (!spec) return "unsupported";
+	if (spec.includes(",")) return "unsupported";
 
-  if (spec.startsWith("-")) {
-    const suffixStr = spec.slice(1);
-    if (!DIGITS_ONLY.test(suffixStr)) return "unsupported";
-    const n = Number.parseInt(suffixStr, 10);
-    if (n <= 0) return "unsupported";
-    return { suffix: n };
-  }
+	if (spec.startsWith("-")) {
+		const suffixStr = spec.slice(1);
+		if (!DIGITS_ONLY.test(suffixStr)) return "unsupported";
+		const n = Number.parseInt(suffixStr, 10);
+		if (n <= 0) return "unsupported";
+		return { suffix: n };
+	}
 
-  const dash = spec.indexOf("-");
-  if (dash < 0) return "unsupported";
-  const startStr = spec.slice(0, dash);
-  const endStr = spec.slice(dash + 1);
-  if (!DIGITS_ONLY.test(startStr)) return "unsupported";
-  const start = Number.parseInt(startStr, 10);
-  if (endStr === "") return { start, end: null };
-  if (!DIGITS_ONLY.test(endStr)) return "unsupported";
-  const end = Number.parseInt(endStr, 10);
-  if (end < start) return "unsupported";
-  return { start, end };
+	const dash = spec.indexOf("-");
+	if (dash < 0) return "unsupported";
+	const startStr = spec.slice(0, dash);
+	const endStr = spec.slice(dash + 1);
+	if (!DIGITS_ONLY.test(startStr)) return "unsupported";
+	const start = Number.parseInt(startStr, 10);
+	if (endStr === "") return { start, end: null };
+	if (!DIGITS_ONLY.test(endStr)) return "unsupported";
+	const end = Number.parseInt(endStr, 10);
+	if (end < start) return "unsupported";
+	return { start, end };
 }
 
 /**
@@ -226,18 +226,18 @@ export function parseRange(
  * - suffix > size：clamp 成 size（即返回整个对象）
  */
 export function resolveRange(
-  parsed: ParsedRange,
-  size: number,
+	parsed: ParsedRange,
+	size: number,
 ): R2Range | "invalid" {
-  if (size <= 0) return "invalid";
-  if ("suffix" in parsed) {
-    return { suffix: Math.min(parsed.suffix, size) };
-  }
-  if (parsed.start >= size) return "invalid";
-  if (parsed.end === null) return { offset: parsed.start };
-  // end inclusive，length = end - start + 1；超过 size-1 时 clamp 到末尾
-  const effectiveEnd = Math.min(parsed.end, size - 1);
-  return { offset: parsed.start, length: effectiveEnd - parsed.start + 1 };
+	if (size <= 0) return "invalid";
+	if ("suffix" in parsed) {
+		return { suffix: Math.min(parsed.suffix, size) };
+	}
+	if (parsed.start >= size) return "invalid";
+	if (parsed.end === null) return { offset: parsed.start };
+	// end inclusive，length = end - start + 1；超过 size-1 时 clamp 到末尾
+	const effectiveEnd = Math.min(parsed.end, size - 1);
+	return { offset: parsed.start, length: effectiveEnd - parsed.start + 1 };
 }
 
 /**
@@ -245,14 +245,14 @@ export function resolveRange(
  * suffix 模式下 start = size - length，必须显式算，不能 fallback 到 0。
  */
 function rangeBounds(
-  range: R2Range,
-  size: number,
+	range: R2Range,
+	size: number,
 ): { start: number; length: number } {
-  if ("suffix" in range) {
-    const length = Math.min(range.suffix, size);
-    return { start: size - length, length };
-  }
-  const start = range.offset ?? 0;
-  const length = range.length ?? size - start;
-  return { start, length };
+	if ("suffix" in range) {
+		const length = Math.min(range.suffix, size);
+		return { start: size - length, length };
+	}
+	const start = range.offset ?? 0;
+	const length = range.length ?? size - start;
+	return { start, length };
 }

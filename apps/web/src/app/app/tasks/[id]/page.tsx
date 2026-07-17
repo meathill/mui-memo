@@ -1,10 +1,10 @@
 import { TaskDetailView } from "@/components/memo/task-detail-view";
 
 export default async function TaskDetailPage({
-  params,
+	params,
 }: {
-  params: Promise<{ id: string }>;
+	params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  return <TaskDetailView id={id} />;
+	const { id } = await params;
+	return <TaskDetailView id={id} />;
 }

@@ -8,18 +8,18 @@ export const dynamic = "force-dynamic";
 export const metadata = NO_INDEX_METADATA;
 
 export default async function AppLayout({
-  children,
+	children,
 }: {
-  children: React.ReactNode;
+	children: React.ReactNode;
 }) {
-  const session = await getServerSession();
-  if (!session) {
-    redirect("/login");
-  }
-  return (
-    <>
-      {children}
-      <BottomNav />
-    </>
-  );
+	const session = await getServerSession();
+	if (!session) {
+		redirect("/login");
+	}
+	return (
+		<>
+			{children}
+			<BottomNav />
+		</>
+	);
 }

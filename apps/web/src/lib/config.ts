@@ -8,7 +8,7 @@ export const R2_PREFIX = "muimemo";
  * 需要 Next.js 在 build 时把 `NEXT_PUBLIC_ASSETS_URL` 烘进去；未设就用默认。
  */
 export const ASSETS_URL =
-  process.env.NEXT_PUBLIC_ASSETS_URL?.replace(/\/+$/, "") ??
-  "https://ii.meathill.com";
+	process.env.NEXT_PUBLIC_ASSETS_URL?.replace(/\/+$/, "") ??
+	"https://ii.meathill.com";
 
 export const MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024; // 25 MB

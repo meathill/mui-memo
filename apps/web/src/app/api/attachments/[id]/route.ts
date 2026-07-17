@@ -12,33 +12,33 @@ import { requireAuthDb } from "@/lib/route";
  * GET / HEAD 都走 streamR2Object：iOS AVPlayer 播附件音频时同样要 Range/206。
  */
 async function handle(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> },
+	req: Request,
+	{ params }: { params: Promise<{ id: string }> },
 ) {
-  const [resp, ctx] = await requireAuthDb();
-  if (resp) return resp;
-  const { id } = await params;
-  const userId = ctx.session.user.id;
+	const [resp, ctx] = await requireAuthDb();
+	if (resp) return resp;
+	const { id } = await params;
+	const userId = ctx.session.user.id;
 
-  const [row] = await ctx.db
-    .select({ key: attachmentsTable.key, mime: attachmentsTable.mime })
-    .from(attachmentsTable)
-    .where(
-      and(eq(attachmentsTable.id, id), eq(attachmentsTable.userId, userId)),
-    )
-    .limit(1);
-  if (!row) return NextResponse.json({ error: "not_found" }, { status: 404 });
+	const [row] = await ctx.db
+		.select({ key: attachmentsTable.key, mime: attachmentsTable.mime })
+		.from(attachmentsTable)
+		.where(
+			and(eq(attachmentsTable.id, id), eq(attachmentsTable.userId, userId)),
+		)
+		.limit(1);
+	if (!row) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
-  const bucket = ctx.env.AUDIO_BUCKET;
-  if (!bucket)
-    return NextResponse.json({ error: "r2_not_bound" }, { status: 500 });
+	const bucket = ctx.env.AUDIO_BUCKET;
+	if (!bucket)
+		return NextResponse.json({ error: "r2_not_bound" }, { status: 500 });
 
-  return streamR2Object({
-    bucket,
-    key: row.key,
-    request: req,
-    fallbackContentType: row.mime ?? "application/octet-stream",
-  });
+	return streamR2Object({
+		bucket,
+		key: row.key,
+		request: req,
+		fallbackContentType: row.mime ?? "application/octet-stream",
+	});
 }
 
 export const GET = handle;
@@ -46,35 +46,35 @@ export const GET = handle;
 export const HEAD = withHeadBodyStripped(handle);
 
 export async function DELETE(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> },
+	_req: Request,
+	{ params }: { params: Promise<{ id: string }> },
 ) {
-  const [resp, ctx] = await requireAuthDb();
-  if (resp) return resp;
-  const { id } = await params;
-  const userId = ctx.session.user.id;
+	const [resp, ctx] = await requireAuthDb();
+	if (resp) return resp;
+	const { id } = await params;
+	const userId = ctx.session.user.id;
 
-  const [row] = await ctx.db
-    .select({ key: attachmentsTable.key })
-    .from(attachmentsTable)
-    .where(
-      and(eq(attachmentsTable.id, id), eq(attachmentsTable.userId, userId)),
-    )
-    .limit(1);
+	const [row] = await ctx.db
+		.select({ key: attachmentsTable.key })
+		.from(attachmentsTable)
+		.where(
+			and(eq(attachmentsTable.id, id), eq(attachmentsTable.userId, userId)),
+		)
+		.limit(1);
 
-  if (!row) return NextResponse.json({ ok: true }); // 幂等
+	if (!row) return NextResponse.json({ ok: true }); // 幂等
 
-  await ctx.db
-    .delete(attachmentsTable)
-    .where(
-      and(eq(attachmentsTable.id, id), eq(attachmentsTable.userId, userId)),
-    );
+	await ctx.db
+		.delete(attachmentsTable)
+		.where(
+			and(eq(attachmentsTable.id, id), eq(attachmentsTable.userId, userId)),
+		);
 
-  const bucket = ctx.env.AUDIO_BUCKET;
-  if (bucket) {
-    // 失败不阻塞，DB 已清
-    await bucket.delete(row.key).catch(() => undefined);
-  }
+	const bucket = ctx.env.AUDIO_BUCKET;
+	if (bucket) {
+		// 失败不阻塞，DB 已清
+		await bucket.delete(row.key).catch(() => undefined);
+	}
 
-  return NextResponse.json({ ok: true });
+	return NextResponse.json({ ok: true });
 }

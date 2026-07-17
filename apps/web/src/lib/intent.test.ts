@@ -9,50 +9,50 @@ import { describe, expect, it } from "vitest";
 import { type IntentEnv, pickProvider } from "./intent";
 
 const base: IntentEnv = {
-  GEMINI_API_KEY: "g",
-  OPENAI_API_KEY: "o",
-  OPENAI_BASE_URL: "https://example/v1",
-  OPENAI_MODEL: "m",
+	GEMINI_API_KEY: "g",
+	OPENAI_API_KEY: "o",
+	OPENAI_BASE_URL: "https://example/v1",
+	OPENAI_MODEL: "m",
 };
 
 describe("pickProvider", () => {
-  it("AI_PROVIDER 显式值强制覆盖地区", () => {
-    expect(pickProvider({ ...base, AI_PROVIDER: "openai" }, "US")).toBe(
-      "openai",
-    );
-    expect(pickProvider({ ...base, AI_PROVIDER: "gemini" }, "CN")).toBe(
-      "gemini",
-    );
-  });
+	it("AI_PROVIDER 显式值强制覆盖地区", () => {
+		expect(pickProvider({ ...base, AI_PROVIDER: "openai" }, "US")).toBe(
+			"openai",
+		);
+		expect(pickProvider({ ...base, AI_PROVIDER: "gemini" }, "CN")).toBe(
+			"gemini",
+		);
+	});
 
-  it("auto：中国地区(CN/HK/TW/MO) → openai", () => {
-    for (const cc of ["CN", "HK", "TW", "MO"]) {
-      expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, cc)).toBe("openai");
-    }
-  });
+	it("auto：中国地区(CN/HK/TW/MO) → openai", () => {
+		for (const cc of ["CN", "HK", "TW", "MO"]) {
+			expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, cc)).toBe("openai");
+		}
+	});
 
-  it("auto：其余已识别地区 → gemini", () => {
-    for (const cc of ["US", "JP", "GB", "SG"]) {
-      expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, cc)).toBe("gemini");
-    }
-  });
+	it("auto：其余已识别地区 → gemini", () => {
+		for (const cc of ["US", "JP", "GB", "SG"]) {
+			expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, cc)).toBe("gemini");
+		}
+	});
 
-  it("auto：识别不到来源(null/undefined/空串/未知) → 回退 openai", () => {
-    expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, null)).toBe("openai");
-    expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, undefined)).toBe(
-      "openai",
-    );
-    expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, "")).toBe("openai");
-  });
+	it("auto：识别不到来源(null/undefined/空串/未知) → 回退 openai", () => {
+		expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, null)).toBe("openai");
+		expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, undefined)).toBe(
+			"openai",
+		);
+		expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, "")).toBe("openai");
+	});
 
-  it("缺省（未配置 AI_PROVIDER）等价 auto", () => {
-    expect(pickProvider(base, "US")).toBe("gemini");
-    expect(pickProvider(base, "CN")).toBe("openai");
-    expect(pickProvider(base, null)).toBe("openai");
-  });
+	it("缺省（未配置 AI_PROVIDER）等价 auto", () => {
+		expect(pickProvider(base, "US")).toBe("gemini");
+		expect(pickProvider(base, "CN")).toBe("openai");
+		expect(pickProvider(base, null)).toBe("openai");
+	});
 
-  it("地区码大小写不敏感", () => {
-    expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, "cn")).toBe("openai");
-    expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, "us")).toBe("gemini");
-  });
+	it("地区码大小写不敏感", () => {
+		expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, "cn")).toBe("openai");
+		expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, "us")).toBe("gemini");
+	});
 });
