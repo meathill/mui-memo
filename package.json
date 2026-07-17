@@ -6,9 +6,9 @@
 		"dev": "turbo dev",
 		"build": "turbo build",
 		"test": "turbo test",
-		"lint": "biome check apps/web/src packages/shared/src apps/app/src/app",
-		"lint:fix": "biome check --write apps/web/src packages/shared/src apps/app/src/app",
-		"format": "biome format --write apps/web/src packages/shared/src apps/app/src/app",
+		"lint": "biome check apps/web/src packages/shared/src apps/app/src",
+		"lint:fix": "biome check --write apps/web/src packages/shared/src apps/app/src",
+		"format": "biome format --write apps/web/src packages/shared/src apps/app/src",
 		"postinstall": "pnpm --filter @mui-memo/shared build"
 	},
 	"devDependencies": {
