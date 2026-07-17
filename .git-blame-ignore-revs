@@ -1,0 +1,6 @@
+# 纯格式化提交,git blame 时跳过。
+# 本地生效:git config blame.ignoreRevsFile .git-blame-ignore-revs
+# (GitHub 网页端 blame 自动识别本文件)
+
+# style: 按修复后的 biome 配置统一全仓格式(web 空格缩进 → tab)
+f0fd0f833a7b7f86dcd55b5cb2d931f9bd1b6fcb
