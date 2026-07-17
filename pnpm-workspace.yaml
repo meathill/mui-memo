@@ -2,7 +2,16 @@ packages:
   - apps/*
   - packages/*
 
+# Expo + React Native 生态下，Metro 解析 expo-router 内部 import 会穿过 pnpm
+# 默认的 .pnpm 隔离层，搜不到兄弟 peer dep（whatwg-fetch / react-native-web /
+# react-native-css-interop / @expo/metro-runtime 等）；expo-widgets 的 Podfile
+# autolinking 同理。一劳永逸：hoisted linker，让 node_modules 像 npm 一样扁平。
+# 注意：pnpm 11 起不再读 .npmrc 的 node-linker，必须写在这里。
+nodeLinker: hoisted
+
 allowBuilds:
+  # preinstall 只是 no-op echo，无需执行
+  '@google/genai': false
   dtrace-provider: false
   esbuild: false
   msgpackr-extract: false
