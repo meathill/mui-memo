@@ -1,4 +1,4 @@
-import { CheckIcon, RotateCcwIcon, Trash2Icon } from "lucide-react-native";
+import { CheckIcon, Trash2Icon } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
 	ActivityIndicator,
@@ -24,6 +24,7 @@ import {
 	useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { ErrorBanner } from "@/components/error-banner";
+import { FlyingBallLayer, useFlyingBalls } from "@/components/memo/flying-ball";
 import { api, type CompletedTask } from "@/lib/api";
 import {
 	loadCachedCompletedFirstPage,
@@ -62,12 +63,6 @@ function formatTime(iso: string | null): string {
 	return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
-interface FlyingBall {
-	key: number;
-	startX: number;
-	startY: number;
-}
-
 export default function CompletedScreen() {
 	const colors = useThemeHex();
 	const [tasks, setTasks] = useState<CompletedTask[]>([]);
@@ -77,8 +72,7 @@ export default function CompletedScreen() {
 	const [nextCursor, setNextCursor] = useState<string | null>(null);
 	const [hasMore, setHasMore] = useState(true);
 	const [loadError, setLoadError] = useState<string | null>(null);
-	const [balls, setBalls] = useState<FlyingBall[]>([]);
-	const ballKeyRef = useRef(0);
+	const { balls, launchBall, removeBall } = useFlyingBalls();
 	const insets = useSafeAreaInsets();
 
 	// 「今天」Tab 是 4 个 Tab 的第 1 个，图标中心 X = 屏宽 × 1/8。
@@ -142,15 +136,6 @@ export default function CompletedScreen() {
 		setTasks((prev) =>
 			prev.some((x) => x.id === task.id) ? prev : [task, ...prev],
 		);
-	}, []);
-
-	const launchBall = useCallback((startX: number, startY: number) => {
-		const key = ++ballKeyRef.current;
-		setBalls((prev) => [...prev, { key, startX, startY }]);
-	}, []);
-
-	const removeBall = useCallback((key: number) => {
-		setBalls((prev) => prev.filter((b) => b.key !== key));
 	}, []);
 
 	const handleReopen = useCallback(
@@ -293,16 +278,12 @@ export default function CompletedScreen() {
 				)}
 			</ScrollView>
 
-			{balls.map((b) => (
-				<FlyingBall
-					key={b.key}
-					startX={b.startX}
-					startY={b.startY}
-					targetX={target.x}
-					targetY={target.y}
-					onDone={() => removeBall(b.key)}
-				/>
-			))}
+			<FlyingBallLayer
+				balls={balls}
+				targetX={target.x}
+				targetY={target.y}
+				onBallDone={removeBall}
+			/>
 		</SafeAreaView>
 	);
 }
@@ -349,9 +330,9 @@ function CompletedRow({
 		if (triggered.current) return;
 		triggered.current = true;
 
-		// 1) 测量行的右侧（恢复按钮区）作为小球起点
-		containerRef.current?.measureInWindow((x, y, w, h) => {
-			const startX = x + w - 56; // 恢复按钮大致 X
+		// 1) 测量行的左侧（对勾区）作为小球起点
+		containerRef.current?.measureInWindow((x, y, _w, h) => {
+			const startX = x + 10; // 对勾大致 X（20px 宽，取中心）
 			const startY = y + h / 2 - 12; // 行的垂直中点
 			onLaunchBall(startX, startY);
 		});
@@ -388,9 +369,13 @@ function CompletedRow({
 			}}
 			className="flex-row items-start gap-3 border-rule/50 border-b py-3 last:border-b-0"
 		>
-			<View className="mt-0.5 h-5 w-5 items-center justify-center rounded-full bg-accent-good">
+			<Pressable
+				onPress={handleReopenPress}
+				hitSlop={8}
+				className="mt-0.5 h-5 w-5 items-center justify-center rounded-full bg-accent-good active:opacity-70"
+			>
 				<CheckIcon size={12} color={colors.paper} />
-			</View>
+			</Pressable>
 			<View className="min-w-0 flex-1">
 				<Text className="text-ink-soft text-base line-through">
 					{task.text}
@@ -401,72 +386,12 @@ function CompletedRow({
 				</Text>
 			</View>
 			<Pressable
-				onPress={handleReopenPress}
-				hitSlop={8}
-				className="p-1.5 active:opacity-60"
-			>
-				<RotateCcwIcon size={16} color={colors.inkMute} />
-			</Pressable>
-			<Pressable
 				onPress={() => onDelete(task)}
 				hitSlop={8}
 				className="p-1.5 active:opacity-60"
 			>
 				<Trash2Icon size={16} color={colors.inkMute} />
 			</Pressable>
-		</Animated.View>
-	);
-}
-
-interface FlyingBallProps {
-	startX: number;
-	startY: number;
-	targetX: number;
-	targetY: number;
-	onDone: () => void;
-}
-
-function FlyingBall({
-	startX,
-	startY,
-	targetX,
-	targetY,
-	onDone,
-}: FlyingBallProps) {
-	const colors = useThemeHex();
-	const progress = useSharedValue(0);
-
-	useEffect(() => {
-		progress.value = withTiming(
-			1,
-			{ duration: 620, easing: Easing.bezier(0.42, 0, 0.2, 1) },
-			(finished) => {
-				if (finished) runOnJS(onDone)();
-			},
-		);
-	}, [progress, onDone]);
-
-	const style = useAnimatedStyle(() => {
-		const p = progress.value;
-		const x = startX + (targetX - startX) * p;
-		// 用一个轻微抛物线让飞行更自然：中段往上抬一点
-		const arc = -40 * Math.sin(Math.PI * p);
-		const y = startY + (targetY - startY) * p + arc;
-		const scale = 1 - 0.4 * p; // 1 → 0.6
-		const opacity = 1 - Math.max(0, (p - 0.7) / 0.3) * 0.7; // 末段轻微淡出
-		return {
-			transform: [{ translateX: x }, { translateY: y }, { scale }],
-			opacity,
-		};
-	});
-
-	return (
-		<Animated.View
-			pointerEvents="none"
-			style={[{ position: "absolute", left: 0, top: 0 }, style]}
-			className="h-6 w-6 items-center justify-center rounded-full bg-accent-good"
-		>
-			<CheckIcon size={14} color={colors.paper} />
 		</Animated.View>
 	);
 }

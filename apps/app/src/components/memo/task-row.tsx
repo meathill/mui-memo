@@ -23,15 +23,18 @@ interface Props {
 	onDone: (id: string) => void;
 	/** 周期任务「本轮已完成」时点勾恢复成待办 */
 	onReopen?: (id: string) => void;
+	/** 标记完成、飞出屏幕前，把当前行坐标传出去，供上层飞一个球去「已完成」tab */
+	onLaunchBall?: (x: number, y: number) => void;
 }
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
-export function TaskRow({ task, onDone, onReopen }: Props) {
+export function TaskRow({ task, onDone, onReopen, onLaunchBall }: Props) {
 	const colors = useThemeHex();
 	// 周期任务完成后不消失，停在「本轮已完成」桶里，静态展示、可点回恢复
 	const isDoneRecurring = task.done && Boolean(task.recurrenceId);
 	const triggered = useRef(false);
+	const containerRef = useRef<View>(null);
 	const naturalHeight = useSharedValue(0);
 	const collapse = useSharedValue(1);
 	const translateX = useSharedValue(0);
@@ -83,6 +86,11 @@ export function TaskRow({ task, onDone, onReopen }: Props) {
 			return;
 		}
 
+		// 测量当前行坐标作为小球起点，飞去「已完成」tab（在行开始移动前测，坐标才准）
+		containerRef.current?.measureInWindow((x, y, _w, h) => {
+			onLaunchBall?.(x + 12, y + h / 2 - 12);
+		});
+
 		// 普通任务：划线 → 向左飞出 → 行高坍缩 → 通知移除
 		strike.value = withTiming(1, {
 			duration: 280,
@@ -110,6 +118,7 @@ export function TaskRow({ task, onDone, onReopen }: Props) {
 
 	return (
 		<Animated.View
+			ref={containerRef}
 			style={containerStyle}
 			onLayout={(e) => {
 				// 退场动画期间不重测，其它时候随内容更新（修复内容变化后高度不收的留白）

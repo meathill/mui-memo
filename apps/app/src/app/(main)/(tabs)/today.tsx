@@ -2,18 +2,29 @@ import type { Bucket, TaskView } from "@mui-memo/shared/logic";
 import { BUCKET_LABEL, filterByTag, rerank } from "@mui-memo/shared/logic";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, RefreshControl, ScrollView, Text, View } from "react-native";
+import {
+	Alert,
+	Dimensions,
+	RefreshControl,
+	ScrollView,
+	Text,
+	View,
+} from "react-native";
 import Animated, {
 	useAnimatedStyle,
 	useSharedValue,
 	withSequence,
 	withTiming,
 } from "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+	SafeAreaView,
+	useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { ErrorBanner } from "@/components/error-banner";
 import { ContextStrip } from "@/components/memo/context-strip";
 import { DoingCard } from "@/components/memo/doing-card";
 import { EffectToast } from "@/components/memo/effect-toast";
+import { FlyingBallLayer, useFlyingBalls } from "@/components/memo/flying-ball";
 import { MicButton } from "@/components/memo/mic-button";
 import { QueueSection } from "@/components/memo/queue-section";
 import { TaskRow } from "@/components/memo/task-row";
@@ -57,6 +68,16 @@ export default function TodayScreen() {
 
 	const [refreshing, setRefreshing] = useState(false);
 	const [loadError, setLoadError] = useState<string | null>(null);
+	const { balls, launchBall, removeBall } = useFlyingBalls();
+	const insets = useSafeAreaInsets();
+
+	// 「已完成」Tab 是 4 个 Tab 的第 3 个，图标中心 X = 屏宽 × 5/8。
+	// Tab Bar 高 82，paddingTop 8，图标尺寸 ~24，所以图标中心约在 tab bar 顶部下方 20。
+	const flyTarget = useMemo(() => {
+		const { width, height } = Dimensions.get("window");
+		return { x: width * (5 / 8), y: height - insets.bottom - 82 + 20 };
+	}, [insets.bottom]);
+
 	const loadTasks = useCallback(async (force = false) => {
 		try {
 			await hydrateTasksFromLocalCache();
@@ -243,6 +264,7 @@ export default function TodayScreen() {
 											task={t}
 											onDone={handleDone}
 											onReopen={handleReopen}
+											onLaunchBall={launchBall}
 										/>
 									))}
 								</View>
@@ -276,6 +298,13 @@ export default function TodayScreen() {
 			<View className="absolute inset-x-0 bottom-24 items-center">
 				<MicButton onAudio={handleAudio} />
 			</View>
+
+			<FlyingBallLayer
+				balls={balls}
+				targetX={flyTarget.x}
+				targetY={flyTarget.y}
+				onBallDone={removeBall}
+			/>
 		</SafeAreaView>
 	);
 }

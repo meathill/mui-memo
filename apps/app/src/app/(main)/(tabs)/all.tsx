@@ -3,13 +3,18 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
 	ActivityIndicator,
+	Dimensions,
 	RefreshControl,
 	ScrollView,
 	Text,
 	View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+	SafeAreaView,
+	useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { ErrorBanner } from "@/components/error-banner";
+import { FlyingBallLayer, useFlyingBalls } from "@/components/memo/flying-ball";
 import { TaskRow } from "@/components/memo/task-row";
 import { api } from "@/lib/api";
 import {
@@ -29,6 +34,15 @@ export default function AllScreen() {
 	const [loading, setLoading] = useState(tasks.length === 0);
 	const [refreshing, setRefreshing] = useState(false);
 	const [loadError, setLoadError] = useState<string | null>(null);
+	const { balls, launchBall, removeBall } = useFlyingBalls();
+	const insets = useSafeAreaInsets();
+
+	// 「已完成」Tab 是 4 个 Tab 的第 3 个，图标中心 X = 屏宽 × 5/8。
+	// Tab Bar 高 82，paddingTop 8，图标尺寸 ~24，所以图标中心约在 tab bar 顶部下方 20。
+	const flyTarget = useMemo(() => {
+		const { width, height } = Dimensions.get("window");
+		return { x: width * (5 / 8), y: height - insets.bottom - 82 + 20 };
+	}, [insets.bottom]);
 
 	const load = useCallback(async (force = false) => {
 		try {
@@ -139,13 +153,25 @@ export default function AllScreen() {
 							</Text>
 							<View className="rounded-2xl border border-rule/60 bg-paper-2/40 px-3">
 								{list.map((t) => (
-									<TaskRow key={t.id} task={t} onDone={handleDone} />
+									<TaskRow
+										key={t.id}
+										task={t}
+										onDone={handleDone}
+										onLaunchBall={launchBall}
+									/>
 								))}
 							</View>
 						</View>
 					))
 				)}
 			</ScrollView>
+
+			<FlyingBallLayer
+				balls={balls}
+				targetX={flyTarget.x}
+				targetY={flyTarget.y}
+				onBallDone={removeBall}
+			/>
 		</SafeAreaView>
 	);
 }
