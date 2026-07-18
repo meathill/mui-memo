@@ -7,7 +7,7 @@ import {
 import { type Action, taskPlaceEnum } from "@mui-memo/shared/validators";
 import { NextResponse } from "next/server";
 import { R2_PREFIX } from "@/lib/config";
-import { resolveAndParseVoiceIntent } from "@/lib/intent";
+import { pickProvider, resolveAndParseVoiceIntent } from "@/lib/intent";
 import { requireAuthDb } from "@/lib/route";
 import { resolveTargetTask } from "@/lib/search";
 import {
@@ -87,6 +87,11 @@ export async function POST(req: Request) {
 		});
 	} catch (err) {
 		const msg = err instanceof Error ? err.message : "unknown";
+		console.error(
+			"[api/intent] ai_failed",
+			{ userId, country, provider: pickProvider(env, country) },
+			err,
+		);
 		return NextResponse.json(
 			{ error: "ai_failed", detail: msg },
 			{ status: 502 },

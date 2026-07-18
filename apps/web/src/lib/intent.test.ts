@@ -37,12 +37,14 @@ describe("pickProvider", () => {
 		}
 	});
 
-	it("auto：识别不到来源(null/undefined/空串/未知) → 回退 openai", () => {
+	it("auto：识别不到来源(null/undefined/空串/XX/T1) → 回退 openai", () => {
 		expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, null)).toBe("openai");
 		expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, undefined)).toBe(
 			"openai",
 		);
 		expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, "")).toBe("openai");
+		expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, "XX")).toBe("openai");
+		expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, "T1")).toBe("openai");
 	});
 
 	it("缺省（未配置 AI_PROVIDER）等价 auto", () => {
@@ -54,5 +56,6 @@ describe("pickProvider", () => {
 	it("地区码大小写不敏感", () => {
 		expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, "cn")).toBe("openai");
 		expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, "us")).toBe("gemini");
+		expect(pickProvider({ ...base, AI_PROVIDER: "auto" }, "xx")).toBe("openai");
 	});
 });

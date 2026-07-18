@@ -86,7 +86,9 @@ export function MicButton({ onAudio, disabled }: Props) {
 				return;
 			}
 			setPerm("granted");
-			await recorder.prepareToRecordAsync();
+			// 必须传 preset：不传参数时 iOS 原生层会复用上一次录音的同一个文件，
+			// 导致连续多条录音在还没上传前互相覆盖内容（见 DEV_NOTE.md）。
+			await recorder.prepareToRecordAsync(RecordingPresets.HIGH_QUALITY);
 			startedAtRef.current = Date.now();
 			recorder.record();
 		} catch (err) {

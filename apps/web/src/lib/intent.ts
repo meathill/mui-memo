@@ -29,6 +29,9 @@ interface ParseArgs {
 }
 
 const CN_REGIONS = new Set(["CN", "HK", "TW", "MO"]);
+/** cf-ipcountry 识别不到来源时可能给这些非空但无意义的值：XX=未知，T1=Tor 出口节点。
+ *  两者都要按「识别不到来源」处理、回退 MIMO，不能当成已识别的非中国地区发去 Gemini。 */
+const UNRESOLVED_REGIONS = new Set(["XX", "T1"]);
 
 /**
  * 选择 AI provider：
@@ -44,7 +47,7 @@ export function pickProvider(
 	if (env.AI_PROVIDER === "openai" || env.AI_PROVIDER === "gemini")
 		return env.AI_PROVIDER;
 	const cc = country?.toUpperCase();
-	if (cc && !CN_REGIONS.has(cc)) return "gemini";
+	if (cc && !UNRESOLVED_REGIONS.has(cc) && !CN_REGIONS.has(cc)) return "gemini";
 	return "openai";
 }
 

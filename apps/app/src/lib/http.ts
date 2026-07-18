@@ -66,10 +66,16 @@ export async function request<T>(
 	const text = await res.text();
 	const data = text ? safeJson(text) : undefined;
 	if (!res.ok) {
+		const body =
+			data && typeof data === "object"
+				? (data as { error?: unknown; detail?: unknown })
+				: undefined;
 		const msg =
-			(data && typeof data === "object" && "error" in data
-				? String((data as { error?: unknown }).error)
-				: text) || res.statusText;
+			(body && typeof body.detail === "string" && body.detail
+				? body.detail
+				: body && "error" in body
+					? String(body.error)
+					: text) || res.statusText;
 		throw new ApiError(msg, res.status, data);
 	}
 	return data as T;

@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { type GenerateContentResponse, GoogleGenAI } from "@google/genai";
 import type { TaskView } from "@mui-memo/shared/logic";
 import {
 	parseUtteranceFlexible,
@@ -80,7 +80,7 @@ export async function parseVoiceIntent(opts: ParseOptions): Promise<Utterance> {
 	});
 
 	const raw = response.text ?? "";
-	if (!raw) throw new Error("Gemini returned empty content");
+	if (!raw) throw new Error(describeEmptyGeminiResponse(response));
 
 	const json = JSON.parse(extractJson(raw));
 	return parseUtteranceFlexible(json);
@@ -113,7 +113,31 @@ export async function parseTextIntent(opts: {
 		},
 	});
 	const raw = response.text ?? "";
-	if (!raw) throw new Error("Gemini returned empty content");
+	if (!raw) throw new Error(describeEmptyGeminiResponse(response));
 	const json = JSON.parse(extractJson(raw));
 	return parseUtteranceFlexible(json);
+}
+
+/**
+ * response.text 为空时，从 SDK 自带的诊断字段里拼出「为什么」，而不是抛一句没有信息量的通用错误：
+ * - promptFeedback.blockReason：prompt 本身被安全策略拦截，压根没有生成任何 candidate
+ * - candidates[0].finishReason（非 STOP）：生成过程中提前终止，比如 SAFETY / MAX_TOKENS / RECITATION
+ * 两者都没有时，退回原来的通用提示。
+ */
+function describeEmptyGeminiResponse(
+	response: GenerateContentResponse,
+): string {
+	const feedback = response.promptFeedback;
+	if (feedback?.blockReason) {
+		return `Gemini blocked the prompt (${feedback.blockReason})${
+			feedback.blockReasonMessage ? `: ${feedback.blockReasonMessage}` : ""
+		}`;
+	}
+	const candidate = response.candidates?.[0];
+	if (candidate?.finishReason && candidate.finishReason !== "STOP") {
+		return `Gemini stopped early (${candidate.finishReason})${
+			candidate.finishMessage ? `: ${candidate.finishMessage}` : ""
+		}`;
+	}
+	return "Gemini returned empty content";
 }
