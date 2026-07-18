@@ -7,7 +7,7 @@ import {
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { requireAuthDb } from "@/lib/route";
-import { listTasksForUser, markTaskDone } from "@/lib/tasks";
+import { excludeDoneTasks, listTasksForUser, markTaskDone } from "@/lib/tasks";
 
 /**
  * 用户在确认弹窗中决定后调用：MODIFY 落库 / MODIFY 改为新增 / DONE 完成。
@@ -78,8 +78,8 @@ export async function POST(req: Request) {
 		await markTaskDone(db, userId, input.taskId);
 	}
 
-	// 重新读取并回吐当前任务列表，前端 hydrate
-	const tasks = await listTasksForUser(db, userId);
+	// 重新读取并回吐当前任务列表，前端 hydrate（整表覆盖本地缓存，不能带已完成任务）
+	const tasks = excludeDoneTasks(await listTasksForUser(db, userId));
 	// 没传 place 就用 'any'，前端只用得到 tasks，ranked 取一个稳妥默认即可
 	const ctxPlaceParam = new URL(req.url).searchParams.get("place") ?? "any";
 	const placeParsed = taskPlaceEnum.safeParse(ctxPlaceParam);

@@ -150,6 +150,21 @@ export async function listTasksForUser(
 	return rows.map((r) => rowToView(r as TaskRow, linkedMap.get(r.id) ?? []));
 }
 
+/**
+ * 从「当前任务」响应视图里排除已完成任务。
+ *
+ * /api/intent、/api/intent/confirm 用 listTasksForUser 拿到的是该用户全部历史
+ * 任务（含所有已完成的，没有任何 status 过滤），处理完才把结果整表回吐给客户端
+ * 覆盖本地缓存（replaceTasksEverywhere / hydrate）。不在这里过滤的话，已完成的
+ * 历史任务会被写进本该只装「当前任务」的本地表——尤其是周期任务的历史已完成
+ * 实例，会在 rerank 的「本轮已完成」例外分支里被误判成本轮的，重新冒出来。
+ * /api/tasks（GET）不用这个：它有 currentIndexMap，走更精确的
+ * 「周期任务本轮已完成保留」规则，见该路由自己的过滤逻辑。
+ */
+export function excludeDoneTasks(tasks: TaskView[]): TaskView[] {
+	return tasks.filter((t) => t.status !== "done");
+}
+
 export async function listRecentTagCandidatesForUser(
 	db: Database,
 	userId: string,

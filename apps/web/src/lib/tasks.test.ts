@@ -3,6 +3,7 @@ import type { TaskRow } from "@mui-memo/shared/schema";
 import { describe, expect, it } from "vitest";
 import {
 	collectRecentTagCandidates,
+	excludeDoneTasks,
 	mergeTagCandidates,
 	planPersist,
 	rowToView,
@@ -241,5 +242,35 @@ describe("保险箱指针 vaultKey", () => {
 		);
 		expect(updates).toHaveLength(1);
 		expect(updates[0].patch).not.toHaveProperty("vaultKey");
+	});
+});
+
+describe("excludeDoneTasks", () => {
+	it("过滤掉 status === done 的任务，保留其它状态", () => {
+		const tasks = [
+			makeView({ id: "a", status: "pending" }),
+			makeView({ id: "b", status: "done" }),
+			makeView({ id: "c", status: "doing" }),
+			makeView({ id: "d", status: "linked" }),
+		];
+		expect(excludeDoneTasks(tasks).map((t) => t.id)).toEqual(["a", "c", "d"]);
+	});
+
+	it("周期任务的历史已完成实例同样被排除（不依赖 recurrenceId）", () => {
+		const tasks = [
+			makeView({ id: "r1", status: "done", recurrenceId: "rec1" }),
+			makeView({ id: "r2", status: "pending", recurrenceId: "rec1" }),
+		];
+		expect(excludeDoneTasks(tasks).map((t) => t.id)).toEqual(["r2"]);
+	});
+
+	it("空数组、全部已完成时返回空数组", () => {
+		expect(excludeDoneTasks([])).toEqual([]);
+		expect(
+			excludeDoneTasks([
+				makeView({ id: "a", status: "done" }),
+				makeView({ id: "b", status: "done" }),
+			]),
+		).toEqual([]);
 	});
 });

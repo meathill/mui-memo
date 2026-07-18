@@ -1,4 +1,4 @@
-import type { IntentEffect } from "@mui-memo/shared/logic";
+import type { IntentEffect, TaskView } from "@mui-memo/shared/logic";
 import {
   type IntentKind,
   type LegacyUtterance,
@@ -9,6 +9,8 @@ import { type APIRequestContext, test as base, expect } from "@playwright/test";
 
 export interface InjectResult {
   effect: IntentEffect;
+  /** 处理完这次 utterance 后，回吐的「当前任务」视图（已排除已完成任务）。 */
+  tasks: TaskView[];
 }
 
 /**

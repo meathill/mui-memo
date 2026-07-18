@@ -11,6 +11,7 @@ import { pickProvider, resolveAndParseVoiceIntent } from "@/lib/intent";
 import { requireAuthDb } from "@/lib/route";
 import { resolveTargetTask } from "@/lib/search";
 import {
+	excludeDoneTasks,
 	linkAudioKey,
 	listRecentTagCandidatesForUser,
 	listTasksForUser,
@@ -183,11 +184,14 @@ export async function POST(req: Request) {
 		}
 	});
 
-	const ranked = rerank(tasksAutoOnly, ctxPlace);
+	// 回吐给客户端整表覆盖本地缓存的「当前任务」视图，不能带已完成任务
+	// （历史的、或本次 done-backfill 新建的），见 excludeDoneTasks 注释。
+	const activeTasks = excludeDoneTasks(tasksAutoOnly);
+	const ranked = rerank(activeTasks, ctxPlace);
 	return NextResponse.json({
 		utterance,
 		effects,
-		tasks: tasksAutoOnly,
+		tasks: activeTasks,
 		ranked,
 		pendingConfirms,
 	});

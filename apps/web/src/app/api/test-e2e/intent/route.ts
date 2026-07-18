@@ -14,6 +14,7 @@ import { ensureE2EEnabled } from "@/lib/e2e-guard";
 import { requireAuthDb } from "@/lib/route";
 import { resolveTargetTask } from "@/lib/search";
 import {
+	excludeDoneTasks,
 	listTasksForUser,
 	logUtterance,
 	persistIntentResult,
@@ -106,14 +107,16 @@ export async function POST(req: Request) {
 		() => undefined,
 	);
 
-	const ranked = rerank(tasksAfter, ctxPlace);
+	// 和生产 /api/intent 保持同一契约：回吐的当前任务视图不能带已完成任务。
+	const activeTasks = excludeDoneTasks(tasksAfter);
+	const ranked = rerank(activeTasks, ctxPlace);
 	// 兼容老 spec：单 effect 字段。多 action 时返回 effects[0]。
 	const effect: IntentEffect | null = effects[0] ?? null;
 	return NextResponse.json({
 		utterance,
 		effect,
 		effects,
-		tasks: tasksAfter,
+		tasks: activeTasks,
 		ranked,
 	});
 }

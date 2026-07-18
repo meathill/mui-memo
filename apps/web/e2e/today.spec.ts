@@ -97,6 +97,51 @@ test.describe("Today 页", () => {
     await expect(page.getByText("带水")).toHaveCount(0);
   });
 
+  test("已完成任务不会在下一次语音处理响应里重新出现", async ({
+    inject,
+    page,
+  }) => {
+    const added = await inject(
+      buildUtterance({
+        raw: "ADD 回归测试专用任务A",
+        intent: "ADD",
+        aiVerb: "新增",
+        task: { text: "回归测试专用任务A", place: "any", window: "today" },
+      }),
+    );
+    const taskAId = added.effect.id;
+
+    await inject(
+      buildUtterance({
+        raw: "回归测试专用任务A搞定了",
+        intent: "DONE",
+        match: "回归测试专用任务A",
+        aiVerb: "已完成",
+      }),
+    );
+
+    const afterDone = await inject(
+      buildUtterance({
+        raw: "ADD 回归测试专用任务B",
+        intent: "ADD",
+        aiVerb: "新增",
+        task: { text: "回归测试专用任务B", place: "any", window: "today" },
+      }),
+    );
+
+    // 已完成的任务A不该出现在这次响应的 tasks 里（本地缓存会被这份数据整表覆盖）
+    expect(afterDone.tasks.some((t) => t.id === taskAId)).toBe(false);
+    expect(afterDone.tasks.some((t) => t.text === "回归测试专用任务B")).toBe(
+      true,
+    );
+
+    await page.reload();
+    await expect(page.getByText("回归测试专用任务A")).toHaveCount(0);
+    await expect(
+      page.getByText("回归测试专用任务B").first(),
+    ).toBeVisible();
+  });
+
   test("场景切换改变当前可做计数", async ({ inject, page }) => {
     await inject(
       buildUtterance({
