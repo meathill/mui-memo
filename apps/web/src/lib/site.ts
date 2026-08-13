@@ -14,8 +14,8 @@ export const SITE_DESCRIPTION =
 export const SITE_URL = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL);
 export const APP_STORE_URL = "https://apps.apple.com/cn/app/id6763317433";
 export const SITE_EMAIL = "meathill@gmail.com";
-export const OG_IMAGE_PATH = "/opengraph-image";
-export const TWITTER_IMAGE_PATH = "/twitter-image";
+export const OG_IMAGE_PATH = "/opengraph-image.png";
+export const TWITTER_IMAGE_PATH = "/twitter-image.png";
 export const SHARE_IMAGE_ALT = "叨叨记已上架 App Store：一句话，整理整张清单。";
 
 export type MarketingLink = {

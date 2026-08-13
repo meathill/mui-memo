@@ -57,6 +57,15 @@ embedding VECTOR(1024)
   - `deploy` = `cf-build + wrangler deploy`
 - `shared` 必须先 build，因为 `apps/web` 通过 workspace 消费其 `dist/` 产物（不是源码）
 
+## Cloudflare 缓存：`_headers` 只作用于 assets，分享图静态化（2026-08）
+
+- Cloudflare Assets 的 `_headers`（`public/_headers` → `.open-next/assets/_headers`）只作用于 assets 内的静态文件；worker（OpenNext server）响应不受控，**语法上每条规则一行路径，块间空行**
+- `/_next/static/*` 由 Assets 服务，文件名带 hash，配 `public, max-age=31536000, immutable` 安全
+- metadata image route（`opengraph-image.tsx`）在 OpenNext 里是 worker 响应：从 prerender cache 读，头固定 `public, max-age=0, must-revalidate`；`export const revalidate` 只进 manifest、不改响应头（MISS 时），别指望它
+- 方案：分享图构建期静态化——`scripts/generate-share-images.tsx` 用 `next/og` 的 `ImageResponse` 渲染 `ShareImage` 到 `public/*.png`（tsx 直跑；已验证与 next build 产物 **MD5 完全一致**），layout metadata 直接引用文件，走 Assets + `_headers`（7 天 + SWR，随部署更新）
+- 改 `ShareImage` 后记得跑 `pnpm -F @mui-memo/web share-images:generate`，否则图上文案滞后
+- 本地验证 wrangler dev 的坑：必须 cd 到 `apps/web`；后台起服务别接 `| head`（SIGPIPE 杀进程）；端口可能被其他项目实例占用（8787/8790 踩过，先 `ps aux | grep wrangler`）
+
 ## Next.js build：用 webpack 不用 Turbopack（字体）
 
 - production `build` 显式带 `--webpack`（`next build --webpack`），**不走 Next 16 默认的 Turbopack**

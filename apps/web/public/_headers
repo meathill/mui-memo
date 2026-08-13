@@ -1,0 +1,33 @@
+# Cloudflare Assets 缓存控制
+# 静态 chunk 文件名含内容 hash，变更后路径变化，可 immutable 一年
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# 分享图随部署更新，CDN 缓存 7 天 + SWR 兜底
+/opengraph-image.png
+  Cache-Control: public, max-age=604800, stale-while-revalidate=604800
+
+/twitter-image.png
+  Cache-Control: public, max-age=604800, stale-while-revalidate=604800
+
+# 品牌与静态资源不带 hash，随部署更新，给适中缓存 + SWR
+/favicon.ico
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/apple-icon.png
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/icon.svg
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/manifest.webmanifest
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/brand/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/app-icons/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/landing/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800

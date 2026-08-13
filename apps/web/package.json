@@ -10,6 +10,7 @@
     "db:studio": "drizzle-kit studio",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "icons:generate": "node ./scripts/generate-brand-icons.ts",
+    "share-images:generate": "tsx ./scripts/generate-share-images.tsx",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:prompt-eval": "PROMPT_EVAL=1 vitest run src/lib/intent-prompt.eval.test.ts",
