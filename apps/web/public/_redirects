@@ -1,0 +1,3 @@
+# 分享图 URL 迁移：旧无扩展名路径 301 到新静态文件
+/opengraph-image /opengraph-image.png 301
+/twitter-image /twitter-image.png 301
