@@ -1,7 +1,13 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { CheckCircle2Icon, HomeIcon, ListIcon, UserIcon } from "lucide-react";
+import {
+	CheckCircle2Icon,
+	HomeIcon,
+	ListIcon,
+	PawPrintIcon,
+	UserIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -11,6 +17,7 @@ const ITEMS: Array<{ href: string; label: string; icon: LucideIcon }> = [
 	{ href: "/app/all", label: "全部", icon: ListIcon },
 	{ href: "/app/completed", label: "已完成", icon: CheckCircle2Icon },
 	{ href: "/app/profile", label: "我的", icon: UserIcon },
+	{ href: "https://meathill.com", label: "Studio", icon: PawPrintIcon },
 ];
 
 export function BottomNav() {
@@ -20,7 +27,7 @@ export function BottomNav() {
 			className="fixed inset-x-0 bottom-0 z-20 border-t border-rule/60 bg-paper/95 backdrop-blur"
 			style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
 		>
-			<ul className="mx-auto grid max-w-xl grid-cols-4">
+			<ul className="mx-auto grid max-w-xl grid-cols-5">
 				{ITEMS.map((it) => {
 					const active =
 						it.href === "/app"

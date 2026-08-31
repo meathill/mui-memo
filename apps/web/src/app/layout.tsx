@@ -1,3 +1,4 @@
+import { brandCatalog, getOrganizationJsonLd } from "meathill-brand";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Noto_Serif_SC } from "next/font/google";
@@ -15,6 +16,18 @@ import { cn } from "@/lib/utils";
 import "./globals.css";
 
 const GA_ID = "G-JXVMLJYDYZ";
+const BRAND_STRUCTURED_DATA = {
+	"@context": "https://schema.org",
+	"@graph": [
+		getOrganizationJsonLd(),
+		{
+			"@type": "WebSite",
+			name: SITE_NAME,
+			url: SITE_URL,
+			publisher: { "@id": brandCatalog.organization.id },
+		},
+	],
+};
 
 const inter = Inter({
 	subsets: ["latin"],
@@ -120,6 +133,13 @@ export default function RootLayout({
 			)}
 		>
 			<body className="bg-paper text-ink min-h-full flex flex-col font-sans">
+				<script
+					type="application/ld+json"
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD 结构化数据
+					dangerouslySetInnerHTML={{
+						__html: JSON.stringify(BRAND_STRUCTURED_DATA),
+					}}
+				/>
 				<script
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: 主题早注入脚本，读 localStorage 防 FOUC
 					dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
