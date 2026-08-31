@@ -10,6 +10,7 @@ import {
 	type Scene,
 	UPDATE_POINTS,
 } from "@/components/landing/landing-content";
+import { SCENE_QUOTE_CLASS_NAME } from "@/components/landing/landing-layout";
 import {
 	CenteredSectionHead,
 	SectionHead,
@@ -156,7 +157,7 @@ function SceneArticle({ scene, index }: { scene: Scene; index: number }) {
 					/>
 				</figure>
 			</div>
-			<div className={imageFirst ? "sm:order-2" : "sm:order-1"}>
+			<div className={`min-w-0 ${imageFirst ? "sm:order-2" : "sm:order-1"}`}>
 				<p className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.82rem]">
 					{String(index + 1).padStart(2, "0")} · {scene.tag}
 				</p>
@@ -170,7 +171,7 @@ function SceneArticle({ scene, index }: { scene: Scene; index: number }) {
 					<p className="font-mono text-[0.72rem] tracking-[0.16em] text-ink-mute uppercase sm:text-[0.8rem]">
 						她 / 他说
 					</p>
-					<p className="font-serif mt-3 text-[2rem] leading-[1.3] text-ink sm:text-[2.08rem] lg:whitespace-nowrap xl:text-[2.3rem]">
+					<p className={SCENE_QUOTE_CLASS_NAME}>
 						<span className="select-none text-accent-warm/70">「</span>
 						{scene.line}
 						<span className="select-none text-accent-warm/70">」</span>
