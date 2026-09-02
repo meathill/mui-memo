@@ -15,7 +15,7 @@ import {
 
 export interface OpenAIClientConfig {
 	apiKey: string;
-	/** OpenAI 兼容端点，例如小米 MIMO 的 https://api.xiaomimimo.com/v1 */
+	/** OpenAI 兼容端点；生产环境使用 OpenCode Go。 */
 	baseURL: string;
 }
 
@@ -63,7 +63,7 @@ function pickAudioFormat(mimeType: string): MimoAudioFormat {
 
 /**
  * 用 OpenAI 兼容多模态 chat 接口处理音频，返回符合 utteranceSchema 的 Utterance。
- * 默认目标是小米 MIMO 的 OpenAI 兼容端点，但理论上任何同协议的服务都行。
+ * 生产环境通过 OpenCode Go 调用 MiMo-V2.5；同协议服务也可用于本地评估。
  */
 export async function parseVoiceIntent(opts: ParseOptions): Promise<Utterance> {
 	const base64 = await audioToBase64(opts.audio);
@@ -111,13 +111,13 @@ export async function parseVoiceIntent(opts: ParseOptions): Promise<Utterance> {
 				`sentFormat=${format}`,
 			].filter(Boolean);
 			const detail = parts.length ? parts.join(" · ") : err.message;
-			throw new Error(`OpenAI/MIMO ${err.status ?? ""} ${detail}`);
+			throw new Error(`OpenAI-compatible/MiMo ${err.status ?? ""} ${detail}`);
 		}
 		throw err;
 	}
 
 	const raw = response.choices[0]?.message?.content ?? "";
-	if (!raw) throw new Error("OpenAI/MIMO returned empty content");
+	if (!raw) throw new Error("OpenAI-compatible/MiMo returned empty content");
 
 	const json = JSON.parse(extractJson(raw));
 	// MIMO（以及大多数 OpenAI 类模型）的习惯是把 optional 字段填 null 而不是省略，
@@ -154,7 +154,7 @@ export async function parseTextIntent(opts: {
 		temperature: 0.2,
 	});
 	const raw = response.choices[0]?.message?.content ?? "";
-	if (!raw) throw new Error("OpenAI/MIMO returned empty content");
+	if (!raw) throw new Error("OpenAI-compatible/MiMo returned empty content");
 	const json = JSON.parse(extractJson(raw));
 	return parseUtteranceFlexible(stripNullsDeep(json));
 }

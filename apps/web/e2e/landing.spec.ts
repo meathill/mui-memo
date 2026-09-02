@@ -11,6 +11,9 @@ test.describe("landing 首页", () => {
       }),
     ).toBeVisible();
     await expect(page.getByRole("link", { name: "免费注册" })).toBeVisible();
+    await expect(page.getByRole("status")).toContainText(
+      "故障已经修复，请大家放心使用",
+    );
     await expect(page.getByText("01 · 记下")).toBeVisible();
     await expect(page.locator('a[href="#faq"]')).toBeVisible();
 

@@ -28,10 +28,10 @@
     "CF_ACCOUNT_ID": "fdc63eeea83ae8f5234357308b9a638b",
     "CF_AI_GATEWAY_ID": "meathill",
     // 'auto' | 'openai' | 'gemini'。'auto'（推荐）按来源地区切：中国地区(CN/HK/TW/MO)走
-    // OpenAI 兼容端点(MIMO)，其余走 Gemini；显式 'openai'/'gemini' 则强制锁定。
-    // 两个 provider 的 secrets 都要备好：OPENAI_API_KEY/OPENAI_BASE_URL/OPENAI_MODEL 与 GEMINI_API_KEY。
+    // OpenCode Go 的 MiMo-V2.5，其余走 Gemini；显式 'openai'/'gemini' 则强制锁定。
+    // 两个 provider 的 secrets 都要备好：OpenCode Go key 存 OPENAI_API_KEY，Gemini key 存 GEMINI_API_KEY。
     "AI_PROVIDER": "auto",
-    "OPENAI_BASE_URL": "https://token-plan-cn.xiaomimimo.com/v1",
+    "OPENAI_BASE_URL": "https://opencode.ai/zen/go/v1",
     "OPENAI_MODEL": "mimo-v2.5"
   },
   "secrets": {

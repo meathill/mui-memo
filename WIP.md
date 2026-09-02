@@ -35,7 +35,9 @@
 - vaultKey 指针只能经 `updateTaskSchema`(手动 PATCH)写入。
 - 移除保险箱时 HSM DELETE 网络失败要中止(403/404 可继续),避免远端留可解密内容而本地丢入口。
 
-## ⚠️ 待 Meathill 执行(需 `.env`)
+## ⚠️ 待 Meathill 执行（需要生产凭据）
+
+- OpenCode Go key 已配置；待 Web 部署后用真实语音 smoke test 验证音频透传。
 
 - 迁移 0010 / 0011 若生产库尚未应用,以及本轮新增的 0012(保险箱):
 

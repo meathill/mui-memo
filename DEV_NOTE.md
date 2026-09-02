@@ -99,16 +99,17 @@ embedding VECTOR(1024)
 - SDK 内部会自动补 `/v1beta/models/...`
 - 主模型 `gemini-3-flash-preview`（多模态，直接吃音频 base64）；早期 `gemini-2.0-flash` 已下线
 
-## AI Provider 切换：按来源地区在 Gemini / OpenAI 兼容端点间切换
+## AI Provider 切换：按来源地区在 Gemini / OpenCode Go 间切换
 
 - 入口 [apps/web/src/lib/intent.ts](apps/web/src/lib/intent.ts) 的 `pickProvider(env, country)` 决定 provider，`resolveAndParseVoiceIntent` 据此路由：
   - `AI_PROVIDER` 显式为 `'openai'` / `'gemini'` → 强制锁定（本地调试 / 手动覆盖）
-  - `'auto'`（现行默认，见 wrangler.jsonc）或缺省 → **按来源地区切**：中国地区 `CN/HK/TW/MO` 走 MIMO，其余已识别地区走 Gemini
-  - 识别不到来源（本地 dev、`XX`/`T1`、null）→ 回退 MIMO。理由：MIMO 端点在 SGP 全球可达，错路由也能用；而把大陆用户错发 Gemini（Google 被墙）会直接失败，回退 MIMO 最稳
+  - `'auto'`（现行默认，见 wrangler.jsonc）或缺省 → **按来源地区切**：中国地区 `CN/HK/TW/MO` 走 OpenCode Go 的 MiMo-V2.5，其余已识别地区走 Gemini
+  - 识别不到来源（本地 dev、`XX`/`T1`、null）→ 回退 MiMo。理由：不能把未知来源误发到大陆不可达的 Gemini
 - 来源国家取自 Cloudflare 边缘注入的 `cf-ipcountry` 请求头，在 [apps/web/src/app/api/intent/route.ts](apps/web/src/app/api/intent/route.ts) 里 `req.headers.get('cf-ipcountry')` 读出透传；`next dev` 没这个头 → null → 回退 MIMO。`/api/intent` 是唯一调用入口
 - 共享部分（system prompt / userPrompt / audioToBase64 / extractJson / TimeAnchor）抽到 [apps/web/src/lib/intent-shared.ts](apps/web/src/lib/intent-shared.ts)，两个 provider 共用，确保输出 schema 一致
-- OpenAI 路径默认目标是小米 MIMO（[platform.xiaomimimo.com](https://platform.xiaomimimo.com/docs/zh-CN/api/chat/openai-api)），用官方 `openai` SDK 直连，不走 CF Gateway（国内服务收益不大）
-- `'auto'` 模式两个 provider 的凭据都要备齐（任一地区都可能命中）：MIMO 侧 `OPENAI_API_KEY` + `OPENAI_BASE_URL` + `OPENAI_MODEL`，Gemini 侧 `GEMINI_API_KEY`；在 `.dev.vars` 或 `wrangler secret put` 设。`AI_PROVIDER` 本身是 wrangler.jsonc 的 var（非 secret）
+- OpenAI 路径的生产目标是 [OpenCode Go](https://dev.opencode.ai/docs/go/)：`OPENAI_BASE_URL=https://opencode.ai/zen/go/v1`、`OPENAI_MODEL=mimo-v2.5`，官方 `openai` SDK 会在 base URL 后补 `/chat/completions`
+- `'auto'` 模式两个 provider 的凭据都要备齐（任一地区都可能命中）：OpenCode Go key 存 `OPENAI_API_KEY`，Gemini key 存 `GEMINI_API_KEY`；在 `.dev.vars` 或 `wrangler secret put OPENAI_API_KEY` 设。`AI_PROVIDER`、`OPENAI_BASE_URL`、`OPENAI_MODEL` 是 wrangler.jsonc 的 vars（非 secret）
+- OpenCode Go 官方定位是 OpenCode / 编程 Agent 流量，并会监控异常使用；叨叨记的低频语音流量不属于文档明确承诺的典型场景。每次换 key / 端点后都要用真实语音做 smoke test；若流量增长或音频透传不稳定，改用明确支持产品 API 的按量计费 provider
 - `input_audio.format` 字段：OpenAI SDK 类型只声明 `'wav' | 'mp3'`，但 MIMO 实际接受 mp3 / wav / flac / m4a / ogg（[音频限制](https://platform.xiaomimimo.com/docs/zh-CN/usage-guide/multimodal-understanding/audio-understanding?target=%E9%9F%B3%E9%A2%91%E9%99%90%E5%88%B6)），代码里 cast 绕过类型限制
 - **webm 不在 MIMO 白名单里**——这是 web MediaRecorder 的默认产物。[apps/web/src/components/memo/mic-button.tsx](apps/web/src/components/memo/mic-button.tsx) 把录音格式优先级改成 `mp4 > ogg/opus > webm/opus`，让 Chrome 116+ / Safari 录 mp4，Firefox 录 ogg；老 Chrome 兜底 webm 时切到 OpenAI provider 会被服务端 `pickAudioFormat` 拒绝
 - MIMO 支持 OpenAI 的 JSON mode，已开 `response_format: { type: 'json_object' }`；保留 `extractJson` 兜底，万一某次返回带前缀也能救回
@@ -171,7 +172,7 @@ script 显式设了 `PROMPT_EVAL=1`，没这个 env 整套 `describe.skip` 跳�
 
 - **位置**：[`intent-prompt.cases.ts`](apps/web/src/lib/intent-prompt.cases.ts)（case 数据）+ [`intent-prompt.eval.test.ts`](apps/web/src/lib/intent-prompt.eval.test.ts)（驱动）
 - **跑真实模型不 mock**。[`vitest.config.ts`](apps/web/vitest.config.ts) 启动时用 dotenv 把 `apps/web/.dev.vars` 注入 `process.env`，按优先级选 provider：
-  1. `OPENAI_API_KEY` + `OPENAI_BASE_URL` + `OPENAI_MODEL` → OpenAI 兼容（MIMO）
+  1. `OPENAI_API_KEY` + `OPENAI_BASE_URL` + `OPENAI_MODEL` → OpenAI 兼容（生产默认 OpenCode Go / MiMo-V2.5）
   2. `GEMINI_API_KEY` → Gemini
   3. 都没有 → `describe.skip` 整套跳过
 - 测试文件首行有 `@vitest-environment node`：OpenAI SDK 检测到 happy-dom 注入的 `window` 会拒跑（怕泄 key），eval 套件不动 DOM 切 node 即可

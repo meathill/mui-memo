@@ -15,6 +15,7 @@ import {
 	CenteredSectionHead,
 	SectionHead,
 } from "@/components/landing/landing-section-head";
+import { ServiceRecoveryNotice } from "@/components/landing/service-recovery-notice";
 import { MarketingHeroActions } from "@/components/marketing/marketing-auth-links";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { LANDING_HEADER_LINKS } from "@/lib/site";
@@ -22,6 +23,7 @@ import { LANDING_HEADER_LINKS } from "@/lib/site";
 export function LandingPageView() {
 	return (
 		<MarketingShell nav={LANDING_HEADER_LINKS}>
+			<ServiceRecoveryNotice />
 			<Hero />
 			<Rule />
 			<ExplainSection />

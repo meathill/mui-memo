@@ -30,14 +30,14 @@ interface ParseArgs {
 
 const CN_REGIONS = new Set(["CN", "HK", "TW", "MO"]);
 /** cf-ipcountry 识别不到来源时可能给这些非空但无意义的值：XX=未知，T1=Tor 出口节点。
- *  两者都要按「识别不到来源」处理、回退 MIMO，不能当成已识别的非中国地区发去 Gemini。 */
+ *  两者都要按「识别不到来源」处理、回退 MiMo，不能当成已识别的非中国地区发去 Gemini。 */
 const UNRESOLVED_REGIONS = new Set(["XX", "T1"]);
 
 /**
  * 选择 AI provider：
  * - AI_PROVIDER 显式为 'openai' / 'gemini' 时强制用它（本地调试 / 手动锁定）。
- * - 'auto' 或未配置时按来源地区切：中国地区（CN/HK/TW/MO）走 OpenAI 兼容端点（MIMO），
- *   其余已识别地区走 Gemini。识别不到来源时回退 MIMO —— 其 SGP 端点全球可达，错路由也不失败；
+ * - 'auto' 或未配置时按来源地区切：中国地区（CN/HK/TW/MO）走 OpenCode Go 的 MiMo，
+ *   其余已识别地区走 Gemini。识别不到来源时回退 MiMo，避免误发到大陆不可达的 Gemini；
  *   而把大陆用户错发到 Gemini 会直接不可用。
  */
 export function pickProvider(
