@@ -11,7 +11,7 @@ import type { TaskPlace } from "@mui-memo/shared/validators";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
-import { track } from "@/lib/analytics";
+import { track, trackFirstTaskCreated } from "@/lib/analytics";
 import type { PendingConfirm } from "@/store";
 import { useAppStore } from "@/store";
 import { ContextStrip } from "./context-strip";
@@ -124,8 +124,9 @@ export function TodayView({ userName }: Props) {
 				),
 				ranked: [],
 			});
-			await fetch(`/api/tasks/${id}/done`, { method: "POST" });
-			track({ name: "task_complete", source: "today" });
+			await fetch(`/api/tasks/${id}/done`, { method: "POST" }).then((res) => {
+				if (res.ok) track({ name: "task_complete", source: "today" });
+			});
 		},
 		[hydrate],
 	);
@@ -156,6 +157,9 @@ export function TodayView({ userName }: Props) {
 				setLastEffects(data.effects, data.utterance);
 				for (const e of data.effects) {
 					track({ name: "voice_intent", intent: e.kind });
+				}
+				if (data.effects.some((e) => e.kind === "add")) {
+					trackFirstTaskCreated("voice");
 				}
 				if (data.pendingConfirms?.length) {
 					pushPendingConfirms(

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { track } from "@/lib/analytics";
 import { signIn } from "@/lib/auth-client";
 
 export default function LoginPage() {
@@ -29,6 +30,7 @@ export default function LoginPage() {
 			setError(error.message ?? "登录失败，请检查邮箱与密码");
 			return;
 		}
+		track({ name: "login", method: "email" });
 		router.push("/app");
 		router.refresh();
 	}

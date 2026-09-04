@@ -1,7 +1,8 @@
-import { brandCatalog, getOrganizationJsonLd } from "meathill-brand";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { brandCatalog, getOrganizationJsonLd } from "meathill-brand";
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Noto_Serif_SC } from "next/font/google";
+import { AnalyticsConsent } from "@/components/analytics-consent";
 import {
 	OG_IMAGE_PATH,
 	SHARE_IMAGE_ALT,
@@ -133,6 +134,13 @@ export default function RootLayout({
 			)}
 		>
 			<body className="bg-paper text-ink min-h-full flex flex-col font-sans">
+				<script
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: Consent Mode v2 默认值，必须跑在 gtag 加载前
+					dangerouslySetInnerHTML={{
+						__html: `window.dataLayer=window.dataLayer||[];window.dataLayer.push(['consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'granted',wait_for_update:500}]);`,
+					}}
+				/>
+				<AnalyticsConsent />
 				<script
 					type="application/ld+json"
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD 结构化数据

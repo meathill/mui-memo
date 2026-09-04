@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { trackAppStoreClick } from "@/lib/analytics";
 import { APP_STORE_URL, MARKETING_HEADER_LINKS } from "@/lib/site";
 import { MarketingShell } from "./marketing-shell";
 
@@ -204,6 +207,9 @@ function PricingCard({ tier }: { tier: Tier }) {
 					href={tier.ctaHref}
 					target="_blank"
 					rel="noreferrer"
+					onClick={() =>
+						tier.id === "free" ? trackAppStoreClick("pricing-free") : undefined
+					}
 					className={
 						isRecommended
 							? "mt-7 inline-flex items-center justify-center rounded-full bg-accent-warm px-5 py-3 text-center font-mono text-[0.78rem] tracking-[0.16em] text-paper uppercase transition-opacity hover:opacity-85"

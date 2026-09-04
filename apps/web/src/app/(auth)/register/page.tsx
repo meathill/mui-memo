@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { track } from "@/lib/analytics";
 import { signUp } from "@/lib/auth-client";
 
 export default function RegisterPage() {
@@ -31,6 +32,7 @@ export default function RegisterPage() {
 			setError(error.message ?? "注册失败，请稍后重试");
 			return;
 		}
+		track({ name: "sign_up", method: "email" });
 		router.push("/app");
 		router.refresh();
 	}

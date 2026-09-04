@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button-variants";
+import { track, trackAppStoreClick } from "@/lib/analytics";
 import { useSession } from "@/lib/auth-client";
 import { APP_STORE_URL } from "@/lib/site";
 
@@ -43,6 +44,7 @@ export function MarketingHeroActions() {
 				target="_blank"
 				rel="noreferrer"
 				className={`${buttonVariants({ size: "lg" })} px-6`}
+				onClick={() => trackAppStoreClick("hero")}
 			>
 				App Store 下载
 			</a>
@@ -50,6 +52,7 @@ export function MarketingHeroActions() {
 				<Link
 					href="/register"
 					className="underline-offset-4 hover:text-ink hover:underline"
+					onClick={() => track({ name: "web_trial_click", location: "hero" })}
 				>
 					网页版试用
 				</Link>

@@ -415,6 +415,7 @@ export function TaskDetailView({ id }: { id: string }) {
 									method: "POST",
 								});
 								if (!res.ok) throw new Error("重启失败");
+								track({ name: "task_reopen", source: "detail" });
 								await load();
 							} catch (err) {
 								setError(err instanceof Error ? err.message : "重启失败");

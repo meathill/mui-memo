@@ -4,6 +4,7 @@ import { MicIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 interface Slide {
@@ -61,6 +62,7 @@ export function OnboardingView() {
 		try {
 			window.localStorage.setItem("muimemo:onboarded", "1");
 		} catch {}
+		track({ name: "tutorial_complete" });
 		router.replace("/app");
 	}
 

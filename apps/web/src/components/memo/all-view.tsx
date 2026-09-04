@@ -47,8 +47,9 @@ export function AllView() {
 				),
 				ranked: [],
 			});
-			await fetch(`/api/tasks/${id}/done`, { method: "POST" });
-			track({ name: "task_complete", source: "all" });
+			await fetch(`/api/tasks/${id}/done`, { method: "POST" }).then((res) => {
+				if (res.ok) track({ name: "task_complete", source: "all" });
+			});
 		},
 		[hydrate],
 	);
