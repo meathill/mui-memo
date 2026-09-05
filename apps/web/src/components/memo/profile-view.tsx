@@ -115,8 +115,10 @@ export function ProfileView() {
 			<TweaksPanel />
 
 			<section className="mt-6 space-y-2">
+				{/* Issue #12：低频入口不预取 */}
 				<Link
 					href="/app/profile/log"
+					prefetch={false}
 					className="flex w-full items-center justify-between rounded-xl border border-rule/60 bg-paper-2/60 px-4 py-3 text-left hover:bg-paper-2"
 				>
 					<span className="font-serif text-sm text-ink">输入记录</span>

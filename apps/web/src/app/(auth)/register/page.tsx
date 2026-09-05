@@ -106,9 +106,10 @@ export default function RegisterPage() {
 			</form>
 
 			<p className="text-center text-sm text-ink-soft">
-				已有账号？{" "}
+				已有账号？ {/* Issue #12：auth 互跳链接不预取 */}
 				<Link
 					href="/login"
+					prefetch={false}
 					className="text-accent-warm underline underline-offset-4"
 				>
 					去登录

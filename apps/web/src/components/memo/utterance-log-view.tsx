@@ -157,9 +157,11 @@ export function UtteranceLogView() {
 								<p className="mt-1 text-xs text-ink-soft">{u.reason}</p>
 							) : null}
 							<div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] font-mono text-ink-mute">
+								{/* Issue #12：log 列表任务链接不预取（数量大） */}
 								{u.taskId ? (
 									<Link
 										href={`/app/tasks/${u.taskId}`}
+										prefetch={false}
 										className="text-accent-warm hover:underline"
 									>
 										→ 查看任务

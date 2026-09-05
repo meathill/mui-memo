@@ -128,6 +128,7 @@ export function PricingPageView() {
 						短期不作为当前主推。叨叨记会先把个人语音录入、标签筛选和订阅体验打磨稳定；如果你确实想跟进多人场景，可以先在{" "}
 						<Link
 							href="/contact?topic=team-waitlist"
+							prefetch={false}
 							className="text-accent-warm underline-offset-4 hover:underline"
 						>
 							候补名单
@@ -219,8 +220,10 @@ function PricingCard({ tier }: { tier: Tier }) {
 					{tier.ctaLabel}
 				</a>
 			) : (
+				// Issue #12：定价 CTA 次级跳转不预取
 				<Link
 					href={tier.ctaHref}
+					prefetch={false}
 					className={
 						isRecommended
 							? "mt-7 inline-flex items-center justify-center rounded-full bg-accent-warm px-5 py-3 text-center font-mono text-[0.78rem] tracking-[0.16em] text-paper uppercase transition-opacity hover:opacity-85"

@@ -29,8 +29,11 @@ export default function SupportPage() {
 					</li>
 					<li>
 						网页版：
-						<Link href="/register">注册后直接试用</Link>，和 iOS App
-						共用同一份账号和清单
+						{/* Issue #12：内容页次级链接不预取 */}
+						<Link href="/register" prefetch={false}>
+							注册后直接试用
+						</Link>
+						，和 iOS App 共用同一份账号和清单
 					</li>
 				</ul>
 			</section>

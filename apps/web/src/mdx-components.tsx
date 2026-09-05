@@ -14,7 +14,15 @@ function Anchor({
 	);
 
 	if (href.startsWith("/")) {
-		return <Link href={href} className={mergedClassName} {...props} />;
+		// Issue #12：文章内链不预取，避免每篇内容页触发额外的 _rsc 请求
+		return (
+			<Link
+				href={href}
+				prefetch={false}
+				className={mergedClassName}
+				{...props}
+			/>
+		);
 	}
 
 	const isExternal = href.startsWith("http");

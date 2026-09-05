@@ -85,9 +85,10 @@ export default function LoginPage() {
 			</form>
 
 			<p className="text-center text-sm text-ink-soft">
-				还没有账号？{" "}
+				还没有账号？ {/* Issue #12：auth 互跳链接不预取 */}
 				<Link
 					href="/register"
+					prefetch={false}
 					className="text-accent-warm underline underline-offset-4"
 				>
 					去注册

@@ -64,12 +64,21 @@ function MarketingFooter() {
 				{PUBLIC_SITE_ROUTES.map((item, index) => (
 					<span key={item.href} className="flex items-center gap-2">
 						{index > 0 ? <span className="text-ink-mute/50">/</span> : null}
-						<Link href={item.href} className="hover:text-ink">
+						{/* Issue #12：页脚次级链接不预取 */}
+						<Link href={item.href} prefetch={false} className="hover:text-ink">
 							{item.label}
 						</Link>
 					</span>
 				))}
 			</div>
+			<a href="https://firstlook.tools" target="_blank">
+				<img
+					src="https://firstlook.tools/badge/badge_light.svg"
+					alt="Featured on First Look"
+					width={200}
+					height={54}
+				/>
+			</a>
 		</BrandFooter>
 	);
 }

@@ -19,7 +19,8 @@ export function MarketingHeaderAuthLink() {
 	}
 
 	return (
-		<Link href="/login" className="hover:text-ink">
+		// Issue #12：页眉登录入口不预取（低频目标页，本身很轻）
+		<Link href="/login" prefetch={false} className="hover:text-ink">
 			登录
 		</Link>
 	);
@@ -49,8 +50,10 @@ export function MarketingHeroActions() {
 				App Store 下载
 			</a>
 			<span className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-[0.72rem] tracking-[0.16em] text-ink-soft uppercase sm:text-[0.8rem]">
+				{/* Issue #12：hero 次级链接不预取，主 CTA（/app）保留预取 */}
 				<Link
 					href="/register"
+					prefetch={false}
 					className="underline-offset-4 hover:text-ink hover:underline"
 					onClick={() => track({ name: "web_trial_click", location: "hero" })}
 				>
@@ -61,6 +64,7 @@ export function MarketingHeroActions() {
 				</span>
 				<Link
 					href="/login"
+					prefetch={false}
 					className="underline-offset-4 hover:text-ink hover:underline"
 				>
 					登录
