@@ -293,3 +293,20 @@ script 显式设了 `PROMPT_EVAL=1`，没这个 env 整套 `describe.skip` 跳�
 - **明文生命周期**：只允许在 screen/组件的 useState 与函数返回值；切后台/离屏立即清空或移出渲染树（app 切换器快照只拍到锁定态）。禁入 zustand persist、SQLite、日志，尤其禁入 `task.text`（该列被 TiDB `EMBED_TEXT` 自动嵌入，进去等于把语义泄露给向量索引）
 - **模块切分**（apps/app/src/lib/）：`vault-model`（纯函数，Node 单测）→ `vault-hsm`（fetch client，mock 单测）→ `vault-keychain` / `vault-biometric`（native 薄层，只手测）→ `vault`（门面编排）。screen 负责 PATCH 指针与本地同步，门面不碰 store
 - **出口合规**：端上不实现加密（HTTPS + 系统 Keychain，AES 在 HSM 服务端），`ITSAppUsesNonExemptEncryption: false` 维持不变
+
+## GA4：代码埋点 + 界面标记两步走（2026-09）
+
+- 事件定义在 [apps/web/src/lib/analytics.ts](apps/web/src/lib/analytics.ts)，操作手册在 [docs/ga4-key-events.md](docs/ga4-key-events.md)：代码先发事件，GA4 界面再把 6 个事件（`sign_up` / `login` / `tutorial_complete` / `first_task_created` / `task_complete` / `app_store_click`）手动标为关键事件，否则关键事件数恒为 0
+- Consent Mode v2 基础版：`layout.tsx` 在 gtag 加载前推 `consent default`（`ad_*` 全 denied，`analytics_storage` 默认 granted），存量选择存 `localStorage muimemo:consent`；要上完整 cookie 横幅时把默认值改 denied 即可，接口已备好
+- 口径：App 原生侧无 gtag，不伪造 App 事件进 GA；跨端以服务端 DB（同一 userId）为准，GA 只看 Web 侧趋势
+
+## Next.js：_rsc 预取收紧 + 关 observability（2026-09）
+
+- App Router 的 `<Link>` 默认预取 `_rsc` 请求，落在 OpenNext worker 上就是一次真实调用。规则：**低意图链接（页脚/MDX/hero/auth/log 列表）一律 `prefetch={false}`**，只保留主导航与 /app CTA 预取
+- `open-next.config.ts` 显式 `enableCacheInterception: false`（该版本默认值变化，显式声明防升级踩坑）
+- `wrangler.jsonc` 的 `observability.enabled` 置 false 省额度；要查线上问题时临时打开再关
+
+## 任务多标签：tag → tags（app 0.4.0）
+
+- `tasks.tags` 是 `json` 列（`string[]`）；读时 `tags ?? (tag ? [tag] : [])` 兼容老数据，写只写 `tags`（见 `packages/shared/src/schema.ts` 注释）
+- 语音标签候选、筛选栏排序都基于 `tags` 数组；加新标签用法时保持"数组"心智，别回退到单 tag 字段

@@ -41,4 +41,22 @@ if (typeof window !== "undefined") {
 			}
 		} as unknown as typeof IntersectionObserver;
 	}
+
+	if (!window.localStorage) {
+		const store = new Map<string, string>();
+		Object.defineProperty(window, "localStorage", {
+			configurable: true,
+			writable: true,
+			value: {
+				getItem: (k: string) => store.get(k) ?? null,
+				setItem: (k: string, v: string) => {
+					store.set(k, String(v));
+				},
+				removeItem: (k: string) => {
+					store.delete(k);
+				},
+				clear: () => store.clear(),
+			},
+		});
+	}
 }

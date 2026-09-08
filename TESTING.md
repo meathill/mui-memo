@@ -105,11 +105,17 @@ vault-keychain / vault-biometric 是 native 薄层，不进 Vitest，靠以下�
 
 测前请先 `pnpm install`、`pnpm exec playwright install`、`.dev.vars` 里配好 `BETTER_AUTH_URL=http://localhost:3200` 与 `TEST_USER_*`。
 
+## 已覆盖（2026-09 维护轮确认）
+
+- `intent.ts` / `intent-shared.ts` / `openai-config.ts` / `gemini.ts` / `analytics.ts` / `tasks.ts` / `time.ts` / `r2-stream.ts` 均有单测
+- `theme.ts` / `settings.ts` / `site.ts`（纯函数 + localStorage/DOM）与 `store/index.ts`（zustand 队列语义）有单测；`src/test/setup.ts` 给 happy-dom 补了 `localStorage` 内存 stub
+- app 侧：`http` / `local-cache-model` / `vault-hsm` / `vault-model` / widget model 有单测
+
 ## 下一轮要补的覆盖
 
-测试基建已就位，但业务代码大量未覆盖。下一轮预计补：
+业务代码仍有缺口，按优先级排序：
 
-- [ ] `apps/web/src/lib/` 下未测的工具（gemini.ts / openai.ts / auth.ts / db.ts / intent.ts / search.ts / tasks.ts / theme.ts / utils.ts 等）
+- [ ] `apps/web/src/lib/` 下未测的工具（`audio-to-wav.ts` / `auth.ts` / `db.ts` / `search.ts` / `theme.ts` / `utils.ts` / `settings.ts` / `site.ts` / `openai.ts` 主流程等）
 - [ ] `apps/web/src/app/api/` 路由的 schema 校验单测
 - [ ] `apps/web/src/store/` Zustand store
 - [ ] `apps/web/src/hooks/` 自定义 hook
