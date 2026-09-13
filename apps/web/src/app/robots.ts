@@ -7,6 +7,8 @@ export default function robots(): MetadataRoute.Robots {
 			userAgent: "*",
 			allow: PUBLIC_SITE_ROUTES.map((route) => route.href),
 			disallow: [
+				"/admin",
+				"/admin/",
 				"/app",
 				"/app/",
 				"/login",

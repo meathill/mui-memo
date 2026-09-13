@@ -294,6 +294,15 @@ script 显式设了 `PROMPT_EVAL=1`，没这个 env 整套 `describe.skip` 跳�
 - **模块切分**（apps/app/src/lib/）：`vault-model`（纯函数，Node 单测）→ `vault-hsm`（fetch client，mock 单测）→ `vault-keychain` / `vault-biometric`（native 薄层，只手测）→ `vault`（门面编排）。screen 负责 PATCH 指针与本地同步，门面不碰 store
 - **出口合规**：端上不实现加密（HTTPS + 系统 Keychain，AES 在 HSM 服务端），`ITSAppUsesNonExemptEncryption: false` 维持不变
 
+## Admin 数据统计 + Cloudflare Access（2026-09）
+
+- 页面 `apps/web/src/app/admin/`（运营大盘 + AI 质量两 tab），接口 `apps/web/src/app/api/admin/{overview,intent}`。
+- **权限纯 Dashboard 零代码**：Zero Trust → Access → Self-hosted Application，domain `muimemo.meathill.com` 配两条 Path：`/admin*` 和 `/api/admin*`（第二条必加，否则接口裸奔）；Policy Allow 指定邮箱。页面 `layout.tsx` 只做 `NO_INDEX_METADATA`，`robots.ts` 加 `Disallow: /admin`，不走 Better-Auth。
+- **已知缺口**：`*.workers.dev` 源域名不受该 Application 保护，可绕过。接受理由：admin API 只吐聚合数字、无文本明细。敏感度上来后 v2 加 `Cf-Access-JWT-Assertion` 验签（约 30 行）。
+- **直接读库，不建聚合表**：行拉回 TS 侧按 UTC 天分桶（`lib/admin-stats.ts` 纯函数 + 单测），不受 DB 会话时区影响。切聚合表阈值：单表 >10 万行或接口 p95 >2s。
+- **隐私红线**：admin API 禁止返回 `text/rawText/actions` 等用户原话，只给计数。
+- **provider 切分暂无**：`utterances` 无 provider/country 列（`pickProvider` 结果只打日志不落库）。要做先加列 + `/api/intent` 落库时写入，另起迁移任务。
+
 ## GA4：代码埋点 + 界面标记两步走（2026-09）
 
 - 事件定义在 [apps/web/src/lib/analytics.ts](apps/web/src/lib/analytics.ts)，操作手册在 [docs/ga4-key-events.md](docs/ga4-key-events.md)：代码先发事件，GA4 界面再把 6 个事件（`sign_up` / `login` / `tutorial_complete` / `first_task_created` / `task_complete` / `app_store_click`）手动标为关键事件，否则关键事件数恒为 0
