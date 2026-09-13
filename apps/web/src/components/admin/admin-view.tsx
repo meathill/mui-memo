@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import type { IntentStats, OverviewStats } from "@/lib/admin-stats";
 import { ADMIN_DAYS_OPTIONS } from "@/lib/admin-stats";
+import { IntentTab } from "./intent-tab";
+import { OverviewTab } from "./overview-tab";
 
 type Tab = "overview" | "intent";
 
@@ -37,7 +39,7 @@ export function AdminView() {
 	}, [load]);
 
 	return (
-		<main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 pt-6 pb-16 sm:pt-10">
+		<main className="container mx-auto px-4 pt-6 pb-16 sm:pt-10">
 			<header className="flex items-end justify-between gap-4">
 				<div>
 					<p className="font-mono text-[10px] tracking-[0.2em] text-ink-mute uppercase">
@@ -130,186 +132,5 @@ function TabButton({
 		>
 			{label}
 		</button>
-	);
-}
-
-function OverviewTab({ data }: { data: OverviewStats }) {
-	const t = data.totals;
-	return (
-		<div>
-			<section className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-				<StatCard label="用户总数" value={t.users} />
-				<StatCard label="任务总数" value={t.tasks} />
-				<StatCard
-					label="累计完成率"
-					value={`${Math.round(t.completionRate * 1000) / 10}%`}
-				/>
-				<StatCard label="语音条数" value={t.utterances} />
-			</section>
-			<TrendSection title="新增用户" series={data.series.newUsers} />
-			<TrendSection title="新增任务" series={data.series.newTasks} />
-			<TrendSection title="完成任务" series={data.series.doneTasks} />
-			<TrendSection title="语音条数" series={data.series.utterances} />
-			<TrendSection
-				title="活跃用户（有行为去重）"
-				series={data.series.activeUsers}
-			/>
-		</div>
-	);
-}
-
-function IntentTab({ data }: { data: IntentStats }) {
-	return (
-		<div>
-			<section className="mt-5 grid grid-cols-2 gap-3">
-				<StatCard label="语音总数" value={data.total} />
-				<StatCard
-					label="miss 率"
-					value={`${Math.round(data.missRate * 1000) / 10}%`}
-					accent={data.missRate > 0.15}
-				/>
-			</section>
-			<DistSection title="intent 分布" items={data.byIntent} />
-			<DistSection title="effectKind 分布" items={data.byEffectKind} />
-			<section className="mt-6 rounded-2xl border border-rule/60 bg-paper-2/50 p-5">
-				<SectionTitle title="日趋势（总量 / miss）" />
-				<div className="mt-3 space-y-1.5">
-					{data.series.map((d) => (
-						<BarRow
-							key={d.day}
-							label={d.day.slice(5)}
-							value={d.total}
-							max={Math.max(...data.series.map((x) => x.total), 1)}
-							hint={d.miss > 0 ? `miss ${d.miss}` : undefined}
-							warn={d.total > 0 && d.miss / d.total > 0.3}
-						/>
-					))}
-				</div>
-			</section>
-		</div>
-	);
-}
-
-function StatCard({
-	label,
-	value,
-	accent,
-}: {
-	label: string;
-	value: number | string;
-	accent?: boolean;
-}) {
-	return (
-		<div
-			className={
-				"rounded-2xl border p-4 " +
-				(accent
-					? "border-accent-warm/40 bg-accent-warm/10"
-					: "border-rule/60 bg-paper-2/50")
-			}
-		>
-			<p className="font-mono text-[10px] tracking-[0.15em] uppercase text-ink-mute">
-				{label}
-			</p>
-			<p className="mt-1 font-serif text-3xl text-ink">{value}</p>
-		</div>
-	);
-}
-
-function SectionTitle({ title }: { title: string }) {
-	return (
-		<h2 className="font-mono text-[10px] tracking-[0.15em] text-ink-mute uppercase">
-			{title}
-		</h2>
-	);
-}
-
-function TrendSection({
-	title,
-	series,
-}: {
-	title: string;
-	series: Array<{ day: string; value: number }>;
-}) {
-	return (
-		<section className="mt-6 rounded-2xl border border-rule/60 bg-paper-2/50 p-5">
-			<SectionTitle title={title} />
-			<div className="mt-3 space-y-1.5">
-				{series.map((d) => (
-					<BarRow
-						key={d.day}
-						label={d.day.slice(5)}
-						value={d.value}
-						max={Math.max(...series.map((x) => x.value), 1)}
-					/>
-				))}
-			</div>
-		</section>
-	);
-}
-
-function DistSection({
-	title,
-	items,
-}: {
-	title: string;
-	items: Array<{ name: string; value: number }>;
-}) {
-	const total = items.reduce((a, b) => a + b.value, 0);
-	return (
-		<section className="mt-6 rounded-2xl border border-rule/60 bg-paper-2/50 p-5">
-			<SectionTitle title={title} />
-			<div className="mt-3 space-y-1.5">
-				{items.length === 0 ? (
-					<p className="text-xs text-ink-mute">暂无数据</p>
-				) : (
-					items.map((item) => (
-						<BarRow
-							key={item.name}
-							label={item.name}
-							value={item.value}
-							max={Math.max(total, 1)}
-							hint={`${total > 0 ? Math.round((item.value / total) * 1000) / 10 : 0}%`}
-							warn={item.name === "miss"}
-						/>
-					))
-				)}
-			</div>
-		</section>
-	);
-}
-
-function BarRow({
-	label,
-	value,
-	max,
-	hint,
-	warn,
-}: {
-	label: string;
-	value: number;
-	max: number;
-	hint?: string;
-	warn?: boolean;
-}) {
-	return (
-		<div className="flex items-center gap-2">
-			<span className="w-14 shrink-0 font-mono text-[10px] text-ink-mute">
-				{label}
-			</span>
-			<div className="h-4 flex-1 overflow-hidden rounded bg-rule/30">
-				<div
-					className={
-						"h-full rounded transition-all " +
-						(warn ? "bg-accent-warm/70" : "bg-ink/60")
-					}
-					style={{ width: `${max > 0 ? (value / max) * 100 : 0}%` }}
-				/>
-			</div>
-			<span className="w-16 shrink-0 text-right font-mono text-[10px] text-ink">
-				{value}
-				{hint ? <span className="text-ink-mute"> {hint}</span> : null}
-			</span>
-		</div>
 	);
 }
