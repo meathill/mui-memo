@@ -110,6 +110,8 @@ vault-keychain / vault-biometric 是 native 薄层，不进 Vitest，靠以下�
 - `intent.ts` / `intent-shared.ts` / `openai-config.ts` / `gemini.ts` / `analytics.ts` / `tasks.ts` / `time.ts` / `r2-stream.ts` 均有单测
 - `theme.ts` / `settings.ts` / `site.ts`（纯函数 + localStorage/DOM）与 `store/index.ts`（zustand 队列语义）有单测；`src/test/setup.ts` 给 happy-dom 补了 `localStorage` 内存 stub
 - app 侧：`http` / `local-cache-model` / `vault-hsm` / `vault-model` / widget model 有单测
+- AI 错误日志：`openai.test.ts`、`intent-error.test.ts` 与 `/api/intent/route.test.ts` 覆盖上游 400/401/429/500、连接失败、超时、非 JSON 错误、日志脱敏以及 HTTP 502/detail 契约；`openai-config.test.ts` 校验排障期间的 Observability 配置。
+- OpenCode 会话头：`intent.test.ts` 使用真实 SDK 和模拟 fetch 验证 `x-opencode-session` 等于 userId，同用户稳定、跨用户隔离；路由测试确认客户端传入的标识不能覆盖认证用户。
 
 ## 下一轮要补的覆盖
 

@@ -17,12 +17,17 @@ export interface OpenAIClientConfig {
 	apiKey: string;
 	/** OpenAI 兼容端点；生产环境使用 OpenCode Go。 */
 	baseURL: string;
+	// OpenCode Go 要求稳定会话 ID；生产调用使用认证用户的 userId。
+	sessionId?: string;
 }
 
 export function createOpenAIClient(cfg: OpenAIClientConfig): OpenAI {
 	return new OpenAI({
 		apiKey: cfg.apiKey,
 		baseURL: cfg.baseURL,
+		defaultHeaders: cfg.sessionId
+			? { "x-opencode-session": cfg.sessionId }
+			: undefined,
 	});
 }
 
@@ -98,12 +103,15 @@ export async function parseVoiceIntent(opts: ParseOptions): Promise<Utterance> {
 		});
 	} catch (err) {
 		// OpenAI SDK 的 APIError 把服务器返回的 JSON body 放在 .error 上，里面通常有
-		// 比顶层 message 更细的描述（哪个 param 不对、code 等）。route.ts 的 catch
-		// 只读 err.message，所以这里把 detail 揉进去再 throw。
+		// 比顶层 message 更细的描述。始终保留原消息供前端 detail 使用，
+		// 同时通过 cause 保留状态码、请求 ID 和连接原因供结构化日志使用。
 		if (err instanceof APIError) {
 			const body = err.error as { message?: string; type?: string } | undefined;
 			const parts = [
-				body?.message,
+				err.message,
+				body?.message && !err.message.includes(body.message)
+					? body.message
+					: null,
 				err.code ? `code=${err.code}` : null,
 				err.param ? `param=${err.param}` : null,
 				body?.type ? `type=${body.type}` : null,
@@ -111,7 +119,9 @@ export async function parseVoiceIntent(opts: ParseOptions): Promise<Utterance> {
 				`sentFormat=${format}`,
 			].filter(Boolean);
 			const detail = parts.length ? parts.join(" · ") : err.message;
-			throw new Error(`OpenAI-compatible/MiMo ${err.status ?? ""} ${detail}`);
+			throw new Error(`OpenAI-compatible/MiMo ${err.status ?? ""} ${detail}`, {
+				cause: err,
+			});
 		}
 		throw err;
 	}

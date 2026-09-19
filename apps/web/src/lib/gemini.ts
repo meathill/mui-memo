@@ -12,7 +12,7 @@ import {
 	type TimeAnchor,
 } from "./intent-shared";
 
-const CHAT_MODEL = "gemini-3-flash-preview";
+export const GEMINI_CHAT_MODEL = "gemini-3-flash-preview";
 
 export interface GenAIConfig {
 	apiKey: string;
@@ -29,14 +29,19 @@ export interface GenAIConfig {
  * SDK 会自动补 `/v1beta/models/...`。
  */
 export function createGenAI(cfg: GenAIConfig): GoogleGenAI {
-	const baseUrl =
-		cfg.gatewayAccountId && cfg.gatewayId
-			? `https://gateway.ai.cloudflare.com/v1/${cfg.gatewayAccountId}/${cfg.gatewayId}/google-ai-studio`
-			: undefined;
+	const baseUrl = getGeminiBaseUrl(cfg);
 	return new GoogleGenAI({
 		apiKey: cfg.apiKey,
 		httpOptions: baseUrl ? { baseUrl } : undefined,
 	});
+}
+
+export function getGeminiBaseUrl(
+	cfg: Pick<GenAIConfig, "gatewayAccountId" | "gatewayId">,
+): string | undefined {
+	return cfg.gatewayAccountId && cfg.gatewayId
+		? `https://gateway.ai.cloudflare.com/v1/${cfg.gatewayAccountId}/${cfg.gatewayId}/google-ai-studio`
+		: undefined;
 }
 
 interface ParseOptions {
@@ -62,7 +67,7 @@ export async function parseVoiceIntent(opts: ParseOptions): Promise<Utterance> {
 	);
 
 	const response = await opts.genai.models.generateContent({
-		model: CHAT_MODEL,
+		model: GEMINI_CHAT_MODEL,
 		contents: [
 			{
 				role: "user",
@@ -104,7 +109,7 @@ export async function parseTextIntent(opts: {
 		opts.tagCandidates,
 	);
 	const response = await opts.genai.models.generateContent({
-		model: CHAT_MODEL,
+		model: GEMINI_CHAT_MODEL,
 		contents: [{ role: "user", parts: [{ text: userText }] }],
 		config: {
 			systemInstruction: SYSTEM_PROMPT,

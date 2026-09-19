@@ -1,6 +1,11 @@
 import type { TaskView } from "@mui-memo/shared/logic";
 import type { Utterance } from "@mui-memo/shared/validators";
-import { createGenAI, parseVoiceIntent as parseGemini } from "./gemini";
+import {
+	createGenAI,
+	GEMINI_CHAT_MODEL,
+	getGeminiBaseUrl,
+	parseVoiceIntent as parseGemini,
+} from "./gemini";
 import type { TimeAnchor } from "./intent-shared";
 import { createOpenAIClient, parseVoiceIntent as parseOpenAI } from "./openai";
 
@@ -19,6 +24,7 @@ export interface IntentEnv {
 }
 
 interface ParseArgs {
+	userId: string;
 	audio: ArrayBuffer;
 	audioMimeType: string;
 	currentTasks: TaskView[];
@@ -51,6 +57,24 @@ export function pickProvider(
 	return "openai";
 }
 
+export function getIntentTarget(env: IntentEnv, country?: string | null) {
+	const provider = pickProvider(env, country);
+	if (provider === "openai") {
+		return {
+			provider,
+			model: env.OPENAI_MODEL,
+			endpoint: env.OPENAI_BASE_URL
+				? `${env.OPENAI_BASE_URL.replace(/\/$/, "")}/chat/completions`
+				: undefined,
+		};
+	}
+	return {
+		provider,
+		model: GEMINI_CHAT_MODEL,
+		endpoint: `${getGeminiBaseUrl({ gatewayAccountId: env.CF_ACCOUNT_ID, gatewayId: env.CF_AI_GATEWAY_ID }) ?? "https://generativelanguage.googleapis.com"}/v1beta/models/${GEMINI_CHAT_MODEL}:generateContent`,
+	};
+}
+
 /**
  * 选 provider 并调用对应的 parseVoiceIntent。provider 由 pickProvider 决定
  * （AI_PROVIDER 显式覆盖，否则按来源地区切；详见 pickProvider 注释）。
@@ -59,7 +83,7 @@ export async function resolveAndParseVoiceIntent(
 	env: IntentEnv,
 	args: ParseArgs,
 ): Promise<Utterance> {
-	const { country, ...parseArgs } = args;
+	const { country, userId, ...parseArgs } = args;
 	const provider = pickProvider(env, country);
 	if (provider === "openai") {
 		if (!env.OPENAI_API_KEY || !env.OPENAI_BASE_URL || !env.OPENAI_MODEL) {
@@ -70,6 +94,7 @@ export async function resolveAndParseVoiceIntent(
 		const client = createOpenAIClient({
 			apiKey: env.OPENAI_API_KEY,
 			baseURL: env.OPENAI_BASE_URL,
+			sessionId: userId,
 		});
 		return parseOpenAI({ client, model: env.OPENAI_MODEL, ...parseArgs });
 	}

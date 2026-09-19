@@ -5,8 +5,71 @@
  * 用 node 环境，避免 happy-dom 注入 window 触发 OpenAI SDK 的浏览器保护
  *（intent.ts 会间接 import openai / @google/genai）。
  */
-import { describe, expect, it } from "vitest";
-import { type IntentEnv, pickProvider } from "./intent";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+	type IntentEnv,
+	pickProvider,
+	resolveAndParseVoiceIntent,
+} from "./intent";
+
+afterEach(() => vi.unstubAllGlobals());
+
+it("真实 SDK 请求携带稳定的 userId 会话头，不同用户互不串用", async () => {
+	const requests: Request[] = [];
+	vi.stubGlobal(
+		"fetch",
+		vi.fn<typeof fetch>(async (input, init) => {
+			const request = new Request(input, init);
+			requests.push(request);
+			if (!request.headers.get("x-opencode-session")) {
+				return Response.json(
+					{ error: { message: "Missing session", type: "MissingSessionID" } },
+					{ status: 400 },
+				);
+			}
+			return Response.json({
+				choices: [
+					{
+						message: {
+							content: JSON.stringify({
+								raw: "测试",
+								actions: [{ intent: "ADD", task: {} }],
+							}),
+						},
+					},
+				],
+			});
+		}),
+	);
+	for (const userId of ["user-a", "user-a", "user-b"]) {
+		const result = await resolveAndParseVoiceIntent(
+			{
+				OPENAI_API_KEY: "test-key",
+				OPENAI_BASE_URL: "https://opencode.ai/zen/go/v1",
+				OPENAI_MODEL: "mimo-v2.5",
+			},
+			{
+				userId,
+				country: "CN",
+				audio: new ArrayBuffer(4),
+				audioMimeType: "audio/mp4",
+				currentTasks: [],
+				now: {
+					iso: "2026-09-19T10:00:00+08:00",
+					tz: "Asia/Shanghai",
+					weekday: "周六",
+				},
+			},
+		);
+		expect(result.raw).toBe("测试");
+	}
+	expect(
+		requests.map((request) => request.headers.get("x-opencode-session")),
+	).toEqual(["user-a", "user-a", "user-b"]);
+	expect(requests[0].url).toBe(
+		"https://opencode.ai/zen/go/v1/chat/completions",
+	);
+});
 
 const base: IntentEnv = {
 	GEMINI_API_KEY: "g",

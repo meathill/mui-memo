@@ -7,7 +7,9 @@ import {
 import { type Action, taskPlaceEnum } from "@mui-memo/shared/validators";
 import { NextResponse } from "next/server";
 import { R2_PREFIX } from "@/lib/config";
-import { pickProvider, resolveAndParseVoiceIntent } from "@/lib/intent";
+import { getIntentTarget, resolveAndParseVoiceIntent } from "@/lib/intent";
+import { logIntentFailure } from "@/lib/intent-error";
+import { audioToBase64, SYSTEM_PROMPT } from "@/lib/intent-shared";
 import { requireAuthDb } from "@/lib/route";
 import { resolveTargetTask } from "@/lib/search";
 import {
@@ -79,6 +81,7 @@ export async function POST(req: Request) {
 	try {
 		const anchor = describeNow(tz);
 		utterance = await resolveAndParseVoiceIntent(env, {
+			userId,
 			audio: audioBuffer,
 			audioMimeType: mimeType,
 			currentTasks: tasksBefore,
@@ -88,10 +91,28 @@ export async function POST(req: Request) {
 		});
 	} catch (err) {
 		const msg = err instanceof Error ? err.message : "unknown";
-		console.error(
-			"[api/intent] ai_failed",
-			{ userId, country, provider: pickProvider(env, country) },
+		logIntentFailure(
 			err,
+			{
+				userId,
+				country,
+				...getIntentTarget(env, country),
+				audioMimeType: mimeType,
+				audioBytes: audioBuffer.byteLength,
+				rayId: req.headers.get("cf-ray"),
+			},
+			[
+				env.OPENAI_API_KEY ?? "",
+				env.GEMINI_API_KEY ?? "",
+				await audioToBase64(audioBuffer),
+				SYSTEM_PROMPT,
+				...tasksBefore.flatMap((task) => [
+					task.text,
+					task.rawText ?? "",
+					task.aiReason ?? "",
+				]),
+				...tagCandidates,
+			],
 		);
 		return NextResponse.json(
 			{ error: "ai_failed", detail: msg },

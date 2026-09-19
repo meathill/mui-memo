@@ -108,6 +108,7 @@ embedding VECTOR(1024)
 - 来源国家取自 Cloudflare 边缘注入的 `cf-ipcountry` 请求头，在 [apps/web/src/app/api/intent/route.ts](apps/web/src/app/api/intent/route.ts) 里 `req.headers.get('cf-ipcountry')` 读出透传；`next dev` 没这个头 → null → 回退 MIMO。`/api/intent` 是唯一调用入口
 - 共享部分（system prompt / userPrompt / audioToBase64 / extractJson / TimeAnchor）抽到 [apps/web/src/lib/intent-shared.ts](apps/web/src/lib/intent-shared.ts)，两个 provider 共用，确保输出 schema 一致
 - OpenAI 路径的生产目标是 [OpenCode Go](https://dev.opencode.ai/docs/go/)：`OPENAI_BASE_URL=https://opencode.ai/zen/go/v1`、`OPENAI_MODEL=mimo-v2.5`，官方 `openai` SDK 会在 base URL 后补 `/chat/completions`
+- OpenCode Go 缺少 `x-opencode-session` 会返回 `400 MissingSessionID`。生产语音请求用服务端已认证的 `session.user.id` 原样作为该请求头；同一用户跨请求保持稳定，不采信客户端传入的用户或会话标识。该 ID 是不透明字符串，不要求转换为 UUID，也不使用登录 token。
 - `'auto'` 模式两个 provider 的凭据都要备齐（任一地区都可能命中）：OpenCode Go key 存 `OPENAI_API_KEY`，Gemini key 存 `GEMINI_API_KEY`；在 `.dev.vars` 或 `wrangler secret put OPENAI_API_KEY` 设。`AI_PROVIDER`、`OPENAI_BASE_URL`、`OPENAI_MODEL` 是 wrangler.jsonc 的 vars（非 secret）
 - OpenCode Go 官方定位是 OpenCode / 编程 Agent 流量，并会监控异常使用；叨叨记的低频语音流量不属于文档明确承诺的典型场景。每次换 key / 端点后都要用真实语音做 smoke test；若流量增长或音频透传不稳定，改用明确支持产品 API 的按量计费 provider
 - `input_audio.format` 字段：OpenAI SDK 类型只声明 `'wav' | 'mp3'`，但 MIMO 实际接受 mp3 / wav / flac / m4a / ogg（[音频限制](https://platform.xiaomimimo.com/docs/zh-CN/usage-guide/multimodal-understanding/audio-understanding?target=%E9%9F%B3%E9%A2%91%E9%99%90%E5%88%B6)），代码里 cast 绕过类型限制
@@ -309,11 +310,13 @@ script 显式设了 `PROMPT_EVAL=1`，没这个 env 整套 `describe.skip` 跳�
 - Consent Mode v2 基础版：`layout.tsx` 在 gtag 加载前推 `consent default`（`ad_*` 全 denied，`analytics_storage` 默认 granted），存量选择存 `localStorage muimemo:consent`；要上完整 cookie 横幅时把默认值改 denied 即可，接口已备好
 - 口径：App 原生侧无 gtag，不伪造 App 事件进 GA；跨端以服务端 DB（同一 userId）为准，GA 只看 Web 侧趋势
 
-## Next.js：_rsc 预取收紧 + 关 observability（2026-09）
+## Next.js：_rsc 预取收紧 + Observability 排障开关（2026-09）
 
 - App Router 的 `<Link>` 默认预取 `_rsc` 请求，落在 OpenNext worker 上就是一次真实调用。规则：**低意图链接（页脚/MDX/hero/auth/log 列表）一律 `prefetch={false}`**，只保留主导航与 /app CTA 预取
 - `open-next.config.ts` 显式 `enableCacheInterception: false`（该版本默认值变化，显式声明防升级踩坑）
-- `wrangler.jsonc` 的 `observability.enabled` 置 false 省额度；要查线上问题时临时打开再关
+- 2026-09-19 为排查语音失败，`wrangler.jsonc` 已改为 `observability.enabled: true`、`head_sampling_rate: 1`，显式开启 `logs.enabled/persist/invocation_logs`；配置随下次发布生效，排障结束后再评估是否关闭或降低采样率。
+- `/api/intent` 用单条 JSON 日志输出 `[api/intent] ai_failed`，包含实际模型、端点、音频 MIME/字节数、Ray ID，以及 `error.name/message/stack`。OpenAI 上游状态、错误码和请求 ID 位于 `error.cause`，连接根因可能再嵌套一层 `cause`。
+- 错误只提取诊断字段，不展开 SDK headers/request/response/body；过滤已知 API key、音频和用户任务文本。JSON/Zod 解析异常仅记录失败类别和栈，避免模型回答进入日志。HTTP 502 与 `{ error, detail }` 契约不变。
 
 ## 任务多标签：tag → tags（app 0.4.0）
 

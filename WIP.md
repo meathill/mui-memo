@@ -1,5 +1,13 @@
 # WIP · MuiMemo
 
+## AI 错误日志与 Observability（2026-09-19）
+
+- 实现完成：详细 JSON 错误日志、cause 保留和脱敏；配置开启全量持久化日志，使用方式见 DEV_NOTE.md。
+- 本地验证：Web 161 项测试、改动文件 Biome 检查、Web 类型检查通过；无 `.env` 隔离副本的 shared + Next 生产构建成功，仍有既有任务详情页导出警告及缺少生产 secrets 提示。
+- 线上日志已确认 OpenCode Go 返回 `400 MissingSessionID`，缺少 `x-opencode-session`。
+- 已使用服务端认证用户的 userId 作为稳定 session ID；真实 SDK 请求头、跨用户隔离与客户端伪造标识的回归测试通过。
+- [ ] 发布 session ID 修复后重新验证真实语音。
+
 ## 当前迭代:任务保险箱(Secret Vault)
 
 ### 目标
