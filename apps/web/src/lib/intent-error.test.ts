@@ -14,7 +14,7 @@ const context = {
 	userId: "user-test",
 	country: "CN",
 	provider: "openai" as const,
-	model: "mimo-v2.5",
+	model: "mimo-v2.6-flash",
 	endpoint: "https://opencode.ai/zen/go/v1/chat/completions",
 	audioMimeType: "audio/mp4",
 	audioBytes: 1024,
@@ -171,7 +171,7 @@ describe("语音失败 JSON 日志", () => {
 
 	it("实际模型与端点按 provider 路由生成", () => {
 		const env = {
-			OPENAI_MODEL: "mimo-v2.5",
+			OPENAI_MODEL: "mimo-v2.6-flash",
 			OPENAI_BASE_URL: "https://opencode.ai/zen/go/v1/",
 		};
 		expect(getIntentTarget(env, "CN")).toEqual({

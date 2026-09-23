@@ -13,7 +13,7 @@ vi.mock("@/lib/route", () => ({
 			env: {
 				OPENAI_API_KEY: "test-secret",
 				OPENAI_BASE_URL: "https://opencode.ai/zen/go/v1",
-				OPENAI_MODEL: "mimo-v2.5",
+				OPENAI_MODEL: "mimo-v2.6-flash",
 			},
 		},
 	],
@@ -77,7 +77,7 @@ it("失败接口保持 502/detail，输出单条包含真实目标和上游原�
 	expect(JSON.parse(logger.mock.calls[0][0])).toMatchObject({
 		message: "[api/intent] ai_failed",
 		provider: "openai",
-		model: "mimo-v2.5",
+		model: "mimo-v2.6-flash",
 		endpoint: "https://opencode.ai/zen/go/v1/chat/completions",
 		rayId: "test-ray",
 		audioMimeType: "audio/mp4",

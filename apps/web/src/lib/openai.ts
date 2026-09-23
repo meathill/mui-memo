@@ -68,7 +68,7 @@ function pickAudioFormat(mimeType: string): MimoAudioFormat {
 
 /**
  * 用 OpenAI 兼容多模态 chat 接口处理音频，返回符合 utteranceSchema 的 Utterance。
- * 生产环境通过 OpenCode Go 调用 MiMo-V2.5；同协议服务也可用于本地评估。
+ * 生产环境通过 OpenCode Go 调用 MiMo-V2.6-Flash；同协议服务也可用于本地评估。
  */
 export async function parseVoiceIntent(opts: ParseOptions): Promise<Utterance> {
 	const base64 = await audioToBase64(opts.audio);

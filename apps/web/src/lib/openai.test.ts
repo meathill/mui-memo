@@ -15,7 +15,7 @@ function createOptions() {
 	});
 	return {
 		client,
-		model: "mimo-v2.5",
+		model: "mimo-v2.6-flash",
 		audio: new ArrayBuffer(4),
 		audioMimeType: "audio/mp4",
 		currentTasks: [],

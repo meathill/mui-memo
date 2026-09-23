@@ -103,11 +103,11 @@ embedding VECTOR(1024)
 
 - 入口 [apps/web/src/lib/intent.ts](apps/web/src/lib/intent.ts) 的 `pickProvider(env, country)` 决定 provider，`resolveAndParseVoiceIntent` 据此路由：
   - `AI_PROVIDER` 显式为 `'openai'` / `'gemini'` → 强制锁定（本地调试 / 手动覆盖）
-  - `'auto'`（现行默认，见 wrangler.jsonc）或缺省 → **按来源地区切**：中国地区 `CN/HK/TW/MO` 走 OpenCode Go 的 MiMo-V2.5，其余已识别地区走 Gemini
+  - `'auto'`（现行默认，见 wrangler.jsonc）或缺省 → **按来源地区切**：中国地区 `CN/HK/TW/MO` 走 OpenCode Go 的 MiMo-V2.6-Flash，其余已识别地区走 Gemini
   - 识别不到来源（本地 dev、`XX`/`T1`、null）→ 回退 MiMo。理由：不能把未知来源误发到大陆不可达的 Gemini
 - 来源国家取自 Cloudflare 边缘注入的 `cf-ipcountry` 请求头，在 [apps/web/src/app/api/intent/route.ts](apps/web/src/app/api/intent/route.ts) 里 `req.headers.get('cf-ipcountry')` 读出透传；`next dev` 没这个头 → null → 回退 MIMO。`/api/intent` 是唯一调用入口
 - 共享部分（system prompt / userPrompt / audioToBase64 / extractJson / TimeAnchor）抽到 [apps/web/src/lib/intent-shared.ts](apps/web/src/lib/intent-shared.ts)，两个 provider 共用，确保输出 schema 一致
-- OpenAI 路径的生产目标是 [OpenCode Go](https://dev.opencode.ai/docs/go/)：`OPENAI_BASE_URL=https://opencode.ai/zen/go/v1`、`OPENAI_MODEL=mimo-v2.5`，官方 `openai` SDK 会在 base URL 后补 `/chat/completions`
+- OpenAI 路径的生产目标是 [OpenCode Go](https://dev.opencode.ai/docs/go/)：`OPENAI_BASE_URL=https://opencode.ai/zen/go/v1`、`OPENAI_MODEL=mimo-v2.6-flash`，官方 `openai` SDK 会在 base URL 后补 `/chat/completions`
 - OpenCode Go 缺少 `x-opencode-session` 会返回 `400 MissingSessionID`。生产语音请求用服务端已认证的 `session.user.id` 原样作为该请求头；同一用户跨请求保持稳定，不采信客户端传入的用户或会话标识。该 ID 是不透明字符串，不要求转换为 UUID，也不使用登录 token。
 - `'auto'` 模式两个 provider 的凭据都要备齐（任一地区都可能命中）：OpenCode Go key 存 `OPENAI_API_KEY`，Gemini key 存 `GEMINI_API_KEY`；在 `.dev.vars` 或 `wrangler secret put OPENAI_API_KEY` 设。`AI_PROVIDER`、`OPENAI_BASE_URL`、`OPENAI_MODEL` 是 wrangler.jsonc 的 vars（非 secret）
 - OpenCode Go 官方定位是 OpenCode / 编程 Agent 流量，并会监控异常使用；叨叨记的低频语音流量不属于文档明确承诺的典型场景。每次换 key / 端点后都要用真实语音做 smoke test；若流量增长或音频透传不稳定，改用明确支持产品 API 的按量计费 provider
@@ -173,7 +173,7 @@ script 显式设了 `PROMPT_EVAL=1`，没这个 env 整套 `describe.skip` 跳�
 
 - **位置**：[`intent-prompt.cases.ts`](apps/web/src/lib/intent-prompt.cases.ts)（case 数据）+ [`intent-prompt.eval.test.ts`](apps/web/src/lib/intent-prompt.eval.test.ts)（驱动）
 - **跑真实模型不 mock**。[`vitest.config.ts`](apps/web/vitest.config.ts) 启动时用 dotenv 把 `apps/web/.dev.vars` 注入 `process.env`，按优先级选 provider：
-  1. `OPENAI_API_KEY` + `OPENAI_BASE_URL` + `OPENAI_MODEL` → OpenAI 兼容（生产默认 OpenCode Go / MiMo-V2.5）
+  1. `OPENAI_API_KEY` + `OPENAI_BASE_URL` + `OPENAI_MODEL` → OpenAI 兼容（生产默认 OpenCode Go / MiMo-V2.6-Flash）
   2. `GEMINI_API_KEY` → Gemini
   3. 都没有 → `describe.skip` 整套跳过
 - 测试文件首行有 `@vitest-environment node`：OpenAI SDK 检测到 happy-dom 注入的 `window` 会拒跑（怕泄 key），eval 套件不动 DOM 切 node 即可

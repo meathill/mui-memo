@@ -45,7 +45,7 @@
 
 - **TiDB Cloud**：账号、任务、输入记录等结构化数据
 - **Cloudflare Workers / R2**：应用运行 + 音频和附件对象存储
-- **AI provider（OpenCode Go 的 MiMo-V2.5 或 Google Gemini）**：语音意图解析。Provider 不会使用你的内容训练模型；数据保留规则以各自隐私政策为准
+- **AI provider（OpenCode Go 的 MiMo-V2.6-Flash 或 Google Gemini）**：语音意图解析。Provider 不会使用你的内容训练模型；数据保留规则以各自隐私政策为准
 - **Apple**：IAP 订阅、Sign in with Apple 鉴权
 - **Google Analytics**：基础访问分析
 

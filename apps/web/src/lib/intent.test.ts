@@ -46,7 +46,7 @@ it("真实 SDK 请求携带稳定的 userId 会话头，不同用户互不串用
 			{
 				OPENAI_API_KEY: "test-key",
 				OPENAI_BASE_URL: "https://opencode.ai/zen/go/v1",
-				OPENAI_MODEL: "mimo-v2.5",
+				OPENAI_MODEL: "mimo-v2.6-flash",
 			},
 			{
 				userId,

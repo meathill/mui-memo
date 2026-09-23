@@ -42,7 +42,7 @@ const UNRESOLVED_REGIONS = new Set(["XX", "T1"]);
 /**
  * 选择 AI provider：
  * - AI_PROVIDER 显式为 'openai' / 'gemini' 时强制用它（本地调试 / 手动锁定）。
- * - 'auto' 或未配置时按来源地区切：中国地区（CN/HK/TW/MO）走 OpenCode Go 的 MiMo，
+ * - 'auto' 或未配置时按来源地区切：中国地区（CN/HK/TW/MO）走 OpenCode Go 的 MiMo-V2.6-Flash，
  *   其余已识别地区走 Gemini。识别不到来源时回退 MiMo，避免误发到大陆不可达的 Gemini；
  *   而把大陆用户错发到 Gemini 会直接不可用。
  */
